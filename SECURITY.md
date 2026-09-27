@@ -1,0 +1,1 @@
+# Security\n\nDo not commit production credentials, API keys, real personnel records, leave data, or service-role secrets.\n\nProduction architecture will enforce authentication, least privilege, row-level security, encrypted transport, audit logging, and separate development/production environments.\n
