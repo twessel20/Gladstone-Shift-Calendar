@@ -19,12 +19,23 @@ main{padding:18px;min-width:0}.top{display:flex;align-items:center;gap:10px;marg
 .comp{margin-top:11px;border:1px solid var(--ln);border-radius:9px;padding:9px}.cr{display:flex;justify-content:space-between;padding:4px 0;font-size:12px}.acts{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:11px}.btn{border:0;border-radius:8px;padding:10px;font-weight:800;color:#fff;cursor:pointer}.blue{background:#187cf3}.greenb{background:#16a66a}.dark{background:#1a2d45;border:1px solid #2d4868}.purple{background:#6e43d8}
 .bottom{display:grid;grid-template-columns:1fr 1.4fr;gap:10px;margin-top:12px}.panel{background:var(--p);border:1px solid var(--ln);border-radius:10px;padding:11px}.issue{padding:7px 0;border-top:1px solid #203047;font-size:12px}.whole{display:none;margin:0 0 12px;padding:10px 12px;border-radius:10px;background:#102238;border:1px solid #29415d;color:#cbd7e8}.whole.show{display:block}
 @media(max-width:1050px){.app{grid-template-columns:1fr}aside{display:none}.layout{grid-template-columns:1fr}.detail{position:static}.kpis{grid-template-columns:1fr 1fr}}
+.demo-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:100;align-items:center;justify-content:center;padding:20px}
+.demo-modal.show{display:flex}.demo-box{width:min(860px,100%);max-height:85vh;overflow:auto;background:#0b1726;border:1px solid #2b425e;border-radius:14px;padding:16px}
+.demo-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}.demo-head h2{margin:0}.demo-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.person{border:1px solid #263d59;background:#0d1b2d;border-radius:10px;padding:10px;cursor:pointer}.person:hover{border-color:#4c78aa}.person .nm{font-weight:900;font-size:15px}.tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}.tag{font-size:10px;padding:3px 6px;border-radius:999px;background:#173451;color:#c8ddf6}.tag.warn{background:#5a4215;color:#ffd980}.tag.purp{background:#3b276d;color:#d7c4ff}
+.cred{margin:12px 0;padding:10px;border:1px solid #5a4215;background:#2a2110;border-radius:9px;color:#f7d98c;font-size:12px}.perm{margin-top:8px;color:#9fb0c7;font-size:11px}
+@media(max-width:700px){.demo-list{grid-template-columns:1fr}}
 </style>
 </head>
 <body><div class="app">
 <aside><div class="brand">GLADSTONE<br>FIRE DEPARTMENT<small>PEOPLE • APPARATUS • READINESS</small></div>
 <nav><button class="on">▣ Schedule</button><button>◉ Staffing Board</button><button>♟ OT / Force</button><button>▤ Trades & Leave</button><button>☆ Special Events</button><button>♙ Personnel</button><button>▧ Reports</button><button>☷ Audit Log</button><button>● Notifications</button></nav>
-<div class="me"><b>Prototype User</b><br>Battalion Chief<br><span class="muted">A Shift</span></div></aside>
+<div class="me">
+    <b id="demoUserName">Alex Carter</b><br>
+    <span id="demoUserRole">Battalion Chief</span><br>
+    <span class="muted" id="demoUserShift">A Shift</span>
+    <button class="ctl" style="width:100%;margin-top:10px;padding:7px" onclick="openDemoUsers()">Switch Demo User</button>
+  </div></aside>
 <main><div class="top"><div><h1>28-Day Schedule</h1><div id="shiftLabel" class="shift">A Shift <span class="muted">• 24/48</span></div></div><div class="grow"></div>
 <button class="ctl">Today</button><button class="ctl">Sep 30 – Oct 27</button><button id="kelly" class="ctl kelly">A Shift • Kelly Month</button>
 <select id="shiftView" class="ctl" onchange="changeShift(this.value)"><option>A</option><option>B</option><option>C</option><option value="ALL">Whole Schedule</option></select></div>
@@ -47,4 +58,78 @@ for(const [name,cl] of units){if(cl.startsWith('band')){g.innerHTML+=`<div class
 function showDay(k){const d=new Date(k+'T12:00:00'),x=openings[k]||[];dd.textContent=d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric',year:'numeric'});bn.textContent=x.length?`Needs Staff — ${x.length} Open Position${x.length>1?'s':''}`:'Fully Staffed';bn.className='banner'+(x.length?' bad':'');min.textContent=x.length?`${x.length} open`:'Met';als.textContent=x.some(v=>v.includes('Medic'))?'Review':'Met';fao.textContent=x.some(v=>v.includes('FAO'))?'Review':'Met';off.textContent='Met'}
 function changeShift(v){whole.classList.toggle('show',v==='ALL');shiftLabel.innerHTML=v==='ALL'?'Whole Schedule <span class="muted">• A/B/C 24/48</span>':v+' Shift <span class="muted">• 24/48</span>';kelly.textContent=v==='A'?'A Shift • Kelly Month':v==='ALL'?'Kelly Month':v+' Shift • Standard Cycle';kelly.classList.toggle('kelly',v==='A')}
 render();showDay('2026-09-30');
-</script></body></html>
+</script><div id="demoModal" class="demo-modal">
+    <div class="demo-box">
+      <div class="demo-head"><h2>Demo Personnel</h2><div class="grow"></div><button class="ctl" onclick="closeDemoUsers()">Close</button></div>
+      <div class="cred"><b>FICTIONAL DEMO DATA ONLY.</b> These names, qualifications, and credentials are not real department records. Select a person to preview how the app behaves for different roles and qualifications.</div>
+      <div id="demoList" class="demo-list"></div>
+    </div>
+  </div>
+<script>
+let demoPersonnel=[];
+let currentDemo=null;
+
+async function loadDemoData(){
+  try{
+    const r=await fetch('demo-data.json',{cache:'no-store'});
+    const data=await r.json();
+    demoPersonnel=data.personnel||[];
+    currentDemo=demoPersonnel[0]||null;
+    renderDemoList();
+    applyDemoUser(currentDemo);
+  }catch(e){ console.warn('Demo data unavailable',e); }
+}
+function openDemoUsers(){document.getElementById('demoModal').classList.add('show')}
+function closeDemoUsers(){document.getElementById('demoModal').classList.remove('show')}
+function roleSummary(p){
+  const t=[];
+  if(p.ems) t.push(p.ems);
+  if(p.fao) t.push('FAO');
+  if(p.fto) t.push('FTO');
+  if(p.captain_step_up) t.push('Captain Step-Up');
+  if(p.bc_step_up) t.push('BC Step-Up');
+  if(p.single_role_medic) t.push('Single-Role Medic');
+  if(p.new_hire) t.push('New Hire');
+  return t;
+}
+function renderDemoList(){
+  const root=document.getElementById('demoList');
+  root.innerHTML=demoPersonnel.map(p=>`
+    <div class="person" onclick="selectDemoUser('${p.id}')">
+      <div class="nm">${p.name}</div>
+      <div class="muted">${p.shift} Shift • ${p.rank}</div>
+      <div class="tags">${roleSummary(p).map(x=>`<span class="tag ${x.includes('Step-Up')?'purp':x==='New Hire'?'warn':''}">${x}</span>`).join('')}</div>
+      <div class="perm">${permissionText(p)}</div>
+    </div>`).join('');
+}
+function permissionText(p){
+  if(p.rank==='Battalion Chief') return 'Demo access: department-wide scheduling, approvals, OT/force, overrides';
+  if(p.rank==='Captain') return 'Demo access: shift visibility, trade acknowledgement, staffing awareness';
+  return 'Demo access: personal schedule, trades, leave, OT availability, events';
+}
+function selectDemoUser(id){
+  currentDemo=demoPersonnel.find(p=>p.id===id);
+  applyDemoUser(currentDemo);
+  closeDemoUsers();
+}
+function applyDemoUser(p){
+  if(!p)return;
+  document.getElementById('demoUserName').textContent=p.name;
+  document.getElementById('demoUserRole').textContent=p.rank;
+  document.getElementById('demoUserShift').textContent=p.shift+' Shift';
+  document.getElementById('shiftView').value=p.shift;
+  changeShift(p.shift);
+  document.querySelectorAll('.acts .btn').forEach(b=>{
+    const bc=p.rank==='Battalion Chief'||p.bc_step_up;
+    const captain=p.rank==='Captain';
+    if(b.textContent.includes('Assign OT')||b.textContent.includes('Move Personnel')) {
+      b.disabled=!bc; b.style.opacity=bc?'1':'.35'; b.title=bc?'':'BC authority required';
+    }
+    if(b.textContent.includes('Fill Shortage')) {
+      b.disabled=!(bc||captain); b.style.opacity=(bc||captain)?'1':'.35';
+    }
+  });
+}
+loadDemoData();
+</script>
+</body></html>
