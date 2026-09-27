@@ -25,6 +25,16 @@ main{padding:18px;min-width:0}.top{display:flex;align-items:center;gap:10px;marg
 .person{border:1px solid #263d59;background:#0d1b2d;border-radius:10px;padding:10px;cursor:pointer}.person:hover{border-color:#4c78aa}.person .nm{font-weight:900;font-size:15px}.tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}.tag{font-size:10px;padding:3px 6px;border-radius:999px;background:#173451;color:#c8ddf6}.tag.warn{background:#5a4215;color:#ffd980}.tag.purp{background:#3b276d;color:#d7c4ff}
 .cred{margin:12px 0;padding:10px;border:1px solid #5a4215;background:#2a2110;border-radius:9px;color:#f7d98c;font-size:12px}.perm{margin-top:8px;color:#9fb0c7;font-size:11px}
 @media(max-width:700px){.demo-list{grid-template-columns:1fr}}
+.workflow-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:110;align-items:center;justify-content:center;padding:18px}.workflow-modal.show{display:flex}
+.workflow-box{width:min(980px,100%);max-height:90vh;overflow:auto;background:#091727;border:1px solid #2b4564;border-radius:14px;padding:16px}
+.workflow-grid{display:grid;grid-template-columns:300px 1fr;gap:14px}.workflow-side,.workflow-main{background:#0d1a2a;border:1px solid #22364f;border-radius:10px;padding:12px}
+.shortage-btn{width:100%;text-align:left;padding:10px;margin:5px 0;border:1px solid #304966;background:#102238;color:#eef5ff;border-radius:8px;cursor:pointer}.shortage-btn.active{border-color:#ef5360;background:#3b1920}
+.candidate{display:grid;grid-template-columns:1fr auto;gap:10px;padding:10px;border-top:1px solid #22364f}.candidate:first-child{border-top:0}.candidate.ineligible{opacity:.48}.cand-name{font-weight:900}.why{font-size:11px;color:#9fb0c7;margin-top:3px}
+.otmeta{display:flex;gap:7px;flex-wrap:wrap;margin-top:5px}.pill{font-size:10px;padding:3px 6px;border-radius:999px;background:#173451;color:#c8ddf6}.pill.good{background:#123f2c;color:#9be7bb}.pill.warn{background:#5a4215;color:#ffd980}.pill.bad{background:#571d25;color:#ffb1b8}
+.mode-tabs{display:flex;gap:8px;margin-bottom:10px}.mode-tabs button{flex:1}.mode-tabs button.on{outline:2px solid #6ba8ff}
+.flow-note{padding:9px;border-radius:8px;background:#102238;border:1px solid #29415d;color:#cbd7e8;font-size:12px;margin-bottom:10px}
+.activity{margin-top:10px;padding:9px;background:#081421;border:1px solid #22364f;border-radius:8px;max-height:150px;overflow:auto;font-size:11px}.activity div{padding:4px 0;border-top:1px solid #1c2a3d}.activity div:first-child{border-top:0}
+@media(max-width:800px){.workflow-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body><div class="app">
@@ -47,7 +57,7 @@ main{padding:18px;min-width:0}.top{display:flex;align-items:center;gap:10px;marg
 <div class="st st1"><h3>STATION 1</h3><div class="a"><span class="role">BC</span><span>BC / BC Step-Up</span><span class="badge ok">GOOD</span></div><div class="a"><span class="role">E1</span><span id="e1n">3-person ALS engine</span><span id="e1b" class="badge ok">3/3</span></div><div class="a"><span class="role">M1</span><span id="m1n">2-person ALS medic</span><span id="m1b" class="badge ok">2/2 ALS</span></div></div>
 <div class="st st2"><h3>STATION 2</h3><div class="a"><span class="role">E2</span><span id="e2n">3-person ALS engine</span><span id="e2b" class="badge ok">3/3</span></div><div class="a"><span class="role">M2</span><span id="m2n">2-person ALS medic</span><span id="m2b" class="badge ok">2/2 ALS</span></div></div>
 <div class="comp"><b>Shift Compliance</b><div class="cr"><span>ALS Coverage</span><span id="als">Met</span></div><div class="cr"><span>FAO Coverage</span><span id="fao">Met</span></div><div class="cr"><span>Officer Coverage</span><span id="off">Met</span></div><div class="cr"><span>Minimum Staffing</span><span id="min">Met</span></div></div>
-<div class="acts"><button class="btn blue" onclick="alert('Fill Shortage — prototype')">Fill Shortage</button><button class="btn greenb" onclick="alert('Assign OT / Force — prototype')">Assign OT / Force</button><button class="btn dark" onclick="alert('Move Personnel — prototype')">Move Personnel</button><button class="btn purple" onclick="alert('View Day Notes — prototype')">View Day Notes</button></div></aside>
+<div class="acts"><button class="btn blue" onclick="openFillShortage()">Fill Shortage</button><button class="btn greenb" onclick="openOtForce()">Assign OT / Force</button><button class="btn dark" onclick="alert('Move Personnel — prototype')">Move Personnel</button><button class="btn purple" onclick="alert('View Day Notes — prototype')">View Day Notes</button></div></aside>
 </div></main></div>
 <script>
 const start=new Date('2026-09-30T12:00:00'),openings={'2026-10-06':['E1 Driver / FAO'],'2026-10-15':['M1 Medic'],'2026-10-24':['E2 Firefighter','M2 Partner']};
@@ -58,7 +68,48 @@ for(const [name,cl] of units){if(cl.startsWith('band')){g.innerHTML+=`<div class
 function showDay(k){const d=new Date(k+'T12:00:00'),x=openings[k]||[];dd.textContent=d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric',year:'numeric'});bn.textContent=x.length?`Needs Staff — ${x.length} Open Position${x.length>1?'s':''}`:'Fully Staffed';bn.className='banner'+(x.length?' bad':'');min.textContent=x.length?`${x.length} open`:'Met';als.textContent=x.some(v=>v.includes('Medic'))?'Review':'Met';fao.textContent=x.some(v=>v.includes('FAO'))?'Review':'Met';off.textContent='Met'}
 function changeShift(v){whole.classList.toggle('show',v==='ALL');shiftLabel.innerHTML=v==='ALL'?'Whole Schedule <span class="muted">• A/B/C 24/48</span>':v+' Shift <span class="muted">• 24/48</span>';kelly.textContent=v==='A'?'A Shift • Kelly Month':v==='ALL'?'Kelly Month':v+' Shift • Standard Cycle';kelly.classList.toggle('kelly',v==='A')}
 render();showDay('2026-09-30');
-</script><div id="demoModal" class="demo-modal">
+</script><div id="fillModal" class="workflow-modal">
+    <div class="workflow-box">
+      <div class="demo-head"><h2>Fill Shortage</h2><div class="grow"></div><button class="ctl" onclick="closeWorkflow('fillModal')">Close</button></div>
+      <div class="workflow-grid">
+        <div class="workflow-side">
+          <b>Open positions</b>
+          <div id="shortageList"></div>
+          <div class="flow-note" style="margin-top:10px">Only personnel who satisfy the selected position's operational qualifications are eligible.</div>
+        </div>
+        <div class="workflow-main">
+          <div id="fillTitle" style="font-weight:900;font-size:18px;margin-bottom:4px">Select an opening</div>
+          <div id="fillSub" class="muted" style="margin-bottom:10px"></div>
+          <div id="candidateList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="otModal" class="workflow-modal">
+    <div class="workflow-box">
+      <div class="demo-head"><h2>OT / Force Workflow</h2><div class="grow"></div><button class="ctl" onclick="closeWorkflow('otModal')">Close</button></div>
+      <div class="workflow-grid">
+        <div class="workflow-side">
+          <b>Open positions</b>
+          <div id="otShortageList"></div>
+          <div class="flow-note" style="margin-top:10px">Regular OT does not auto-award to the first responder. BC selects from eligible responses. If voluntary OT fails, switch to force.</div>
+        </div>
+        <div class="workflow-main">
+          <div class="mode-tabs">
+            <button id="regularMode" class="btn blue on" onclick="setOtMode('regular')">Regular OT</button>
+            <button id="forceMode" class="btn dark" onclick="setOtMode('force')">Forced OT</button>
+          </div>
+          <div id="otTitle" style="font-weight:900;font-size:18px;margin-bottom:4px">Select an opening</div>
+          <div id="otSub" class="muted" style="margin-bottom:10px"></div>
+          <div id="otCandidateList"></div>
+          <div class="activity"><b>Demo activity</b><div id="activityLog">No actions yet.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="demoModal" class="demo-modal">
     <div class="demo-box">
       <div class="demo-head"><h2>Demo Personnel</h2><div class="grow"></div><button class="ctl" onclick="closeDemoUsers()">Close</button></div>
       <div class="cred"><b>FICTIONAL DEMO DATA ONLY.</b> These names, qualifications, and credentials are not real department records. Select a person to preview how the app behaves for different roles and qualifications.</div>
@@ -130,6 +181,138 @@ function applyDemoUser(p){
     }
   });
 }
+
+let selectedDate='2026-09-30';
+let selectedShortage=null;
+let otMode='regular';
+const demoAssignments={};
+let activityEntries=[];
+
+const shortageRules={
+  'E1 Driver / FAO':{unit:'E1',requires:{firefighter:true,fao:true},label:'E1 Driver / FAO'},
+  'M1 Medic':{unit:'M1',requires:{ems:'Paramedic'},label:'M1 Medic'},
+  'E2 Firefighter':{unit:'E2',requires:{firefighter:true},label:'E2 Firefighter'},
+  'M2 Partner':{unit:'M2',requires:{ems:'EMT_OR_PARAMEDIC'},label:'M2 Partner'}
+};
+
+const originalShowDay=showDay;
+showDay=function(k){ selectedDate=k; originalShowDay(k); };
+
+function unresolvedOpenings(){
+  const all=[];
+  Object.entries(openings).forEach(([date,items])=>items.forEach(item=>{
+    const key=date+'|'+item;
+    if(!demoAssignments[key]) all.push({date,item,key});
+  }));
+  return all;
+}
+function closeWorkflow(id){document.getElementById(id).classList.remove('show')}
+function prettyDate(k){return new Date(k+'T12:00:00').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}
+function eligibility(p,item){
+  const rule=shortageRules[item];
+  if(!rule) return {ok:false,reason:'No demo rule configured'};
+  if(p.scheduled72) return {ok:false,reason:'72-hour limit conflict'};
+  if(rule.requires.firefighter && !p.firefighter) return {ok:false,reason:'Not firefighter qualified'};
+  if(rule.requires.fao && !p.fao) return {ok:false,reason:'FAO qualification required'};
+  if(rule.requires.ems==='Paramedic' && p.ems!=='Paramedic') return {ok:false,reason:'Paramedic required'};
+  if(rule.requires.ems==='EMT_OR_PARAMEDIC' && !['EMT','Paramedic'].includes(p.ems)) return {ok:false,reason:'EMS credential required'};
+  if((rule.unit==='E1'||rule.unit==='E2') && p.single_role_medic) return {ok:false,reason:'Single-role medic restricted to M1/M2/M3'};
+  if(p.new_hire) return {ok:true,reason:'Eligible, but new-hire/FTO coverage must be validated',warning:true};
+  return {ok:true,reason:'Eligible'};
+}
+function shortageButtons(target,handler){
+  const arr=unresolvedOpenings();
+  document.getElementById(target).innerHTML=arr.length?arr.map(o=>`
+    <button class="shortage-btn ${selectedShortage===o.key?'active':''}" onclick="${handler}('${o.date}','${o.item.replaceAll("'","\\'")}')">
+      <b>${prettyDate(o.date)}</b><br><span class="muted">${o.item}</span>
+    </button>`).join(''):'<div class="flow-note">No unresolved demo shortages.</div>';
+}
+function openFillShortage(){
+  document.getElementById('fillModal').classList.add('show');
+  shortageButtons('shortageList','selectFillShortage');
+  const todays=unresolvedOpenings().find(x=>x.date===selectedDate)||unresolvedOpenings()[0];
+  if(todays) selectFillShortage(todays.date,todays.item);
+}
+function selectFillShortage(date,item){
+  selectedShortage=date+'|'+item; shortageButtons('shortageList','selectFillShortage');
+  document.getElementById('fillTitle').textContent=item;
+  document.getElementById('fillSub').textContent=prettyDate(date)+' • '+shortageRules[item].unit;
+  const sorted=[...demoPersonnel].sort((a,b)=>a.name.localeCompare(b.name));
+  document.getElementById('candidateList').innerHTML=sorted.map(p=>{
+    const e=eligibility(p,item);
+    return `<div class="candidate ${e.ok?'':'ineligible'}">
+      <div><div class="cand-name">${p.name}</div><div class="muted">${p.shift} Shift • ${p.rank}</div>
+      <div class="otmeta">${roleSummary(p).map(x=>`<span class="pill">${x}</span>`).join('')}</div>
+      <div class="why">${e.reason}</div></div>
+      <div><button class="btn ${e.ok?'blue':'dark'}" ${e.ok?'':'disabled'} onclick="assignDirect('${date}','${item.replaceAll("'","\\'")}','${p.id}')">Assign</button></div>
+    </div>`;
+  }).join('');
+}
+function assignDirect(date,item,pid){
+  const p=demoPersonnel.find(x=>x.id===pid); if(!p)return;
+  demoAssignments[date+'|'+item]={person:p,type:'Direct'};
+  recordActivity('Direct assignment: '+p.name+' → '+item+' on '+prettyDate(date));
+  refreshAfterAward(date,item);
+  closeWorkflow('fillModal');
+}
+function setOtMode(mode){
+  otMode=mode;
+  document.getElementById('regularMode').classList.toggle('on',mode==='regular');
+  document.getElementById('forceMode').classList.toggle('on',mode==='force');
+  const [date,item]=(selectedShortage||'|').split('|');
+  if(date&&item) selectOtShortage(date,item);
+}
+function openOtForce(){
+  document.getElementById('otModal').classList.add('show');
+  shortageButtons('otShortageList','selectOtShortage');
+  const todays=unresolvedOpenings().find(x=>x.date===selectedDate)||unresolvedOpenings()[0];
+  if(todays) selectOtShortage(todays.date,todays.item);
+}
+function selectOtShortage(date,item){
+  selectedShortage=date+'|'+item; shortageButtons('otShortageList','selectOtShortage');
+  document.getElementById('otTitle').textContent=(otMode==='regular'?'Regular OT — ':'Forced OT — ')+item;
+  document.getElementById('otSub').textContent=prettyDate(date)+' • qualification-filtered candidates';
+  let candidates=demoPersonnel.map(p=>({p,e:eligibility(p,item)})).filter(x=>x.e.ok);
+  if(otMode==='force') candidates.sort((a,b)=>a.p.force_order-b.p.force_order);
+  else candidates.sort((a,b)=>a.p.ot14-b.p.ot14 || a.p.name.localeCompare(b.p.name));
+  document.getElementById('otCandidateList').innerHTML=candidates.map(({p,e},i)=>{
+    const regularEligible=p.ot14<24 && p.available;
+    const forceEligible=p.ot14<1 || true;
+    const canAward=otMode==='regular'?regularEligible:forceEligible;
+    const firstUp=otMode==='force'&&i===0;
+    return `<div class="candidate ${canAward?'':'ineligible'}">
+      <div><div class="cand-name">${p.name} ${firstUp?'<span class="pill bad">FIRST UP</span>':''}</div>
+      <div class="muted">${p.shift} Shift • ${p.rank}</div>
+      <div class="otmeta">
+        <span class="pill ${p.ot14>=24?'bad':p.ot14>=12?'warn':'good'}">${p.ot14}h / 14d</span>
+        <span class="pill">Force #${p.force_order}</span>
+        <span class="pill ${p.denials>=2?'bad':''}">${p.denials} denial${p.denials===1?'':'s'}</span>
+        <span class="pill ${p.available?'good':'bad'}">${p.available?'Available':'Not Available'}</span>
+      </div><div class="why">${e.reason}${otMode==='regular'&&!regularEligible?' • Regular OT threshold/availability blocks award':''}</div></div>
+      <div><button class="btn ${canAward?(otMode==='regular'?'greenb':'blue'):'dark'}" ${canAward?'':'disabled'} onclick="awardOt('${date}','${item.replaceAll("'","\\'")}','${p.id}')">${otMode==='regular'?'Award OT':'Force'}</button></div>
+    </div>`;
+  }).join('') || '<div class="flow-note">No qualified candidates.</div>';
+}
+function awardOt(date,item,pid){
+  const p=demoPersonnel.find(x=>x.id===pid); if(!p)return;
+  const type=otMode==='regular'?'Regular OT':'Forced OT';
+  demoAssignments[date+'|'+item]={person:p,type};
+  recordActivity(type+': '+p.name+' → '+item+' on '+prettyDate(date));
+  refreshAfterAward(date,item);
+  closeWorkflow('otModal');
+}
+function recordActivity(msg){
+  activityEntries.unshift(new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})+' — '+msg);
+  document.getElementById('activityLog').innerHTML=activityEntries.map(x=>'<div>'+x+'</div>').join('');
+}
+function refreshAfterAward(date,item){
+  const remain=unresolvedOpenings().filter(x=>x.date===date).map(x=>x.item);
+  if(remain.length===0) delete openings[date]; else openings[date]=remain;
+  render(); showDay(date);
+  shortageButtons('shortageList','selectFillShortage');
+  shortageButtons('otShortageList','selectOtShortage');
+}
+
 loadDemoData();
 </script>
 </body></html>
