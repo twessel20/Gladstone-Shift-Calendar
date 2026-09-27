@@ -12,7 +12,12 @@
       "bc_step_up": false,
       "single_role_medic": false,
       "new_hire": false,
-      "fto": false
+      "fto": false,
+      "ot14": 0,
+      "force_order": 8,
+      "denials": 0,
+      "available": true,
+      "scheduled72": false
     },
     {
       "id": "p2",
@@ -26,7 +31,12 @@
       "bc_step_up": false,
       "single_role_medic": false,
       "new_hire": false,
-      "fto": true
+      "fto": true,
+      "ot14": 12,
+      "force_order": 7,
+      "denials": 0,
+      "available": true,
+      "scheduled72": false
     },
     {
       "id": "p3",
@@ -40,7 +50,12 @@
       "bc_step_up": false,
       "single_role_medic": false,
       "new_hire": false,
-      "fto": true
+      "fto": true,
+      "ot14": 24,
+      "force_order": 6,
+      "denials": 1,
+      "available": true,
+      "scheduled72": false
     },
     {
       "id": "p4",
@@ -54,7 +69,12 @@
       "bc_step_up": false,
       "single_role_medic": false,
       "new_hire": false,
-      "fto": false
+      "fto": false,
+      "ot14": 0,
+      "force_order": 2,
+      "denials": 0,
+      "available": true,
+      "scheduled72": false
     },
     {
       "id": "p5",
@@ -68,7 +88,12 @@
       "bc_step_up": false,
       "single_role_medic": false,
       "new_hire": false,
-      "fto": false
+      "fto": false,
+      "ot14": 12,
+      "force_order": 4,
+      "denials": 0,
+      "available": false,
+      "scheduled72": false
     },
     {
       "id": "p6",
@@ -82,7 +107,12 @@
       "bc_step_up": false,
       "single_role_medic": true,
       "new_hire": false,
-      "fto": true
+      "fto": true,
+      "ot14": 0,
+      "force_order": 1,
+      "denials": 1,
+      "available": true,
+      "scheduled72": false
     },
     {
       "id": "p7",
@@ -96,7 +126,12 @@
       "bc_step_up": false,
       "single_role_medic": false,
       "new_hire": true,
-      "fto": false
+      "fto": false,
+      "ot14": 0,
+      "force_order": 5,
+      "denials": 0,
+      "available": true,
+      "scheduled72": false
     },
     {
       "id": "p8",
@@ -110,7 +145,12 @@
       "bc_step_up": true,
       "single_role_medic": false,
       "new_hire": false,
-      "fto": false
+      "fto": false,
+      "ot14": 36,
+      "force_order": 3,
+      "denials": 2,
+      "available": true,
+      "scheduled72": false
     },
     {
       "id": "p9",
@@ -124,7 +164,12 @@
       "bc_step_up": false,
       "single_role_medic": false,
       "new_hire": false,
-      "fto": false
+      "fto": false,
+      "ot14": 0,
+      "force_order": 8,
+      "denials": 0,
+      "available": true,
+      "scheduled72": false
     },
     {
       "id": "p10",
@@ -138,7 +183,12 @@
       "bc_step_up": false,
       "single_role_medic": false,
       "new_hire": false,
-      "fto": true
+      "fto": true,
+      "ot14": 0,
+      "force_order": 7,
+      "denials": 0,
+      "available": true,
+      "scheduled72": false
     },
     {
       "id": "p11",
@@ -152,7 +202,12 @@
       "bc_step_up": false,
       "single_role_medic": false,
       "new_hire": false,
-      "fto": false
+      "fto": false,
+      "ot14": 0,
+      "force_order": 2,
+      "denials": 0,
+      "available": true,
+      "scheduled72": false
     },
     {
       "id": "p12",
@@ -166,7 +221,12 @@
       "bc_step_up": false,
       "single_role_medic": true,
       "new_hire": false,
-      "fto": false
+      "fto": false,
+      "ot14": 0,
+      "force_order": 1,
+      "denials": 0,
+      "available": true,
+      "scheduled72": false
     },
     {
       "id": "p13",
@@ -180,7 +240,12 @@
       "bc_step_up": false,
       "single_role_medic": false,
       "new_hire": false,
-      "fto": false
+      "fto": false,
+      "ot14": 0,
+      "force_order": 8,
+      "denials": 0,
+      "available": true,
+      "scheduled72": false
     },
     {
       "id": "p14",
@@ -194,7 +259,12 @@
       "bc_step_up": false,
       "single_role_medic": false,
       "new_hire": false,
-      "fto": true
+      "fto": true,
+      "ot14": 0,
+      "force_order": 7,
+      "denials": 0,
+      "available": true,
+      "scheduled72": false
     },
     {
       "id": "p15",
@@ -208,7 +278,12 @@
       "bc_step_up": false,
       "single_role_medic": false,
       "new_hire": false,
-      "fto": false
+      "fto": false,
+      "ot14": 12,
+      "force_order": 3,
+      "denials": 0,
+      "available": true,
+      "scheduled72": false
     },
     {
       "id": "p16",
@@ -222,7 +297,12 @@
       "bc_step_up": false,
       "single_role_medic": false,
       "new_hire": true,
-      "fto": false
+      "fto": false,
+      "ot14": 0,
+      "force_order": 4,
+      "denials": 0,
+      "available": true,
+      "scheduled72": false
     }
   ],
   "demo_credentials": [
@@ -245,5 +325,11 @@
       "scope": "A Shift"
     }
   ],
-  "notes": "All names, emails, passwords, and qualifications are fictional demo data only."
+  "notes": "All names, emails, passwords, and qualifications are fictional demo data only.",
+  "demo_state": {
+    "note": "Prototype-only mutable state is kept in the browser. Refreshing resets the demonstration.",
+    "force_rotation_rule": "Lowest force_order is first-up among eligible personnel.",
+    "regular_ot_threshold_hours_14_days": 24,
+    "forced_ot_threshold_hours_14_days": 1
+  }
 }
