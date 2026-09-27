@@ -210,6 +210,17 @@ function unresolvedOpenings(){
 }
 function closeWorkflow(id){document.getElementById(id).classList.remove('show')}
 function prettyDate(k){return new Date(k+'T12:00:00').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}
+function rankPriority(p){
+  if(p.rank==='Battalion Chief') return 40;
+  if(p.rank==='Captain') return 30;
+  if(p.rank==='Paramedic') return 20;
+  return 10;
+}
+function rankPriorityLabel(p){
+  if(p.rank==='Battalion Chief'||p.rank==='Captain') return 'Officer deferred priority';
+  if(p.rank==='Paramedic' && p.single_role_medic) return 'Single-role medic priority group';
+  return 'Line personnel priority';
+}
 function eligibility(p,item){
   const rule=shortageRules[item];
   if(!rule) return {ok:false,reason:'No demo rule configured'};
@@ -241,8 +252,8 @@ function selectFillShortage(date,item){
   const qualified=demoPersonnel.map(p=>({p,e:eligibility(p,item)})).filter(x=>x.e.ok);
   const responders=qualified.filter(x=>x.p.available);
   const awardable=responders.filter(x=>x.p.ot14<24 && !x.p.scheduled72);
-  document.getElementById('fillSub').textContent=prettyDate(date)+' • '+shortageRules[item].unit+' • '+responders.length+' qualified response'+(responders.length===1?'':'s')+' • '+awardable.length+' awardable • sorted by response time';
-  responders.sort((a,b)=>(a.p.response_minutes??999)-(b.p.response_minutes??999) || a.p.ot14-b.p.ot14 || a.p.name.localeCompare(b.p.name));
+  document.getElementById('fillSub').textContent=prettyDate(date)+' • '+shortageRules[item].unit+' • '+responders.length+' qualified response'+(responders.length===1?'':'s')+' • '+awardable.length+' awardable • lower rank first, response time breaks ties';
+  responders.sort((a,b)=>rankPriority(a.p)-rankPriority(b.p) || (a.p.response_minutes??999)-(b.p.response_minutes??999) || a.p.ot14-b.p.ot14 || a.p.name.localeCompare(b.p.name));
   document.getElementById('candidateList').innerHTML=responders.map(({p,e})=>{
     const overOt=p.ot14>=24;
     const blocked=overOt || p.scheduled72;
@@ -256,7 +267,7 @@ function selectFillShortage(date,item){
           <span class="pill">Force #${p.force_order}</span>
           <span class="pill">${roleSummary(p).join(' • ')||'Qualified'}</span>
         </div>
-        <div class="decision-line"><b>${p.response_minutes} min response</b> • ${p.ot14}h regular OT / 14d • Force #${p.force_order} • ${p.denials} denial${p.denials===1?'':'s'}<br>${blocked?(overOt?'Not awardable: 24-hour regular OT threshold reached':'Not awardable: 72-hour consecutive-hours conflict'):'Awardable now'}${warning}</div>
+        <div class="decision-line"><b>${rankPriorityLabel(p)}</b> • ${p.response_minutes} min response • ${p.ot14}h regular OT / 14d • Force #${p.force_order} • ${p.denials} denial${p.denials===1?'':'s'}<br>${blocked?(overOt?'Not awardable: 24-hour regular OT threshold reached':'Not awardable: 72-hour consecutive-hours conflict'):'Awardable now'}${warning}</div>
       </div>
       <div><button class="btn ${blocked?'dark':'greenb'}" ${blocked?'disabled':''} onclick="awardResponse('${date}','${item.replaceAll("'","\\'")}','${p.id}')">Award OT</button></div>
     </div>`;
@@ -289,7 +300,7 @@ function selectOtShortage(date,item){
   let candidates=demoPersonnel.map(p=>({p,e:eligibility(p,item)})).filter(x=>x.e.ok);
   if(otMode==='regular') candidates=candidates.filter(x=>x.p.available);
   if(otMode==='force') candidates.sort((a,b)=>a.p.force_order-b.p.force_order);
-  else candidates.sort((a,b)=>(a.p.response_minutes??999)-(b.p.response_minutes??999) || a.p.ot14-b.p.ot14 || a.p.name.localeCompare(b.p.name));
+  else candidates.sort((a,b)=>rankPriority(a.p)-rankPriority(b.p) || (a.p.response_minutes??999)-(b.p.response_minutes??999) || a.p.ot14-b.p.ot14 || a.p.name.localeCompare(b.p.name));
   document.getElementById('otCandidateList').innerHTML=candidates.map(({p,e},i)=>{
     const regularEligible=p.ot14<24 && p.available && !p.scheduled72;
     const forceEligible=!p.scheduled72;
@@ -303,7 +314,7 @@ function selectOtShortage(date,item){
         <span class="pill">Force #${p.force_order}</span>
         <span class="pill ${p.denials>=2?'bad':''}">${p.denials} denial${p.denials===1?'':'s'}</span>
         <span class="pill ${p.available?'good':'bad'}">${otMode==='regular'?(p.available?'RESPONDED AVAILABLE':'NO AVAILABLE RESPONSE'):(firstUp?'FIRST UP':'FORCE LIST')}</span>
-      </div><div class="decision-line">${otMode==='regular'?'<b>'+p.response_minutes+' min response</b> • ':''}${p.ot14}h OT / 14d • Force #${p.force_order} • ${p.denials} denial${p.denials===1?'':'s'}<br>${otMode==='regular'?(regularEligible?'Awardable now':'Not awardable under current OT rules'):(firstUp?'Current first-up qualified member':'Qualified force-list member')}</div></div>
+      </div><div class="decision-line">${otMode==='regular'?'<b>'+rankPriorityLabel(p)+'</b> • '+p.response_minutes+' min response • ':''}${p.ot14}h OT / 14d • Force #${p.force_order} • ${p.denials} denial${p.denials===1?'':'s'}<br>${otMode==='regular'?(regularEligible?'Awardable now':'Not awardable under current OT rules'):(firstUp?'Current first-up qualified member':'Qualified force-list member')}</div></div>
       <div><button class="btn ${canAward?(otMode==='regular'?'greenb':'blue'):'dark'}" ${canAward?'':'disabled'} onclick="awardOt('${date}','${item.replaceAll("'","\\'")}','${p.id}')">${otMode==='regular'?'Award OT':'Force'}</button></div>
     </div>`;
   }).join('') || '<div class="flow-note">No qualified candidates.</div>';
