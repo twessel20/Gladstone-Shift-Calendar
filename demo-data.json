@@ -17,7 +17,9 @@
       "force_order": 8,
       "denials": 0,
       "available": true,
-      "scheduled72": false
+      "scheduled72": false,
+      "response_minutes": 18,
+      "response_note": "Available — command-qualified"
     },
     {
       "id": "p2",
@@ -36,7 +38,9 @@
       "force_order": 7,
       "denials": 0,
       "available": true,
-      "scheduled72": false
+      "scheduled72": false,
+      "response_minutes": 4,
+      "response_note": "Available — 12h OT in rolling 14d"
     },
     {
       "id": "p3",
@@ -55,7 +59,9 @@
       "force_order": 6,
       "denials": 1,
       "available": true,
-      "scheduled72": false
+      "scheduled72": false,
+      "response_minutes": 11,
+      "response_note": "Available — at 24h regular OT threshold"
     },
     {
       "id": "p4",
@@ -74,7 +80,9 @@
       "force_order": 2,
       "denials": 0,
       "available": true,
-      "scheduled72": false
+      "scheduled72": false,
+      "response_minutes": 2,
+      "response_note": "Available — low recent OT"
     },
     {
       "id": "p5",
@@ -93,7 +101,9 @@
       "force_order": 4,
       "denials": 0,
       "available": false,
-      "scheduled72": false
+      "scheduled72": false,
+      "response_minutes": 7,
+      "response_note": "Declined / unavailable"
     },
     {
       "id": "p6",
@@ -112,7 +122,9 @@
       "force_order": 1,
       "denials": 1,
       "available": true,
-      "scheduled72": false
+      "scheduled72": false,
+      "response_minutes": 5,
+      "response_note": "Available — single-role medic"
     },
     {
       "id": "p7",
@@ -131,7 +143,9 @@
       "force_order": 5,
       "denials": 0,
       "available": true,
-      "scheduled72": false
+      "scheduled72": false,
+      "response_minutes": 14,
+      "response_note": "Available — new hire; FTO check"
     },
     {
       "id": "p8",
@@ -150,7 +164,9 @@
       "force_order": 3,
       "denials": 2,
       "available": true,
-      "scheduled72": false
+      "scheduled72": false,
+      "response_minutes": 9,
+      "response_note": "Available — 36h OT; regular OT blocked"
     },
     {
       "id": "p9",
@@ -169,7 +185,9 @@
       "force_order": 8,
       "denials": 0,
       "available": true,
-      "scheduled72": false
+      "scheduled72": false,
+      "response_minutes": 3,
+      "response_note": "Available — command-qualified"
     },
     {
       "id": "p10",
@@ -188,7 +206,9 @@
       "force_order": 7,
       "denials": 0,
       "available": true,
-      "scheduled72": false
+      "scheduled72": false,
+      "response_minutes": 8,
+      "response_note": "Available — low recent OT"
     },
     {
       "id": "p11",
@@ -207,7 +227,9 @@
       "force_order": 2,
       "denials": 0,
       "available": true,
-      "scheduled72": false
+      "scheduled72": false,
+      "response_minutes": 6,
+      "response_note": "Available — FAO qualified"
     },
     {
       "id": "p12",
@@ -226,7 +248,9 @@
       "force_order": 1,
       "denials": 0,
       "available": true,
-      "scheduled72": false
+      "scheduled72": false,
+      "response_minutes": 12,
+      "response_note": "Available — single-role medic"
     },
     {
       "id": "p13",
@@ -245,7 +269,9 @@
       "force_order": 8,
       "denials": 0,
       "available": true,
-      "scheduled72": false
+      "scheduled72": false,
+      "response_minutes": 4,
+      "response_note": "Available — command-qualified"
     },
     {
       "id": "p14",
@@ -264,7 +290,9 @@
       "force_order": 7,
       "denials": 0,
       "available": true,
-      "scheduled72": false
+      "scheduled72": false,
+      "response_minutes": 10,
+      "response_note": "Available — low recent OT"
     },
     {
       "id": "p15",
@@ -283,7 +311,9 @@
       "force_order": 3,
       "denials": 0,
       "available": true,
-      "scheduled72": false
+      "scheduled72": false,
+      "response_minutes": 1,
+      "response_note": "Available — 12h OT in rolling 14d"
     },
     {
       "id": "p16",
@@ -302,7 +332,9 @@
       "force_order": 4,
       "denials": 0,
       "available": true,
-      "scheduled72": false
+      "scheduled72": false,
+      "response_minutes": 13,
+      "response_note": "Available — new hire; FTO check"
     }
   ],
   "demo_credentials": [
