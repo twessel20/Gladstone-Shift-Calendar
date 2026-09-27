@@ -70,15 +70,16 @@ function changeShift(v){whole.classList.toggle('show',v==='ALL');shiftLabel.inne
 render();showDay('2026-09-30');
 </script><div id="fillModal" class="workflow-modal">
     <div class="workflow-box">
-      <div class="demo-head"><h2>Fill Shortage</h2><div class="grow"></div><button class="ctl" onclick="closeWorkflow('fillModal')">Close</button></div>
+      <div class="demo-head"><h2>Fill Shortage — Responses Received</h2><div class="grow"></div><button class="ctl" onclick="closeWorkflow('fillModal')">Close</button></div>
       <div class="workflow-grid">
         <div class="workflow-side">
           <b>Open positions</b>
           <div id="shortageList"></div>
-          <div class="flow-note" style="margin-top:10px">Only personnel who satisfy the selected position's operational qualifications are eligible.</div>
+          <div class="flow-note" style="margin-top:10px">Availability notification is complete. This screen now shows the qualified personnel who responded and applies the OT eligibility rules before you award the shortage.</div>
         </div>
         <div class="workflow-main">
           <div id="fillTitle" style="font-weight:900;font-size:18px;margin-bottom:4px">Select an opening</div>
+   <div class="flow-note"><b>BC award stage:</b> qualified responses are in. Review availability, rolling 14-day OT, 72-hour conflicts, and assignment restrictions, then award the slot.</div>
           <div id="fillSub" class="muted" style="margin-bottom:10px"></div>
           <div id="candidateList"></div>
         </div>
@@ -88,12 +89,12 @@ render();showDay('2026-09-30');
 
   <div id="otModal" class="workflow-modal">
     <div class="workflow-box">
-      <div class="demo-head"><h2>OT / Force Workflow</h2><div class="grow"></div><button class="ctl" onclick="closeWorkflow('otModal')">Close</button></div>
+      <div class="demo-head"><h2>OT / Force — Award Stage</h2><div class="grow"></div><button class="ctl" onclick="closeWorkflow('otModal')">Close</button></div>
       <div class="workflow-grid">
         <div class="workflow-side">
           <b>Open positions</b>
           <div id="otShortageList"></div>
-          <div class="flow-note" style="margin-top:10px">Regular OT does not auto-award to the first responder. BC selects from eligible responses. If voluntary OT fails, switch to force.</div>
+          <div class="flow-note" style="margin-top:10px">Qualified personnel have already been notified. Regular OT shows responders who are eligible for award. If nobody can be awarded voluntarily, switch to Forced OT.</div>
         </div>
         <div class="workflow-main">
           <div class="mode-tabs">
@@ -235,23 +236,35 @@ function openFillShortage(){
 }
 function selectFillShortage(date,item){
   selectedShortage=date+'|'+item; shortageButtons('shortageList','selectFillShortage');
-  document.getElementById('fillTitle').textContent=item;
-  document.getElementById('fillSub').textContent=prettyDate(date)+' • '+shortageRules[item].unit;
-  const sorted=[...demoPersonnel].sort((a,b)=>a.name.localeCompare(b.name));
-  document.getElementById('candidateList').innerHTML=sorted.map(p=>{
-    const e=eligibility(p,item);
-    return `<div class="candidate ${e.ok?'':'ineligible'}">
-      <div><div class="cand-name">${p.name}</div><div class="muted">${p.shift} Shift • ${p.rank}</div>
-      <div class="otmeta">${roleSummary(p).map(x=>`<span class="pill">${x}</span>`).join('')}</div>
-      <div class="why">${e.reason}</div></div>
-      <div><button class="btn ${e.ok?'blue':'dark'}" ${e.ok?'':'disabled'} onclick="assignDirect('${date}','${item.replaceAll("'","\\'")}','${p.id}')">Assign</button></div>
+  document.getElementById('fillTitle').textContent='Regular OT Responses — '+item;
+  const qualified=demoPersonnel.map(p=>({p,e:eligibility(p,item)})).filter(x=>x.e.ok);
+  const responders=qualified.filter(x=>x.p.available);
+  const awardable=responders.filter(x=>x.p.ot14<24 && !x.p.scheduled72);
+  document.getElementById('fillSub').textContent=prettyDate(date)+' • '+shortageRules[item].unit+' • '+responders.length+' qualified response'+(responders.length===1?'':'s')+' • '+awardable.length+' awardable';
+  responders.sort((a,b)=>a.p.ot14-b.p.ot14 || a.p.force_order-b.p.force_order || a.p.name.localeCompare(b.p.name));
+  document.getElementById('candidateList').innerHTML=responders.map(({p,e})=>{
+    const overOt=p.ot14>=24;
+    const blocked=overOt || p.scheduled72;
+    const warning=e.warning?' • FTO coverage must be validated':'';
+    return `<div class="candidate ${blocked?'ineligible':''}">
+      <div>
+        <div class="cand-name">${p.name} <span class="pill good">RESPONDED AVAILABLE</span></div>
+        <div class="muted">${p.shift} Shift • ${p.rank}</div>
+        <div class="otmeta">
+          <span class="pill ${p.ot14>=24?'bad':p.ot14>=12?'warn':'good'}">${p.ot14}h Regular OT / rolling 14d</span>
+          <span class="pill">Force #${p.force_order}</span>
+          <span class="pill">${roleSummary(p).join(' • ')||'Qualified'}</span>
+        </div>
+        <div class="why">${blocked?(overOt?'Not awardable: 24-hour regular OT threshold reached':'Not awardable: 72-hour consecutive-hours conflict'):'Eligible for Regular OT award'}${warning}</div>
+      </div>
+      <div><button class="btn ${blocked?'dark':'greenb'}" ${blocked?'disabled':''} onclick="awardResponse('${date}','${item.replaceAll("'","\\'")}','${p.id}')">Award OT</button></div>
     </div>`;
-  }).join('');
+  }).join('') || '<div class="flow-note">No qualified personnel responded available. Use the OT / Force workflow to move to the force list.</div>';
 }
-function assignDirect(date,item,pid){
+function awardResponse(date,item,pid){
   const p=demoPersonnel.find(x=>x.id===pid); if(!p)return;
-  demoAssignments[date+'|'+item]={person:p,type:'Direct'};
-  recordActivity('Direct assignment: '+p.name+' → '+item+' on '+prettyDate(date));
+  demoAssignments[date+'|'+item]={person:p,type:'Regular OT'};
+  recordActivity('Regular OT awarded after responses: '+p.name+' → '+item+' on '+prettyDate(date));
   refreshAfterAward(date,item);
   closeWorkflow('fillModal');
 }
@@ -271,13 +284,14 @@ function openOtForce(){
 function selectOtShortage(date,item){
   selectedShortage=date+'|'+item; shortageButtons('otShortageList','selectOtShortage');
   document.getElementById('otTitle').textContent=(otMode==='regular'?'Regular OT — ':'Forced OT — ')+item;
-  document.getElementById('otSub').textContent=prettyDate(date)+' • qualification-filtered candidates';
+  document.getElementById('otSub').textContent=prettyDate(date)+' • responders received • '+(otMode==='regular'?'Regular OT award rules':'Force rotation order');
   let candidates=demoPersonnel.map(p=>({p,e:eligibility(p,item)})).filter(x=>x.e.ok);
+  if(otMode==='regular') candidates=candidates.filter(x=>x.p.available);
   if(otMode==='force') candidates.sort((a,b)=>a.p.force_order-b.p.force_order);
-  else candidates.sort((a,b)=>a.p.ot14-b.p.ot14 || a.p.name.localeCompare(b.p.name));
+  else candidates.sort((a,b)=>a.p.ot14-b.p.ot14 || a.p.force_order-b.p.force_order || a.p.name.localeCompare(b.p.name));
   document.getElementById('otCandidateList').innerHTML=candidates.map(({p,e},i)=>{
-    const regularEligible=p.ot14<24 && p.available;
-    const forceEligible=p.ot14<1 || true;
+    const regularEligible=p.ot14<24 && p.available && !p.scheduled72;
+    const forceEligible=!p.scheduled72;
     const canAward=otMode==='regular'?regularEligible:forceEligible;
     const firstUp=otMode==='force'&&i===0;
     return `<div class="candidate ${canAward?'':'ineligible'}">
@@ -287,8 +301,8 @@ function selectOtShortage(date,item){
         <span class="pill ${p.ot14>=24?'bad':p.ot14>=12?'warn':'good'}">${p.ot14}h / 14d</span>
         <span class="pill">Force #${p.force_order}</span>
         <span class="pill ${p.denials>=2?'bad':''}">${p.denials} denial${p.denials===1?'':'s'}</span>
-        <span class="pill ${p.available?'good':'bad'}">${p.available?'Available':'Not Available'}</span>
-      </div><div class="why">${e.reason}${otMode==='regular'&&!regularEligible?' • Regular OT threshold/availability blocks award':''}</div></div>
+        <span class="pill ${p.available?'good':'bad'}">${otMode==='regular'?(p.available?'RESPONDED AVAILABLE':'NO AVAILABLE RESPONSE'):(firstUp?'FIRST UP':'FORCE LIST')}</span>
+      </div><div class="why">${e.reason}${otMode==='regular'&&!regularEligible?' • Regular OT award blocked by 24-hour/14-day threshold, 72-hour limit, or response status':''}${otMode==='force'&&firstUp?' • Current first-up qualified member':''}</div></div>
       <div><button class="btn ${canAward?(otMode==='regular'?'greenb':'blue'):'dark'}" ${canAward?'':'disabled'} onclick="awardOt('${date}','${item.replaceAll("'","\\'")}','${p.id}')">${otMode==='regular'?'Award OT':'Force'}</button></div>
     </div>`;
   }).join('') || '<div class="flow-note">No qualified candidates.</div>';
