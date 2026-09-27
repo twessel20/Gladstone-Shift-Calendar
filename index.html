@@ -2,373 +2,341 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>GFD Shift Calendar</title>
+<title>GFD Staffing & Scheduling Prototype</title>
 <style>
-:root{--bg:#07111d;--p:#0d1a2a;--ln:#22364f;--tx:#eef5ff;--m:#9fb0c7;--g:#18b56f;--r:#e74755;--b:#167ff3;--pu:#7145d8;--am:#f0b548}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:14px Segoe UI,Arial,sans-serif}.app{display:grid;grid-template-columns:210px 1fr;min-height:100vh}
-aside{background:#081421;border-right:1px solid var(--ln);padding:18px 12px;display:flex;flex-direction:column}.brand{font-size:21px;font-weight:900;margin:4px 10px 22px}.brand small{display:block;color:var(--m);font-size:10px;letter-spacing:.13em;margin-top:6px}
-nav button{width:100%;text-align:left;border:0;background:transparent;color:#c9d6e7;padding:11px 13px;border-radius:9px;margin:2px 0}nav button.on{background:linear-gradient(90deg,#a11f28,#631219);color:#fff;font-weight:800}.me{margin-top:auto;padding:11px;background:var(--p);border:1px solid var(--ln);border-radius:10px;font-size:12px}
-main{padding:18px;min-width:0}.top{display:flex;align-items:center;gap:10px;margin-bottom:13px}h1{margin:0;font-size:28px}.shift{color:#ff5260;font-weight:800}.grow{flex:1}.ctl{background:#0e1e30;color:#fff;border:1px solid #2c4562;border-radius:8px;padding:9px 11px}.kelly{background:linear-gradient(#f0b548,#c98c1b);color:#1d1606;font-weight:900;border-color:#f4c661}
-.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:12px}.k{background:var(--p);border:1px solid var(--ln);border-radius:11px;padding:12px}.k strong{font-size:25px;display:block}.muted{color:var(--m)}
-.layout{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:13px}.sched{background:var(--p);border:1px solid var(--ln);border-radius:12px;overflow:auto}.grid{display:grid;grid-template-columns:185px repeat(28,42px);min-width:1361px}
-.corner,.dh{background:#0b1726;border-bottom:1px solid var(--ln)}.corner{padding:14px;font-weight:800}.dh{padding:7px 3px;text-align:center;border-left:1px solid #1d2d42}.dh b{display:block;font-size:10px;color:var(--m)}.dh span{font-weight:800}.dh i{display:block;width:8px;height:8px;border-radius:50%;margin:5px auto 0}.g{background:var(--g)}.r{background:var(--r)}.s{background:#657287}
-.band{grid-column:1/-1;padding:9px 12px;font-weight:900}.s1{background:linear-gradient(90deg,#9a2029,#53161b)}.s2{background:linear-gradient(90deg,#1257b1,#0b2b57)}.res{background:linear-gradient(90deg,#5b2db7,#28134f)}
-.lab{padding:10px 12px;border-top:1px solid #1c2d43;background:#0d1928}.lab strong{font-size:15px;margin-right:8px}.lab span{color:var(--m);font-size:11px}.c{border:0;border-left:1px solid #1d2d42;border-top:1px solid #1d2d42;color:#fff;font-weight:900;min-height:44px}.c.green{background:linear-gradient(#1bbb74,#0c8e54);cursor:pointer}.c.red{background:linear-gradient(#ef5563,#c92c39);cursor:pointer}.c.off{background:#283a4e;color:#8391a3;font-size:9px}
-.detail{background:var(--p);border:1px solid var(--ln);border-radius:12px;padding:14px;position:sticky;top:12px}.detail h2{margin:0}.banner{margin:11px 0;padding:10px;border-radius:9px;background:#153f2c;color:#9cecbc;font-weight:900}.banner.bad{background:#501b22;color:#ffc0c5}
-.st{border:1px solid var(--ln);border-radius:9px;overflow:hidden;margin-top:9px}.st h3{margin:0;padding:8px 10px;font-size:13px}.st.st1 h3{background:#5c1c23}.st.st2 h3{background:#12427e}.a{display:grid;grid-template-columns:44px 1fr auto;gap:8px;padding:9px 10px;border-top:1px solid #203249;align-items:center}.role{font-weight:800}.open{color:#ff8993;font-weight:900}.badge{font-size:10px;padding:4px 7px;border-radius:999px;background:#173451;color:#c8ddf6}.ok{background:#123f2c;color:#9be7bb}.bad{background:#571d25;color:#ffb1b8}
-.comp{margin-top:11px;border:1px solid var(--ln);border-radius:9px;padding:9px}.cr{display:flex;justify-content:space-between;padding:4px 0;font-size:12px}.acts{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:11px}.btn{border:0;border-radius:8px;padding:10px;font-weight:800;color:#fff;cursor:pointer}.blue{background:#187cf3}.greenb{background:#16a66a}.dark{background:#1a2d45;border:1px solid #2d4868}.purple{background:#6e43d8}
-.bottom{display:grid;grid-template-columns:1fr 1.4fr;gap:10px;margin-top:12px}.panel{background:var(--p);border:1px solid var(--ln);border-radius:10px;padding:11px}.issue{padding:7px 0;border-top:1px solid #203047;font-size:12px}.whole{display:none;margin:0 0 12px;padding:10px 12px;border-radius:10px;background:#102238;border:1px solid #29415d;color:#cbd7e8}.whole.show{display:block}
-@media(max-width:1050px){.app{grid-template-columns:1fr}aside{display:none}.layout{grid-template-columns:1fr}.detail{position:static}.kpis{grid-template-columns:1fr 1fr}}
-.demo-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:100;align-items:center;justify-content:center;padding:20px}
-.demo-modal.show{display:flex}.demo-box{width:min(860px,100%);max-height:85vh;overflow:auto;background:#0b1726;border:1px solid #2b425e;border-radius:14px;padding:16px}
-.demo-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}.demo-head h2{margin:0}.demo-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
-.person{border:1px solid #263d59;background:#0d1b2d;border-radius:10px;padding:10px;cursor:pointer}.person:hover{border-color:#4c78aa}.person .nm{font-weight:900;font-size:15px}.tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}.tag{font-size:10px;padding:3px 6px;border-radius:999px;background:#173451;color:#c8ddf6}.tag.warn{background:#5a4215;color:#ffd980}.tag.purp{background:#3b276d;color:#d7c4ff}
-.cred{margin:12px 0;padding:10px;border:1px solid #5a4215;background:#2a2110;border-radius:9px;color:#f7d98c;font-size:12px}.perm{margin-top:8px;color:#9fb0c7;font-size:11px}
-@media(max-width:700px){.demo-list{grid-template-columns:1fr}}
-.workflow-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:110;align-items:center;justify-content:center;padding:18px}.workflow-modal.show{display:flex}
-.workflow-box{width:min(980px,100%);max-height:90vh;overflow:auto;background:#091727;border:1px solid #2b4564;border-radius:14px;padding:16px}
-.workflow-grid{display:grid;grid-template-columns:300px 1fr;gap:14px}.workflow-side,.workflow-main{background:#0d1a2a;border:1px solid #22364f;border-radius:10px;padding:12px}
-.shortage-btn{width:100%;text-align:left;padding:10px;margin:5px 0;border:1px solid #304966;background:#102238;color:#eef5ff;border-radius:8px;cursor:pointer}.shortage-btn.active{border-color:#ef5360;background:#3b1920}
-.candidate{display:grid;grid-template-columns:1fr auto;gap:10px;padding:10px;border-top:1px solid #22364f}.candidate:first-child{border-top:0}.candidate.ineligible{opacity:.48}.cand-name{font-weight:900}.why{font-size:11px;color:#9fb0c7;margin-top:3px}
-.otmeta{display:flex;gap:7px;flex-wrap:wrap;margin-top:5px}.pill{font-size:10px;padding:3px 6px;border-radius:999px;background:#173451;color:#c8ddf6}.pill.good{background:#123f2c;color:#9be7bb}.pill.warn{background:#5a4215;color:#ffd980}.pill.bad{background:#571d25;color:#ffb1b8}
-.mode-tabs{display:flex;gap:8px;margin-bottom:10px}.mode-tabs button{flex:1}.mode-tabs button.on{outline:2px solid #6ba8ff}
-.flow-note{padding:9px;border-radius:8px;background:#102238;border:1px solid #29415d;color:#cbd7e8;font-size:12px;margin-bottom:10px}
-.decision-line{margin-top:6px;padding:7px 8px;border-radius:7px;background:#0a1522;border:1px solid #1f334a;font-size:11px;color:#cbd7e8}.ranknum{font-weight:900;color:#8fc0ff}
-.activity{margin-top:10px;padding:9px;background:#081421;border:1px solid #22364f;border-radius:8px;max-height:150px;overflow:auto;font-size:11px}.activity div{padding:4px 0;border-top:1px solid #1c2a3d}.activity div:first-child{border-top:0}
-@media(max-width:800px){.workflow-grid{grid-template-columns:1fr}}
+:root{--bg:#07111d;--panel:#0d1a2a;--panel2:#0a1624;--line:#22364f;--text:#eef5ff;--muted:#9fb0c7;--green:#18b56f;--red:#e74755;--blue:#187cf3;--amber:#f0b548;--purple:#7145d8}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px Inter,Segoe UI,Arial,sans-serif}
+button,select,input,textarea{font:inherit}.app{display:grid;grid-template-columns:230px 1fr;min-height:100vh}
+.sidebar{background:#081421;border-right:1px solid var(--line);padding:16px 12px;display:flex;flex-direction:column;gap:14px}
+.brand{font-size:20px;font-weight:900;line-height:1.05;padding:4px 8px}.brand small{display:block;color:var(--muted);font-size:10px;letter-spacing:.12em;margin-top:8px}
+.nav button{width:100%;text-align:left;border:0;background:transparent;color:#c9d6e7;padding:11px 12px;border-radius:8px;margin:2px 0;cursor:pointer}.nav button.active{background:linear-gradient(90deg,#9e202a,#5d151b);color:#fff;font-weight:800}
+.usercard{margin-top:auto;border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:10px}.usercard b{font-size:13px}.usercard small{color:var(--muted)}
+.main{padding:18px;min-width:0}.view{display:none}.view.active{display:block}.topbar{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap}.topbar h1{margin:0;font-size:27px}.grow{flex:1}
+.btn,.ctl{border:1px solid #2d4868;background:#14243a;color:white;border-radius:8px;padding:9px 11px;cursor:pointer}.btn.primary{background:var(--blue);border-color:var(--blue)}.btn.good{background:#149b63;border-color:#149b63}.btn.warn{background:#9c6d12;border-color:#9c6d12}.btn.danger{background:#a72c38;border-color:#a72c38}.btn.purple{background:#6037c2;border-color:#6037c2}.btn:disabled{opacity:.35;cursor:not-allowed}
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.card{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:12px}.metric strong{display:block;font-size:26px}.muted{color:var(--muted)}
+.schedule-wrap{display:grid;grid-template-columns:minmax(0,1fr) 385px;gap:12px;margin-top:12px}.calendar{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:auto}
+.calgrid{display:grid;grid-template-columns:170px repeat(28,43px);min-width:1374px}.corner,.dayh{background:#0a1726;border-bottom:1px solid var(--line)}.corner{padding:12px;font-weight:800}.dayh{padding:7px 3px;text-align:center;border-left:1px solid #1d2d42}.dayh small{display:block;color:var(--muted);font-size:9px}.dayh b{font-size:12px}.dot{width:8px;height:8px;border-radius:50%;margin:5px auto 0}.dot.g{background:var(--green)}.dot.r{background:var(--red)}.dot.n{background:#66758a}
+.band{grid-column:1/-1;padding:8px 11px;font-weight:900}.band.s1{background:linear-gradient(90deg,#91212a,#4b171c)}.band.s2{background:linear-gradient(90deg,#1454a3,#0a2c5c)}.band.res{background:linear-gradient(90deg,#5d31b5,#29144f)}
+.rowlabel{padding:9px 10px;background:#0b1726;border-top:1px solid #1b2c42}.rowlabel b{margin-right:6px}.rowlabel small{color:var(--muted)}
+.cell{border:0;border-left:1px solid #1d2d42;border-top:1px solid #1d2d42;min-height:41px;color:white;font-weight:900}.cell.off{background:#25374a;color:#8494a8;font-size:9px}.cell.ok{background:linear-gradient(#19ad6b,#0d8350);cursor:pointer}.cell.bad{background:linear-gradient(#e65260,#bd2a36);cursor:pointer}
+.detail{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px;position:sticky;top:12px}.banner{padding:10px;border-radius:8px;margin:10px 0;background:#143c2a;color:#9beabb;font-weight:900}.banner.bad{background:#4d1b22;color:#ffc0c5}.unit{border:1px solid var(--line);border-radius:8px;margin:8px 0;overflow:hidden}.unit h3{margin:0;padding:7px 9px;font-size:12px}.unit.s1 h3{background:#5a1b22}.unit.s2 h3{background:#123e76}.assign{display:grid;grid-template-columns:42px 1fr auto;gap:8px;padding:8px 9px;border-top:1px solid #1f3046}.tag{font-size:10px;border-radius:999px;padding:3px 6px;background:#173451;color:#c9ddf5;white-space:nowrap}.tag.good{background:#123f2c;color:#9be7bb}.tag.bad{background:#571d25;color:#ffb1b8}.tag.warn{background:#5a4215;color:#ffd980}.tag.purp{background:#3b276d;color:#d7c4ff}
+.stack{display:flex;flex-direction:column;gap:8px}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.split{display:grid;grid-template-columns:1fr 1fr;gap:10px}.table{width:100%;border-collapse:collapse}.table th,.table td{text-align:left;padding:9px;border-bottom:1px solid #203149;vertical-align:top}.table th{font-size:11px;color:#aebdd0}.status{font-size:10px;padding:4px 7px;border-radius:999px;display:inline-block;background:#173451}.status.good{background:#123f2c;color:#9be7bb}.status.bad{background:#571d25;color:#ffb1b8}.status.warn{background:#5a4215;color:#ffd980}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}.panel-title{font-weight:900;font-size:16px;margin-bottom:8px}.list{display:flex;flex-direction:column;gap:7px}.item{border:1px solid var(--line);background:var(--panel2);border-radius:9px;padding:10px}.item.active{border-color:#5a8fd1}.item h3{margin:0 0 4px;font-size:14px}.item .meta{font-size:11px;color:var(--muted)}.item .actions{margin-top:8px;display:flex;gap:7px;flex-wrap:wrap}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.76);z-index:100;align-items:center;justify-content:center;padding:18px}.modal.show{display:flex}.modalbox{width:min(1000px,100%);max-height:90vh;overflow:auto;background:#091727;border:1px solid #2a4564;border-radius:14px;padding:15px}.modalhead{display:flex;align-items:center;gap:10px;margin-bottom:10px}.modalhead h2{margin:0}.candidate{display:grid;grid-template-columns:1fr auto;gap:10px;padding:10px;border-top:1px solid #22364f}.candidate:first-child{border-top:0}.candidate.disabled{opacity:.45}.decision{margin-top:6px;border:1px solid #22364f;background:#081421;border-radius:7px;padding:7px;font-size:11px;color:#cbd7e8}
+.notice{padding:9px;border:1px solid #2c4562;background:#102238;border-radius:8px;color:#cbd7e8}.notice.warn{border-color:#7d5b17;background:#2a2110;color:#f3d88c}.notice.bad{border-color:#71313a;background:#2c171b;color:#ffc0c5}
+.audit{font-size:12px}.audit .entry{padding:8px 0;border-bottom:1px solid #1f3046}.audit time{color:#8ca0b7;font-size:10px}.pillcount{display:inline-block;min-width:18px;text-align:center;border-radius:999px;background:#a72c38;color:#fff;font-size:10px;padding:2px 5px;margin-left:5px}
+.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.field label{display:block;font-size:11px;color:#aebdd0;margin-bottom:4px}.field input,.field select,.field textarea{width:100%;padding:9px;border:1px solid #2d4868;border-radius:7px;background:#0c1a2b;color:white}.field textarea{min-height:80px}
+@media(max-width:1050px){.app{grid-template-columns:1fr}.sidebar{display:none}.schedule-wrap{grid-template-columns:1fr}.detail{position:static}.grid4{grid-template-columns:1fr 1fr}}
+@media(max-width:700px){.main{padding:10px}.grid4,.split,.formgrid{grid-template-columns:1fr}.schedule-wrap{display:block}.topbar h1{font-size:22px}}
 </style>
 </head>
-<body><div class="app">
-<aside><div class="brand">GLADSTONE<br>FIRE DEPARTMENT<small>PEOPLE • APPARATUS • READINESS</small></div>
-<nav><button class="on">▣ Schedule</button><button>◉ Staffing Board</button><button>♟ OT / Force</button><button>▤ Trades & Leave</button><button>☆ Special Events</button><button>♙ Personnel</button><button>▧ Reports</button><button>☷ Audit Log</button><button>● Notifications</button></nav>
-<div class="me">
-    <b id="demoUserName">Alex Carter</b><br>
-    <span id="demoUserRole">Battalion Chief</span><br>
-    <span class="muted" id="demoUserShift">A Shift</span>
-    <button class="ctl" style="width:100%;margin-top:10px;padding:7px" onclick="openDemoUsers()">Switch Demo User</button>
-  </div></aside>
-<main><div class="top"><div><h1>28-Day Schedule</h1><div id="shiftLabel" class="shift">A Shift <span class="muted">• 24/48</span></div></div><div class="grow"></div>
-<button class="ctl">Today</button><button class="ctl">Sep 30 – Oct 27</button><button id="kelly" class="ctl kelly">A Shift • Kelly Month</button>
-<select id="shiftView" class="ctl" onchange="changeShift(this.value)"><option>A</option><option>B</option><option>C</option><option value="ALL">Whole Schedule</option></select></div>
-<div id="whole" class="whole">Whole Schedule view will show the complete A/B/C 24/48 rotation for the same 28-day cycle.</div>
-<div class="kpis"><div class="k"><strong>10</strong><span class="muted">A-Shift duty days</span></div><div class="k"><strong>7</strong><span class="muted">Fully staffed</span></div><div class="k"><strong>3</strong><span class="muted">Need staff</span></div><div class="k"><strong>2</strong><span class="muted">Pending requests</span></div></div>
-<div class="layout"><div><div class="sched"><div id="scheduleGrid" class="grid"></div></div>
-<div class="bottom"><div class="panel"><b>24/48 Pattern</b><div class="muted" style="margin-top:6px">Green duty day = filled. Red = open staffing need. Off days stay muted.</div></div><div class="panel"><b>Upcoming A-Shift Issues</b><div class="issue">Oct 6 — E1 Driver / FAO</div><div class="issue">Oct 15 — M1 Medic</div><div class="issue">Oct 24 — E2 Firefighter + M2 Partner</div></div></div></div>
-<aside class="detail"><h2 id="dd">Wed, Sep 30, 2026</h2><div class="muted">A Shift • Duty Day</div><div id="bn" class="banner">Fully Staffed</div>
-<div class="st st1"><h3>STATION 1</h3><div class="a"><span class="role">BC</span><span>BC / BC Step-Up</span><span class="badge ok">GOOD</span></div><div class="a"><span class="role">E1</span><span id="e1n">3-person ALS engine</span><span id="e1b" class="badge ok">3/3</span></div><div class="a"><span class="role">M1</span><span id="m1n">2-person ALS medic</span><span id="m1b" class="badge ok">2/2 ALS</span></div></div>
-<div class="st st2"><h3>STATION 2</h3><div class="a"><span class="role">E2</span><span id="e2n">3-person ALS engine</span><span id="e2b" class="badge ok">3/3</span></div><div class="a"><span class="role">M2</span><span id="m2n">2-person ALS medic</span><span id="m2b" class="badge ok">2/2 ALS</span></div></div>
-<div class="comp"><b>Shift Compliance</b><div class="cr"><span>ALS Coverage</span><span id="als">Met</span></div><div class="cr"><span>FAO Coverage</span><span id="fao">Met</span></div><div class="cr"><span>Officer Coverage</span><span id="off">Met</span></div><div class="cr"><span>Minimum Staffing</span><span id="min">Met</span></div></div>
-<div class="acts"><button class="btn blue" onclick="openFillShortage()">Fill Shortage</button><button class="btn greenb" onclick="openOtForce()">Assign OT / Force</button><button class="btn dark" onclick="alert('Move Personnel — prototype')">Move Personnel</button><button class="btn purple" onclick="alert('View Day Notes — prototype')">View Day Notes</button></div></aside>
-</div></main></div>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="brand">GLADSTONE<br>FIRE DEPARTMENT<small>STAFFING & SCHEDULING PROTOTYPE</small></div>
+  <div class="nav" id="nav">
+    <button data-view="schedule" class="active">▣ Schedule</button>
+    <button data-view="staffing">◉ Staffing Board</button>
+    <button data-view="ot">♟ OT / Force</button>
+    <button data-view="requests">▤ Trades & Leave</button>
+    <button data-view="events">☆ Special Events</button>
+    <button data-view="notifications">● Notifications <span id="notifBadge" class="pillcount">0</span></button>
+    <button data-view="audit">☷ Audit Log</button>
+  </div>
+  <div class="usercard">
+    <b id="userName">Alex Carter</b><br><small id="userRole">Battalion Chief • A Shift</small>
+    <button class="ctl" style="width:100%;margin-top:8px" onclick="openUsers()">Switch Demo User</button>
+    <button class="ctl" style="width:100%;margin-top:6px" onclick="resetDemo()">Reset Simulation</button>
+  </div>
+</aside>
+
+<main class="main">
+<section id="view-schedule" class="view active">
+  <div class="topbar"><div><h1>28-Day Schedule</h1><div class="muted">Live simulation • all changes immediately update staffing</div></div><div class="grow"></div>
+    <select id="shiftFilter" class="ctl" onchange="renderAll()"><option>A</option><option>B</option><option>C</option><option value="ALL">Whole Schedule</option></select>
+    <button class="ctl" onclick="gotoToday()">Today</button>
+  </div>
+  <div class="grid4" id="metrics"></div>
+  <div class="schedule-wrap">
+    <div class="calendar"><div class="calgrid" id="calgrid"></div></div>
+    <div class="detail" id="dayDetail"></div>
+  </div>
+</section>
+
+<section id="view-staffing" class="view">
+  <div class="topbar"><div><h1>Staffing Board</h1><div class="muted">Shortages, compliance, and current fill status</div></div><div class="grow"></div><button class="btn primary" onclick="openCreateShortage()">Create Demo Shortage</button></div>
+  <div class="split"><div class="card"><div class="panel-title">Open Staffing Needs</div><div id="staffingNeeds" class="list"></div></div><div class="card"><div class="panel-title">Recently Filled</div><div id="filledNeeds" class="list"></div></div></div>
+</section>
+
+<section id="view-ot" class="view">
+  <div class="topbar"><div><h1>OT / Force</h1><div class="muted">Notification → response → award → force escalation</div></div></div>
+  <div class="split"><div class="card"><div class="panel-title">Active OT Needs</div><div id="otNeeds" class="list"></div></div><div class="card"><div class="panel-title">Award / Force Detail</div><div id="otDetail" class="notice">Select an active need.</div></div></div>
+</section>
+
+<section id="view-requests" class="view">
+  <div class="topbar"><div><h1>Trades & Leave</h1><div class="muted">Simulated employee requests and approval workflow</div></div><div class="grow"></div><button class="btn primary" onclick="openLeaveRequest()">New Leave Request</button><button class="btn" onclick="openTradeRequest()">New Trade Request</button></div>
+  <div class="split"><div class="card"><div class="panel-title">Pending Requests</div><div id="pendingRequests" class="list"></div></div><div class="card"><div class="panel-title">Completed</div><div id="completedRequests" class="list"></div></div></div>
+</section>
+
+<section id="view-events" class="view">
+  <div class="topbar"><div><h1>Special Events</h1><div class="muted">Event staffing can create Regular OT needs using the same award logic</div></div><div class="grow"></div><button class="btn primary" onclick="createEventNeed()">Create Demo Event Need</button></div>
+  <div class="card"><div id="eventsList" class="list"></div></div>
+</section>
+
+<section id="view-notifications" class="view">
+  <div class="topbar"><div><h1>Notifications</h1><div class="muted">Simulated push/dashboard notifications by current demo user</div></div><div class="grow"></div><button class="btn" onclick="markAllRead()">Mark All Read</button></div>
+  <div class="card"><div id="notificationsList" class="list"></div></div>
+</section>
+
+<section id="view-audit" class="view">
+  <div class="topbar"><div><h1>Audit Log</h1><div class="muted">Every simulated scheduling action is recorded</div></div></div>
+  <div class="card audit" id="auditLog"></div>
+</section>
+</main>
+</div>
+
+<div id="usersModal" class="modal"><div class="modalbox"><div class="modalhead"><h2>Switch Demo User</h2><div class="grow"></div><button class="ctl" onclick="closeModal('usersModal')">Close</button></div><div class="notice warn">All personnel and credentials are fictional prototype data.</div><div id="usersList" class="list" style="margin-top:10px"></div></div></div>
+
+<div id="shortageModal" class="modal"><div class="modalbox"><div class="modalhead"><h2>Create Demo Shortage</h2><div class="grow"></div><button class="ctl" onclick="closeModal('shortageModal')">Close</button></div>
+<div class="formgrid"><div class="field"><label>Date</label><input id="shortDate" type="date" value="2026-10-06"></div><div class="field"><label>Position</label><select id="shortPos"><option>E1 Driver / FAO</option><option>E2 Firefighter</option><option>M1 Medic</option><option>M2 Partner</option><option>BC Coverage</option></select></div></div>
+<div class="actions" style="margin-top:10px"><button class="btn primary" onclick="createShortage()">Create Shortage</button></div></div></div>
+
+<div id="leaveModal" class="modal"><div class="modalbox"><div class="modalhead"><h2>New Leave Request</h2><div class="grow"></div><button class="ctl" onclick="closeModal('leaveModal')">Close</button></div>
+<div class="formgrid"><div class="field"><label>Employee</label><select id="leavePerson"></select></div><div class="field"><label>Date</label><input id="leaveDate" type="date" value="2026-10-09"></div><div class="field"><label>Type</label><select id="leaveType"><option>Vacation</option><option>Kelly</option><option>Holiday</option><option>Sick</option><option>Family Sick</option><option>Comp</option><option>Training</option></select></div><div class="field"><label>Hours</label><input id="leaveHours" type="number" value="24"></div></div>
+<div class="field" style="margin-top:9px"><label>Note</label><textarea id="leaveNote">Demo request</textarea></div><div style="margin-top:10px"><button class="btn primary" onclick="submitLeave()">Submit Request</button></div></div></div>
+
+<div id="tradeModal" class="modal"><div class="modalbox"><div class="modalhead"><h2>New Trade Request</h2><div class="grow"></div><button class="ctl" onclick="closeModal('tradeModal')">Close</button></div>
+<div class="formgrid"><div class="field"><label>Requester</label><select id="tradeA"></select></div><div class="field"><label>Replacement</label><select id="tradeB"></select></div><div class="field"><label>Work Date</label><input id="tradeDateA" type="date" value="2026-10-12"></div><div class="field"><label>Reciprocal Date</label><input id="tradeDateB" type="date" value="2026-10-18"></div></div><div style="margin-top:10px"><button class="btn primary" onclick="submitTrade()">Submit Trade</button></div></div></div>
+
+<div id="otModal" class="modal"><div class="modalbox"><div class="modalhead"><h2 id="otModalTitle">OT Workflow</h2><div class="grow"></div><button class="ctl" onclick="closeModal('otModal')">Close</button></div><div id="otModalBody"></div></div></div>
+
 <script>
-const start=new Date('2026-09-30T12:00:00'),openings={'2026-10-06':['E1 Driver / FAO'],'2026-10-15':['M1 Medic'],'2026-10-24':['E2 Firefighter','M2 Partner']};
-const units=[['STATION 1','band s1'],['BC','lab'],['E1','lab'],['M1','lab'],['STATION 2','band s2'],['E2','lab'],['M2','lab'],['RESERVE / SPECIAL EVENT','band res'],['M3','lab']];
-function iso(d){return d.toISOString().slice(0,10)} function duty(i){return i%3===0}
-function render(){const g=document.getElementById('scheduleGrid');g.innerHTML='<div class="corner">Station / Unit</div>';let days=[];for(let i=0;i<28;i++){let d=new Date(start);d.setDate(d.getDate()+i);days.push(d);let k=iso(d),c=duty(i)?(openings[k]?'r':'g'):'s';g.innerHTML+=`<div class="dh"><b>${d.toLocaleDateString(undefined,{weekday:'short'})}</b><span>${d.getDate()}</span><i class="${c}"></i></div>`}
-for(const [name,cl] of units){if(cl.startsWith('band')){g.innerHTML+=`<div class="${cl}">${name}</div>`;continue}g.innerHTML+=`<div class="lab"><strong>${name}</strong><span>${name==='BC'?'Command':name==='M3'?'Reserve / Event ALS':name.startsWith('E')?'Engine':'Medic'}</span></div>`;for(let i=0;i<28;i++){let d=days[i],k=iso(d);if(!duty(i)){g.innerHTML+='<button class="c off">OFF</button>';continue}let issue=(openings[k]||[]).some(x=>x.startsWith(name));g.innerHTML+=`<button class="c ${issue?'red':'green'}" onclick="showDay('${k}')">${issue?'!':'✓'}</button>`}}}
-function showDay(k){const d=new Date(k+'T12:00:00'),x=openings[k]||[];dd.textContent=d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric',year:'numeric'});bn.textContent=x.length?`Needs Staff — ${x.length} Open Position${x.length>1?'s':''}`:'Fully Staffed';bn.className='banner'+(x.length?' bad':'');min.textContent=x.length?`${x.length} open`:'Met';als.textContent=x.some(v=>v.includes('Medic'))?'Review':'Met';fao.textContent=x.some(v=>v.includes('FAO'))?'Review':'Met';off.textContent='Met'}
-function changeShift(v){whole.classList.toggle('show',v==='ALL');shiftLabel.innerHTML=v==='ALL'?'Whole Schedule <span class="muted">• A/B/C 24/48</span>':v+' Shift <span class="muted">• 24/48</span>';kelly.textContent=v==='A'?'A Shift • Kelly Month':v==='ALL'?'Kelly Month':v+' Shift • Standard Cycle';kelly.classList.toggle('kelly',v==='A')}
-render();showDay('2026-09-30');
-</script><div id="fillModal" class="workflow-modal">
-    <div class="workflow-box">
-      <div class="demo-head"><h2>Fill Shortage — Responses Received</h2><div class="grow"></div><button class="ctl" onclick="closeWorkflow('fillModal')">Close</button></div>
-      <div class="workflow-grid">
-        <div class="workflow-side">
-          <b>Open positions</b>
-          <div id="shortageList"></div>
-          <div class="flow-note" style="margin-top:10px">Availability notification is complete. This screen now shows the qualified personnel who responded and applies the OT eligibility rules before you award the shortage.</div>
-        </div>
-        <div class="workflow-main">
-          <div id="fillTitle" style="font-weight:900;font-size:18px;margin-bottom:4px">Select an opening</div>
-   <div class="flow-note"><b>BC award stage:</b> qualified responses are in. Review availability, rolling 14-day OT, 72-hour conflicts, and assignment restrictions, then award the slot.</div>
-          <div id="fillSub" class="muted" style="margin-bottom:10px"></div>
-          <div id="candidateList"></div>
-   <div id="forceEscalation" style="display:none;margin-top:12px" class="flow-note">
-     <b>No Regular OT takers are awardable.</b>
-     <button class="btn blue" style="margin-left:10px" onclick="openForceFromShortage()">Move to Force</button>
-   </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div id="otModal" class="workflow-modal">
-    <div class="workflow-box">
-      <div class="demo-head"><h2>OT / Force — Award Stage</h2><div class="grow"></div><button class="ctl" onclick="closeWorkflow('otModal')">Close</button></div>
-      <div class="workflow-grid">
-        <div class="workflow-side">
-          <b>Open positions</b>
-          <div id="otShortageList"></div>
-          <div class="flow-note" style="margin-top:10px">Qualified personnel have already been notified. Regular OT shows responders who are eligible for award. If nobody can be awarded voluntarily, switch to Forced OT.</div>
-        </div>
-        <div class="workflow-main">
-          <div class="mode-tabs">
-            <button id="regularMode" class="btn blue on" onclick="setOtMode('regular')">Regular OT</button>
-            <button id="forceMode" class="btn dark" onclick="setOtMode('force')">Forced OT</button>
-          </div>
-          <div id="otTitle" style="font-weight:900;font-size:18px;margin-bottom:4px">Select an opening</div>
-          <div id="otSub" class="muted" style="margin-bottom:10px"></div>
-          <div id="otCandidateList"></div>
-          <div class="activity"><b>Demo activity</b><div id="activityLog">No actions yet.</div></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div id="demoModal" class="demo-modal">
-    <div class="demo-box">
-      <div class="demo-head"><h2>Demo Personnel</h2><div class="grow"></div><button class="ctl" onclick="closeDemoUsers()">Close</button></div>
-      <div class="cred"><b>FICTIONAL DEMO DATA ONLY.</b> These names, qualifications, and credentials are not real department records. Select a person to preview how the app behaves for different roles and qualifications.</div>
-      <div id="demoList" class="demo-list"></div>
-    </div>
-  </div>
-<script>
-let demoPersonnel=[];
-let currentDemo=null;
-
-async function loadDemoData(){
-  try{
-    const r=await fetch('demo-data.json',{cache:'no-store'});
-    const data=await r.json();
-    demoPersonnel=data.personnel||[];
-    currentDemo=demoPersonnel[0]||null;
-    renderDemoList();
-    applyDemoUser(currentDemo);
-  }catch(e){ console.warn('Demo data unavailable',e); }
-}
-function openDemoUsers(){document.getElementById('demoModal').classList.add('show')}
-function closeDemoUsers(){document.getElementById('demoModal').classList.remove('show')}
-function roleSummary(p){
-  const t=[];
-  if(p.ems) t.push(p.ems);
-  if(p.fao) t.push('FAO');
-  if(p.fto) t.push('FTO');
-  if(p.captain_step_up) t.push('Captain Step-Up');
-  if(p.bc_step_up) t.push('BC Step-Up');
-  if(p.single_role_medic) t.push('Single-Role Medic');
-  if(p.new_hire) t.push('New Hire');
-  return t;
-}
-function renderDemoList(){
-  const root=document.getElementById('demoList');
-  root.innerHTML=demoPersonnel.map(p=>`
-    <div class="person" onclick="selectDemoUser('${p.id}')">
-      <div class="nm">${p.name}</div>
-      <div class="muted">${p.shift} Shift • ${p.rank}</div>
-      <div class="tags">${roleSummary(p).map(x=>`<span class="tag ${x.includes('Step-Up')?'purp':x==='New Hire'?'warn':''}">${x}</span>`).join('')}</div>
-      <div class="perm">${permissionText(p)}</div>
-    </div>`).join('');
-}
-function permissionText(p){
-  if(p.rank==='Battalion Chief') return 'Demo access: department-wide scheduling, approvals, OT/force, overrides';
-  if(p.rank==='Captain') return 'Demo access: shift visibility, trade acknowledgement, staffing awareness';
-  return 'Demo access: personal schedule, trades, leave, OT availability, events';
-}
-function selectDemoUser(id){
-  currentDemo=demoPersonnel.find(p=>p.id===id);
-  applyDemoUser(currentDemo);
-  closeDemoUsers();
-}
-function applyDemoUser(p){
-  if(!p)return;
-  document.getElementById('demoUserName').textContent=p.name;
-  document.getElementById('demoUserRole').textContent=p.rank;
-  document.getElementById('demoUserShift').textContent=p.shift+' Shift';
-  document.getElementById('shiftView').value=p.shift;
-  changeShift(p.shift);
-  document.querySelectorAll('.acts .btn').forEach(b=>{
-    const bc=p.rank==='Battalion Chief'||p.bc_step_up;
-    const captain=p.rank==='Captain';
-    if(b.textContent.includes('Assign OT')||b.textContent.includes('Move Personnel')) {
-      b.disabled=!bc; b.style.opacity=bc?'1':'.35'; b.title=bc?'':'BC authority required';
-    }
-    if(b.textContent.includes('Fill Shortage')) {
-      b.disabled=!(bc||captain); b.style.opacity=(bc||captain)?'1':'.35';
-    }
-  });
-}
-
-let selectedDate='2026-09-30';
-let selectedShortage=null;
-let otMode='regular';
-const demoAssignments={};
-let activityEntries=[];
-
-const shortageRules={
-  'E1 Driver / FAO':{unit:'E1',requires:{firefighter:true,fao:true},label:'E1 Driver / FAO'},
-  'M1 Medic':{unit:'M1',requires:{ems:'Paramedic'},label:'M1 Medic'},
-  'E2 Firefighter':{unit:'E2',requires:{firefighter:true},label:'E2 Firefighter'},
-  'M2 Partner':{unit:'M2',requires:{ems:'EMT_OR_PARAMEDIC'},label:'M2 Partner'}
+const START='2026-09-30';
+const POSITIONS={
+ 'E1 Driver / FAO':{unit:'E1',needs:{firefighter:true,fao:true}},
+ 'E2 Firefighter':{unit:'E2',needs:{firefighter:true}},
+ 'M1 Medic':{unit:'M1',needs:{medic:true}},
+ 'M2 Partner':{unit:'M2',needs:{ems:true}},
+ 'BC Coverage':{unit:'BC',needs:{bc:true}}
 };
+const UNIT_ROWS=[['STATION 1','band s1'],['BC','row'],['E1','row'],['M1','row'],['STATION 2','band s2'],['E2','row'],['M2','row'],['RESERVE / EVENTS','band res'],['M3','row']];
+const BASE_PERSONNEL=[
+{id:'p1',name:'Alex Carter',shift:'A',rank:'Battalion Chief',ems:'Paramedic',firefighter:true,fao:true,fto:false,csu:false,bsu:false,single:false,ot14:0,force:8,denials:0},
+{id:'p2',name:'Jordan Blake',shift:'A',rank:'Captain',ems:'Paramedic',firefighter:true,fao:true,fto:true,csu:false,bsu:false,single:false,ot14:12,force:7,denials:0},
+{id:'p3',name:'Casey Morgan',shift:'A',rank:'Firefighter',ems:'Paramedic',firefighter:true,fao:true,fto:true,csu:true,bsu:false,single:false,ot14:24,force:6,denials:1},
+{id:'p4',name:'Taylor Reed',shift:'A',rank:'Firefighter',ems:'EMT',firefighter:true,fao:true,fto:false,csu:false,bsu:false,single:false,ot14:0,force:2,denials:0},
+{id:'p5',name:'Riley Bennett',shift:'A',rank:'Firefighter',ems:'Paramedic',firefighter:true,fao:false,fto:false,csu:false,bsu:false,single:false,ot14:12,force:4,denials:0},
+{id:'p6',name:'Morgan Ellis',shift:'A',rank:'Paramedic',ems:'Paramedic',firefighter:false,fao:false,fto:true,csu:false,bsu:false,single:true,ot14:0,force:1,denials:1},
+{id:'p7',name:'Jamie Foster',shift:'A',rank:'Firefighter',ems:'EMT',firefighter:true,fao:false,fto:false,csu:false,bsu:false,single:false,ot14:0,force:5,denials:0,newHire:true},
+{id:'p8',name:'Avery Collins',shift:'A',rank:'Firefighter',ems:'Paramedic',firefighter:true,fao:true,fto:false,csu:false,bsu:true,single:false,ot14:36,force:3,denials:2},
+{id:'p9',name:'Parker Hayes',shift:'B',rank:'Battalion Chief',ems:'Paramedic',firefighter:true,fao:true,fto:false,csu:false,bsu:false,single:false,ot14:0,force:8,denials:0},
+{id:'p10',name:'Drew Simmons',shift:'B',rank:'Captain',ems:'Paramedic',firefighter:true,fao:true,fto:true,csu:false,bsu:false,single:false,ot14:0,force:7,denials:0},
+{id:'p11',name:'Cameron Price',shift:'B',rank:'Firefighter',ems:'EMT',firefighter:true,fao:true,fto:false,csu:false,bsu:false,single:false,ot14:0,force:2,denials:0},
+{id:'p12',name:'Skyler Brooks',shift:'B',rank:'Paramedic',ems:'Paramedic',firefighter:false,fao:false,fto:false,csu:false,bsu:false,single:true,ot14:0,force:1,denials:0},
+{id:'p13',name:'Quinn Parker',shift:'C',rank:'Battalion Chief',ems:'Paramedic',firefighter:true,fao:true,fto:false,csu:false,bsu:false,single:false,ot14:0,force:8,denials:0},
+{id:'p14',name:'Reese Ward',shift:'C',rank:'Captain',ems:'Paramedic',firefighter:true,fao:true,fto:true,csu:false,bsu:false,single:false,ot14:0,force:7,denials:0},
+{id:'p15',name:'Emerson Lane',shift:'C',rank:'Firefighter',ems:'Paramedic',firefighter:true,fao:true,fto:false,csu:true,bsu:false,single:false,ot14:12,force:3,denials:0},
+{id:'p16',name:'Rowan Kelly',shift:'C',rank:'Firefighter',ems:'EMT',firefighter:true,fao:false,fto:false,csu:false,bsu:false,single:false,ot14:0,force:4,denials:0,newHire:true}
+];
+function freshState(){
+ const shortages=[
+  makeNeed('2026-10-06','E1 Driver / FAO','routine'),
+  makeNeed('2026-10-15','M1 Medic','leave'),
+  makeNeed('2026-10-24','E2 Firefighter','leave'),
+  makeNeed('2026-10-24','M2 Partner','leave')
+ ];
+ return {version:1,user:'p1',personnel:structuredClone(BASE_PERSONNEL),shortages,requests:[],events:[],notifications:[],audit:[],selectedDate:'2026-10-06',selectedNeed:null};
+}
+function makeNeed(date,position,source){return {id:'n'+Math.random().toString(36).slice(2,9),date,position,source,status:'Not paged',responses:[],award:null,created:Date.now()}}
+let state=loadState();
+function loadState(){try{const s=JSON.parse(localStorage.getItem('gfdPrototypeState'));return s&&s.version===1?s:freshState()}catch{return freshState()}}
+function save(){localStorage.setItem('gfdPrototypeState',JSON.stringify(state))}
+function resetDemo(){state=freshState();seedWelcome();save();renderAll();gotoView('schedule')}
+function person(id){return state.personnel.find(p=>p.id===id)}
+function currentUser(){return person(state.user)}
+function dayShift(date){const a=new Date(START+'T12:00:00'),b=new Date(date+'T12:00:00');const d=Math.round((b-a)/86400000);return ['A','B','C'][((d%3)+3)%3]}
+function previousShift(s){return s==='A'?'C':s==='B'?'A':'B'}
+function rankPriority(p){return p.rank==='Battalion Chief'?40:p.rank==='Captain'?30:p.rank==='Paramedic'?20:10}
+function isOfficer(p){return p.rank==='Captain'||p.rank==='Battalion Chief'}
+function qualifies(p,pos){
+ const r=POSITIONS[pos]; if(!r)return false;
+ if(r.needs.firefighter&&!p.firefighter)return false;
+ if(r.needs.fao&&!p.fao)return false;
+ if(r.needs.medic&&p.ems!=='Paramedic')return false;
+ if(r.needs.ems&&!['EMT','Paramedic'].includes(p.ems))return false;
+ if(r.needs.bc&&!(p.rank==='Battalion Chief'||p.bsu))return false;
+ if((r.unit==='E1'||r.unit==='E2')&&p.single)return false;
+ return true;
+}
+function roleTags(p){const x=[p.ems];if(p.fao)x.push('FAO');if(p.fto)x.push('FTO');if(p.csu)x.push('Captain Step-Up');if(p.bsu)x.push('BC Step-Up');if(p.single)x.push('Single-role');if(p.newHire)x.push('New Hire');return x}
+function canBC(){const u=currentUser();return u.rank==='Battalion Chief'||u.bsu}
+function log(action,detail){state.audit.unshift({id:crypto.randomUUID(),at:Date.now(),actor:currentUser()?.name||'System',action,detail});save()}
+function notify(userId,title,body,level='info',action=null){state.notifications.unshift({id:crypto.randomUUID(),userId,title,body,level,action,read:false,at:Date.now()});save()}
+function seedWelcome(){notify('p1','Prototype ready','Use any module to simulate the complete staffing workflow.','info');log('Simulation reset','Prototype state reset to baseline')}
+function dateLabel(d){return new Date(d+'T12:00:00').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}
+function gotoView(v){document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));document.getElementById('view-'+v).classList.add('active');document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===v));renderAll()}
+document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>gotoView(b.dataset.view));
 
-const originalShowDay=showDay;
-showDay=function(k){ selectedDate=k; originalShowDay(k); };
+function renderAll(){renderHeader();renderSchedule();renderStaffing();renderOt();renderRequests();renderEvents();renderNotifications();renderAudit();save()}
+function renderHeader(){const u=currentUser();document.getElementById('userName').textContent=u.name;document.getElementById('userRole').textContent=u.rank+' • '+u.shift+' Shift';const unread=state.notifications.filter(n=>n.userId===u.id&&!n.read).length;document.getElementById('notifBadge').textContent=unread;document.getElementById('notifBadge').style.display=unread?'inline-block':'none'}
 
-function unresolvedOpenings(){
-  const all=[];
-  Object.entries(openings).forEach(([date,items])=>items.forEach(item=>{
-    const key=date+'|'+item;
-    if(!demoAssignments[key]) all.push({date,item,key});
-  }));
-  return all;
+function renderSchedule(){
+ const filter=document.getElementById('shiftFilter').value||'A';const days=[];const start=new Date(START+'T12:00:00');
+ for(let i=0;i<28;i++){const d=new Date(start);d.setDate(d.getDate()+i);days.push(d.toISOString().slice(0,10))}
+ const needs=state.shortages.filter(n=>!n.award);
+ const dutyDays=filter==='ALL'?28:days.filter(d=>dayShift(d)===filter).length;
+ const open=needs.filter(n=>filter==='ALL'||dayShift(n.date)===filter).length;
+ document.getElementById('metrics').innerHTML=`
+  <div class="card metric"><strong>${dutyDays}</strong><span class="muted">Displayed duty days</span></div>
+  <div class="card metric"><strong>${Math.max(0,dutyDays-open)}</strong><span class="muted">Compliant / filled</span></div>
+  <div class="card metric"><strong>${open}</strong><span class="muted">Open staffing needs</span></div>
+  <div class="card metric"><strong>${state.requests.filter(r=>!['Approved','Denied','Completed'].includes(r.status)).length}</strong><span class="muted">Pending requests</span></div>`;
+ const g=document.getElementById('calgrid');g.innerHTML='<div class="corner">Station / Unit</div>';
+ for(const d of days){const shift=dayShift(d),date=new Date(d+'T12:00:00'),visible=filter==='ALL'||shift===filter,has=needs.some(n=>n.date===d);g.innerHTML+=`<div class="dayh"><small>${date.toLocaleDateString(undefined,{weekday:'short'})}</small><b>${date.getDate()}</b><small>${shift}</small><div class="dot ${!visible?'n':has?'r':'g'}"></div></div>`}
+ for(const [name,type] of UNIT_ROWS){
+  if(type.startsWith('band')){g.innerHTML+=`<div class="${type}">${name}</div>`;continue}
+  g.innerHTML+=`<div class="rowlabel"><b>${name}</b><small>${name==='BC'?'Command':name.startsWith('E')?'Engine':name==='M3'?'Reserve/Event':'Medic'}</small></div>`;
+  for(const d of days){const shift=dayShift(d),visible=filter==='ALL'||shift===filter;if(!visible){g.innerHTML+='<button class="cell off">OFF</button>';continue}const bad=needs.some(n=>n.date===d&&POSITIONS[n.position]?.unit===name);g.innerHTML+=`<button class="cell ${bad?'bad':'ok'}" onclick="selectDay('${d}')">${bad?'!':'✓'}</button>`}
+ }
+ renderDayDetail();
 }
-function closeWorkflow(id){document.getElementById(id).classList.remove('show')}
-function prettyDate(k){return new Date(k+'T12:00:00').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}
-function rankPriority(p){
-  if(p.rank==='Battalion Chief') return 40;
-  if(p.rank==='Captain') return 30;
-  if(p.rank==='Paramedic') return 20;
-  return 10;
+function selectDay(d){state.selectedDate=d;renderDayDetail();save()}
+function renderDayDetail(){
+ const d=state.selectedDate||START,shift=dayShift(d),open=state.shortages.filter(n=>n.date===d&&!n.award),filled=state.shortages.filter(n=>n.date===d&&n.award);
+ document.getElementById('dayDetail').innerHTML=`
+ <h2 style="margin:0">${dateLabel(d)}, ${new Date(d+'T12:00:00').getFullYear()}</h2><div class="muted">${shift} Shift • 24-hour duty</div>
+ <div class="banner ${open.length?'bad':''}">${open.length?open.length+' OPEN POSITION'+(open.length>1?'S':''):'COMPLIANT / FILLED'}</div>
+ <div class="unit s1"><h3>STATION 1</h3>${detailRow('BC',d)}${detailRow('E1',d)}${detailRow('M1',d)}</div>
+ <div class="unit s2"><h3>STATION 2</h3>${detailRow('E2',d)}${detailRow('M2',d)}</div>
+ ${filled.length?'<div class="notice" style="margin-top:8px"><b>Filled:</b><br>'+filled.map(n=>n.position+' — '+person(n.award.personId).name+' ('+n.award.type+')').join('<br>')+'</div>':''}
+ <div class="row" style="margin-top:10px"><button class="btn primary" onclick="gotoView('staffing')">Manage Staffing</button><button class="btn good" onclick="gotoView('ot')">OT / Force</button></div>`;
 }
-function previousShift(shift){
-  return shift==='A'?'C':shift==='B'?'A':'B';
+function detailRow(unit,d){const open=state.shortages.filter(n=>n.date===d&&!n.award&&POSITIONS[n.position]?.unit===unit);return `<div class="assign"><b>${unit}</b><span>${open.length?open.map(n=>n.position).join(', '):unit==='BC'?'BC / BC Step-Up':unit.startsWith('E')?'Minimum 3 • ALS • FAO':'Minimum 2 • ALS'}</span><span class="tag ${open.length?'bad':'good'}">${open.length?'OPEN':'GOOD'}</span></div>`}
+
+function renderStaffing(){
+ const open=state.shortages.filter(n=>!n.award),filled=state.shortages.filter(n=>n.award).slice().reverse();
+ document.getElementById('staffingNeeds').innerHTML=open.length?open.map(n=>needCard(n,true)).join(''):'<div class="notice">No open shortages.</div>';
+ document.getElementById('filledNeeds').innerHTML=filled.length?filled.map(n=>needCard(n,false)).join(''):'<div class="notice">Nothing filled yet in this simulation.</div>';
 }
-function shiftForDate(date){
-  const diff=Math.round((new Date(date+'T12:00:00')-start)/(1000*60*60*24));
-  return ['A','B','C'][((diff%3)+3)%3];
+function needCard(n,active){const shift=dayShift(n.date),responses=n.responses.filter(r=>r.available).length;return `<div class="item"><h3>${dateLabel(n.date)} — ${n.position}</h3><div class="meta">${shift} Shift • ${n.source} • ${n.status}${active?' • '+responses+' available response'+(responses===1?'':'s'):''}</div><div class="actions">${active?'<button class="btn primary" onclick="openNeed(\''+n.id+'\')">Open Workflow</button>':''}${n.award?'<span class="status good">'+n.award.type+' — '+person(n.award.personId).name+'</span>':''}</div></div>`}
+
+function renderOt(){
+ const active=state.shortages.filter(n=>!n.award);
+ document.getElementById('otNeeds').innerHTML=active.length?active.map(n=>`<div class="item ${state.selectedNeed===n.id?'active':''}" onclick="selectNeed('${n.id}')"><h3>${dateLabel(n.date)} — ${n.position}</h3><div class="meta">${dayShift(n.date)} Shift • ${n.status} • ${n.responses.length} responses</div></div>`).join(''):'<div class="notice">No active OT needs.</div>';
+ const n=active.find(x=>x.id===state.selectedNeed)||active[0];if(n){state.selectedNeed=n.id;document.getElementById('otDetail').className='';document.getElementById('otDetail').innerHTML=otDetail(n)}else{document.getElementById('otDetail').className='notice';document.getElementById('otDetail').innerHTML='No active needs.'}
 }
-function rankPriorityLabel(p){
-  if(p.rank==='Battalion Chief'||p.rank==='Captain') return 'Officer deferred priority';
-  if(p.rank==='Paramedic' && p.single_role_medic) return 'Single-role medic priority group';
-  return 'Line personnel priority';
+function selectNeed(id){state.selectedNeed=id;renderOt();save()}
+function otDetail(n){
+ const avail=n.responses.filter(r=>r.available&&qualifies(person(r.personId),n.position)).length;
+ const actions=n.status==='Not paged'?'<button class="btn primary" onclick="notifyQualified(\''+n.id+'\')">Notify Qualified Personnel</button>':
+ n.status==='Availability requested'?'<button class="btn primary" onclick="simulateResponses(\''+n.id+'\')">Simulate Responses</button>':
+ '<button class="btn good" onclick="openNeed(\''+n.id+'\')">Review '+avail+' Responses / Award</button>';
+ return `<div class="panel-title">${dateLabel(n.date)} — ${n.position}</div><div class="notice">Need shift: <b>${dayShift(n.date)}</b><br>Status: <b>${n.status}</b><br>Source: ${n.source}<br>Available qualified responses: ${avail}</div><div class="row" style="margin-top:10px">${actions}</div>${n.responses.length?'<div style="margin-top:10px">'+responseSummary(n)+'</div>':''}`;
 }
-function eligibility(p,item){
-  const rule=shortageRules[item];
-  if(!rule) return {ok:false,reason:'No demo rule configured'};
-  if(p.scheduled72) return {ok:false,reason:'72-hour limit conflict'};
-  if(rule.requires.firefighter && !p.firefighter) return {ok:false,reason:'Not firefighter qualified'};
-  if(rule.requires.fao && !p.fao) return {ok:false,reason:'FAO qualification required'};
-  if(rule.requires.ems==='Paramedic' && p.ems!=='Paramedic') return {ok:false,reason:'Paramedic required'};
-  if(rule.requires.ems==='EMT_OR_PARAMEDIC' && !['EMT','Paramedic'].includes(p.ems)) return {ok:false,reason:'EMS credential required'};
-  if((rule.unit==='E1'||rule.unit==='E2') && p.single_role_medic) return {ok:false,reason:'Single-role medic restricted to M1/M2/M3'};
-  if(p.new_hire) return {ok:true,reason:'Eligible, but new-hire/FTO coverage must be validated',warning:true};
-  return {ok:true,reason:'Eligible'};
+function responseSummary(n){return n.responses.slice().sort((a,b)=>a.minutes-b.minutes).map(r=>{const p=person(r.personId);return `<div class="item"><b>${p.name}</b> — ${r.available?'AVAILABLE':'NOT AVAILABLE'} <span class="tag">${r.minutes} min</span><div class="meta">${p.rank} • ${p.ot14}h OT/14d • Force #${p.force}</div></div>`}).join('')}
+
+function notifyQualified(id){
+ const n=state.shortages.find(x=>x.id===id);if(!n)return;
+ const eligible=state.personnel.filter(p=>qualifies(p,n.position));
+ n.status='Availability requested';n.notifiedAt=Date.now();
+ eligible.forEach(p=>notify(p.id,'OT Availability Requested',dateLabel(n.date)+' • '+n.position+' • Respond Available / Not Available','action',{type:'ot-response',needId:n.id}));
+ log('OT availability requested',n.position+' on '+n.date+' sent to '+eligible.length+' qualified personnel');renderAll()
 }
-function shortageButtons(target,handler){
-  const arr=unresolvedOpenings();
-  document.getElementById(target).innerHTML=arr.length?arr.map(o=>`
-    <button class="shortage-btn ${selectedShortage===o.key?'active':''}" onclick="${handler}('${o.date}','${o.item.replaceAll("'","\\'")}')">
-      <b>${prettyDate(o.date)}</b><br><span class="muted">${o.item}</span>
-    </button>`).join(''):'<div class="flow-note">No unresolved demo shortages.</div>';
+function simulateResponses(id){
+ const n=state.shortages.find(x=>x.id===id);if(!n)return;
+ const eligible=state.personnel.filter(p=>qualifies(p,n.position));
+ const pattern=[true,true,false,true,false,true,true,false];
+ n.responses=eligible.map((p,i)=>({personId:p.id,available:pattern[i%pattern.length],minutes:2+i*3,at:Date.now()+i*180000}));
+ n.status='Responses received';
+ n.responses.forEach(r=>{const p=person(r.personId);log('OT response',p.name+' responded '+(r.available?'AVAILABLE':'NOT AVAILABLE')+' for '+n.position)});
+ notifyBCs('OT Responses Received',dateLabel(n.date)+' • '+n.position+' • '+n.responses.filter(r=>r.available).length+' available','action');
+ renderAll()
 }
-function openFillShortage(){
-  document.getElementById('fillModal').classList.add('show');
-  shortageButtons('shortageList','selectFillShortage');
-  const todays=unresolvedOpenings().find(x=>x.date===selectedDate)||unresolvedOpenings()[0];
-  if(todays) selectFillShortage(todays.date,todays.item);
+function notifyBCs(title,body,level){state.personnel.filter(p=>p.rank==='Battalion Chief').forEach(p=>notify(p.id,title,body,level))}
+function openNeed(id){
+ const n=state.shortages.find(x=>x.id===id);if(!n)return;state.selectedNeed=id;document.getElementById('otModalTitle').textContent='Staffing Workflow — '+n.position;document.getElementById('otModalBody').innerHTML=workflowBody(n);openModal('otModal')
 }
-function selectFillShortage(date,item){
-  selectedShortage=date+'|'+item; shortageButtons('shortageList','selectFillShortage');
-  document.getElementById('fillTitle').textContent='Regular OT Responses — '+item;
-  const qualified=demoPersonnel.map(p=>({p,e:eligibility(p,item)})).filter(x=>x.e.ok);
-  const responders=qualified.filter(x=>x.p.available);
-  const awardable=responders.filter(x=>x.p.ot14<24 && !x.p.scheduled72);
-  document.getElementById('fillSub').textContent=prettyDate(date)+' • '+shortageRules[item].unit+' • '+responders.length+' qualified response'+(responders.length===1?'':'s')+' • '+awardable.length+' awardable • lower rank first, response time breaks ties';
-  responders.sort((a,b)=>rankPriority(a.p)-rankPriority(b.p) || (a.p.response_minutes??999)-(b.p.response_minutes??999) || a.p.ot14-b.p.ot14 || a.p.name.localeCompare(b.p.name));
-  document.getElementById('forceEscalation').style.display=awardable.length===0?'block':'none';
-  document.getElementById('candidateList').innerHTML=responders.map(({p,e})=>{
-    const overOt=p.ot14>=24;
-    const blocked=overOt || p.scheduled72;
-    const warning=e.warning?' • FTO coverage must be validated':'';
-    return `<div class="candidate ${blocked?'ineligible':''}">
-      <div>
-        <div class="cand-name"><span class="ranknum">#${responders.findIndex(x=>x.p.id===p.id)+1}</span> ${p.name} <span class="pill good">RESPONDED AVAILABLE</span></div>
-        <div class="muted">${p.shift} Shift • ${p.rank}</div>
-        <div class="otmeta">
-          <span class="pill ${p.ot14>=24?'bad':p.ot14>=12?'warn':'good'}">${p.ot14}h Regular OT / rolling 14d</span>
-          <span class="pill">Force #${p.force_order}</span>
-          <span class="pill">${roleSummary(p).join(' • ')||'Qualified'}</span>
-        </div>
-        <div class="decision-line"><b>${rankPriorityLabel(p)}</b> • ${p.response_minutes} min response • ${p.ot14}h regular OT / 14d • Force #${p.force_order} • ${p.denials} denial${p.denials===1?'':'s'}<br>${blocked?(overOt?'Not awardable: 24-hour regular OT threshold reached':'Not awardable: 72-hour consecutive-hours conflict'):'Awardable now'}${warning}</div>
-      </div>
-      <div><button class="btn ${blocked?'dark':'greenb'}" ${blocked?'disabled':''} onclick="awardResponse('${date}','${item.replaceAll("'","\\'")}','${p.id}')">Award OT</button></div>
-    </div>`;
-  }).join('') || '<div class="flow-note">No qualified personnel responded available. Use the OT / Force workflow to move to the force list.</div>';
+function workflowBody(n){
+ if(n.status==='Not paged')return `<div class="notice">No availability request has been sent yet.</div><div style="margin-top:10px"><button class="btn primary" onclick="notifyQualified('${n.id}');openNeed('${n.id}')">Notify Qualified Personnel</button></div>`;
+ if(n.status==='Availability requested')return `<div class="notice">Qualified personnel have been notified. Simulate incoming responses.</div><div style="margin-top:10px"><button class="btn primary" onclick="simulateResponses('${n.id}');openNeed('${n.id}')">Simulate Responses</button></div>`;
+ const responders=n.responses.filter(r=>r.available).map(r=>({r,p:person(r.personId)})).filter(x=>qualifies(x.p,n.position));
+ const awardable=responders.filter(x=>x.p.ot14<24).sort((a,b)=>rankPriority(a.p)-rankPriority(b.p)||a.r.minutes-b.r.minutes||a.p.ot14-b.p.ot14);
+ const needShift=dayShift(n.date),sourceShift=previousShift(needShift);
+ const force=state.personnel.filter(p=>p.shift===sourceShift&&qualifies(p,n.position)).sort((a,b)=>a.force-b.force);
+ const regular=`<div class="notice"><b>Regular OT award view</b><br>Lower rank first. Response time breaks ties. Officers are deferred priority.</div>`+
+ (responders.length?responders.sort((a,b)=>rankPriority(a.p)-rankPriority(b.p)||a.r.minutes-b.r.minutes).map((x,i)=>candidateHtml(n,x.p,x.r,i,awardable.includes(x))).join(''):'<div class="notice bad" style="margin-top:8px">No qualified personnel responded available.</div>');
+ const forceBlock=!awardable.length?`<div class="notice warn" style="margin-top:12px"><b>No awardable Regular OT takers.</b> Force must come from previous shift: <b>${sourceShift} Shift</b>.</div>`+
+ force.map((p,i)=>forceHtml(n,p,i)).join(''):'';
+ return regular+forceBlock;
 }
-function openForceFromShortage(){
-  const parts=(selectedShortage||'|').split('|');
-  if(parts.length<2||!parts[0]||!parts[1]) return;
-  closeWorkflow('fillModal');
-  otMode='force';
-  document.getElementById('regularMode').classList.remove('on');
-  document.getElementById('forceMode').classList.add('on');
-  document.getElementById('otModal').classList.add('show');
-  shortageButtons('otShortageList','selectOtShortage');
-  selectOtShortage(parts[0],parts[1]);
+function candidateHtml(n,p,r,i,canAward){
+ const deferred=isOfficer(p),threshold=p.ot14>=24;
+ return `<div class="candidate ${canAward?'':'disabled'}"><div><b>#${i+1} ${p.name}</b> ${deferred?'<span class="tag warn">OFFICER DEFERRED</span>':'<span class="tag good">LINE PRIORITY</span>'}<div class="meta">${p.rank} • ${roleTags(p).join(' • ')}</div><div class="decision"><b>${r.minutes} min response</b> • ${p.ot14}h Regular OT / 14d • Force #${p.force} • ${p.denials} denials<br>${threshold?'Not awardable: 24h Regular OT threshold reached':'Awardable under demo rules'}</div></div><div><button class="btn good" ${canAward?'':'disabled'} onclick="awardNeed('${n.id}','${p.id}','Regular OT')">Award OT</button></div></div>`
 }
-function awardResponse(date,item,pid){
-  const p=demoPersonnel.find(x=>x.id===pid); if(!p)return;
-  demoAssignments[date+'|'+item]={person:p,type:'Regular OT'};
-  recordActivity('Regular OT awarded after responses: '+p.name+' → '+item+' on '+prettyDate(date));
-  refreshAfterAward(date,item);
-  closeWorkflow('fillModal');
+function forceHtml(n,p,i){return `<div class="candidate"><div><b>${p.name} ${i===0?'<span class="tag bad">FIRST UP</span>':''}</b><div class="meta">${p.shift} Shift • ${p.rank} • Force #${p.force} • ${p.denials} denials</div><div class="decision">${i===0?'Current first-up qualified member from previous shift.':'Qualified next-up member.'}</div></div><div><button class="btn danger" onclick="forcePerson('${n.id}','${p.id}')">Force</button></div></div>`}
+function forcePerson(needId,pid){
+ const n=state.shortages.find(x=>x.id===needId),p=person(pid);if(!n||!p)return;
+ const deny=p.denials<2&&Math.random()<.35;
+ if(deny){p.denials++;p.force+=10;log('Forced OT denial',p.name+' denied forced OT for '+n.position+'; denial count '+p.denials);notify(p.id,'Forced OT Denial Recorded',dateLabel(n.date)+' • '+n.position+' • denial '+p.denials+'/2','critical');openNeed(needId);renderAll();return}
+ awardNeed(needId,pid,'Forced OT')
 }
-function setOtMode(mode){
-  otMode=mode;
-  document.getElementById('regularMode').classList.toggle('on',mode==='regular');
-  document.getElementById('forceMode').classList.toggle('on',mode==='force');
-  const [date,item]=(selectedShortage||'|').split('|');
-  if(date&&item) selectOtShortage(date,item);
-}
-function openOtForce(){
-  document.getElementById('otModal').classList.add('show');
-  shortageButtons('otShortageList','selectOtShortage');
-  const todays=unresolvedOpenings().find(x=>x.date===selectedDate)||unresolvedOpenings()[0];
-  if(todays) selectOtShortage(todays.date,todays.item);
-}
-function selectOtShortage(date,item){
-  selectedShortage=date+'|'+item; shortageButtons('otShortageList','selectOtShortage');
-  document.getElementById('otTitle').textContent=(otMode==='regular'?'Regular OT — ':'Forced OT — ')+item;
-  const needShift=shiftForDate(date);
-  const sourceShift=previousShift(needShift);
-  document.getElementById('otSub').textContent=prettyDate(date)+' • '+needShift+' Shift shortage • '+(otMode==='regular'?'responders received • Regular OT award rules':'force from '+sourceShift+' Shift • rotation order');
-  let candidates=demoPersonnel.map(p=>({p,e:eligibility(p,item)})).filter(x=>x.e.ok);
-  if(otMode==='regular') candidates=candidates.filter(x=>x.p.available);
-  if(otMode==='force'){
-    const needShift=shiftForDate(date);
-    const sourceShift=previousShift(needShift);
-    candidates=candidates.filter(x=>x.p.shift===sourceShift);
-  }
-  if(otMode==='force') candidates.sort((a,b)=>a.p.force_order-b.p.force_order);
-  else candidates.sort((a,b)=>rankPriority(a.p)-rankPriority(b.p) || (a.p.response_minutes??999)-(b.p.response_minutes??999) || a.p.ot14-b.p.ot14 || a.p.name.localeCompare(b.p.name));
-  document.getElementById('otCandidateList').innerHTML=candidates.map(({p,e},i)=>{
-    const regularEligible=p.ot14<24 && p.available && !p.scheduled72;
-    const forceEligible=!p.scheduled72;
-    const canAward=otMode==='regular'?regularEligible:forceEligible;
-    const firstUp=otMode==='force'&&i===0;
-    return `<div class="candidate ${canAward?'':'ineligible'}">
-      <div><div class="cand-name">${otMode==='regular'?'<span class="ranknum">#'+(i+1)+'</span> ':''}${p.name} ${firstUp?'<span class="pill bad">FIRST UP</span>':''}</div>
-      <div class="muted">${p.shift} Shift • ${p.rank}</div>
-      <div class="otmeta">
-        <span class="pill ${p.ot14>=24?'bad':p.ot14>=12?'warn':'good'}">${p.ot14}h / 14d</span>
-        <span class="pill">Force #${p.force_order}</span>
-        <span class="pill ${p.denials>=2?'bad':''}">${p.denials} denial${p.denials===1?'':'s'}</span>
-        <span class="pill ${p.available?'good':'bad'}">${otMode==='regular'?(p.available?'RESPONDED AVAILABLE':'NO AVAILABLE RESPONSE'):(firstUp?'FIRST UP':'FORCE LIST')}</span>
-      </div><div class="decision-line">${otMode==='regular'?'<b>'+rankPriorityLabel(p)+'</b> • '+p.response_minutes+' min response • ':''}${p.ot14}h OT / 14d • Force #${p.force_order} • ${p.denials} denial${p.denials===1?'':'s'}<br>${otMode==='regular'?(regularEligible?'Awardable now':'Not awardable under current OT rules'):(firstUp?'Current first-up qualified member from '+previousShift(shiftForDate(date))+' Shift':'Qualified '+previousShift(shiftForDate(date))+' Shift force-list member')}</div></div>
-      <div><button class="btn ${canAward?(otMode==='regular'?'greenb':'blue'):'dark'}" ${canAward?'':'disabled'} onclick="awardOt('${date}','${item.replaceAll("'","\\'")}','${p.id}')">${otMode==='regular'?'Award OT':'Force'}</button></div>
-    </div>`;
-  }).join('') || '<div class="flow-note">No qualified candidates.</div>';
-}
-function awardOt(date,item,pid){
-  const p=demoPersonnel.find(x=>x.id===pid); if(!p)return;
-  const type=otMode==='regular'?'Regular OT':'Forced OT';
-  demoAssignments[date+'|'+item]={person:p,type};
-  recordActivity(type+': '+p.name+' → '+item+' on '+prettyDate(date));
-  refreshAfterAward(date,item);
-  closeWorkflow('otModal');
-}
-function recordActivity(msg){
-  activityEntries.unshift(new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})+' — '+msg);
-  document.getElementById('activityLog').innerHTML=activityEntries.map(x=>'<div>'+x+'</div>').join('');
-}
-function refreshAfterAward(date,item){
-  const remain=unresolvedOpenings().filter(x=>x.date===date).map(x=>x.item);
-  if(remain.length===0) delete openings[date]; else openings[date]=remain;
-  render(); showDay(date);
-  shortageButtons('shortageList','selectFillShortage');
-  shortageButtons('otShortageList','selectOtShortage');
+function awardNeed(id,pid,type){
+ const n=state.shortages.find(x=>x.id===id),p=person(pid);if(!n||!p)return;
+ n.award={personId:pid,type,at:Date.now()};n.status='Filled';
+ notify(p.id,type+' Assignment',dateLabel(n.date)+' • '+n.position+' • assignment requires acknowledgement','critical',{type:'ack-assignment',needId:id});
+ notifyBCs('Staffing Filled',dateLabel(n.date)+' • '+n.position+' • '+p.name+' • '+type,'info');
+ log(type+' awarded',p.name+' assigned to '+n.position+' on '+n.date);
+ closeModal('otModal');renderAll()
 }
 
-loadDemoData();
+function renderRequests(){
+ const pend=state.requests.filter(r=>!['Approved','Denied','Completed'].includes(r.status)),done=state.requests.filter(r=>['Approved','Denied','Completed'].includes(r.status));
+ document.getElementById('pendingRequests').innerHTML=pend.length?pend.map(requestCard).join(''):'<div class="notice">No pending requests.</div>';
+ document.getElementById('completedRequests').innerHTML=done.length?done.map(requestCard).join(''):'<div class="notice">No completed requests.</div>'
+}
+function requestCard(r){
+ const p=person(r.personId);let acts='';
+ if(r.kind==='Leave'&&r.status==='Submitted'&&canBC())acts=`<button class="btn good" onclick="approveLeave('${r.id}')">Approve</button><button class="btn danger" onclick="denyRequest('${r.id}')">Deny</button>`;
+ if(r.kind==='Trade'&&r.status==='Submitted'){acts=`<button class="btn primary" onclick="acceptTrade('${r.id}')">Simulate Replacement Accept</button>`}
+ if(r.kind==='Trade'&&r.status==='Accepted'&&canBC()){acts=`<button class="btn good" onclick="approveTrade('${r.id}')">BC Approve</button><button class="btn danger" onclick="denyRequest('${r.id}')">Deny</button>`}
+ return `<div class="item"><h3>${r.kind} — ${p.name}</h3><div class="meta">${r.kind==='Leave'?r.leaveType+' • '+dateLabel(r.date)+' • '+r.hours+'h':'Work '+dateLabel(r.date)+' ↔ '+dateLabel(r.reciprocalDate)+' with '+person(r.replacementId).name} • ${r.status}</div><div class="actions">${acts}</div></div>`
+}
+function openLeaveRequest(){fillPersonnelSelects();openModal('leaveModal')}
+function submitLeave(){const p=document.getElementById('leavePerson').value,date=document.getElementById('leaveDate').value,type=document.getElementById('leaveType').value,hours=+document.getElementById('leaveHours').value;const r={id:crypto.randomUUID(),kind:'Leave',personId:p,date,leaveType:type,hours,status:'Submitted',at:Date.now()};state.requests.unshift(r);notifyBCs('Leave Approval Required',person(p).name+' • '+type+' • '+dateLabel(date),'action');log('Leave request submitted',person(p).name+' requested '+type+' on '+date);closeModal('leaveModal');renderAll()}
+function approveLeave(id){const r=state.requests.find(x=>x.id===id);if(!r)return;r.status='Approved';notify(r.personId,'Leave Approved',r.leaveType+' • '+dateLabel(r.date),'info');log('Leave approved',person(r.personId).name+' • '+r.leaveType+' • '+r.date);const pos=person(r.personId).ems==='Paramedic'?'M1 Medic':'E2 Firefighter';const n=makeNeed(r.date,pos,'approved leave');state.shortages.push(n);log('Staffing shortage created',pos+' created from approved leave');closeModal('leaveModal');renderAll()}
+function denyRequest(id){const r=state.requests.find(x=>x.id===id);if(!r)return;r.status='Denied';notify(r.personId,r.kind+' Denied',dateLabel(r.date),'info');log(r.kind+' denied',person(r.personId).name+' • '+r.date);renderAll()}
+function openTradeRequest(){fillPersonnelSelects();openModal('tradeModal')}
+function submitTrade(){const r={id:crypto.randomUUID(),kind:'Trade',personId:document.getElementById('tradeA').value,replacementId:document.getElementById('tradeB').value,date:document.getElementById('tradeDateA').value,reciprocalDate:document.getElementById('tradeDateB').value,status:'Submitted',at:Date.now()};state.requests.unshift(r);notify(r.replacementId,'Trade Request',person(r.personId).name+' requests trade '+dateLabel(r.date)+' ↔ '+dateLabel(r.reciprocalDate),'action',{type:'trade',requestId:r.id});log('Trade submitted',person(r.personId).name+' requested trade with '+person(r.replacementId).name);closeModal('tradeModal');renderAll()}
+function acceptTrade(id){const r=state.requests.find(x=>x.id===id);r.status='Accepted';notifyBCs('Trade Ready for BC Review',person(r.personId).name+' ↔ '+person(r.replacementId).name,'action');log('Trade accepted',person(r.replacementId).name+' accepted trade');renderAll()}
+function approveTrade(id){const r=state.requests.find(x=>x.id===id);r.status='Approved';notify(r.personId,'Trade Approved',dateLabel(r.date)+' ↔ '+dateLabel(r.reciprocalDate),'info');notify(r.replacementId,'Trade Approved',dateLabel(r.date)+' ↔ '+dateLabel(r.reciprocalDate),'info');log('Trade approved',person(r.personId).name+' ↔ '+person(r.replacementId).name);renderAll()}
+
+function renderEvents(){document.getElementById('eventsList').innerHTML=state.events.length?state.events.map(e=>`<div class="item"><h3>${e.name}</h3><div class="meta">${dateLabel(e.date)} • ${e.asset} • ${e.position} • ${e.status}</div><div class="actions">${e.needId?'<button class="btn primary" onclick="gotoView(\'ot\');selectNeed(\''+e.needId+'\')">Open OT Need</button>':''}</div></div>`).join(''):'<div class="notice">No demo events yet.</div>'}
+function createEventNeed(){const e={id:crypto.randomUUID(),name:'Demo Community Event',date:'2026-10-10',asset:'M3',position:'M1 Medic',status:'Needs staffing'};const n=makeNeed(e.date,e.position,'special event');state.shortages.push(n);e.needId=n.id;state.events.unshift(e);log('Event staffing need created',e.name+' • '+e.position);renderAll()}
+
+function renderNotifications(){const u=currentUser(),list=state.notifications.filter(n=>n.userId===u.id);document.getElementById('notificationsList').innerHTML=list.length?list.map(n=>`<div class="item"><h3>${n.title} ${n.read?'':'<span class="status bad">UNREAD</span>'}</h3><div class="meta">${new Date(n.at).toLocaleString()} • ${n.body}</div><div class="actions">${n.action?notificationAction(n):''}${!n.read?'<button class="btn" onclick="readNotif(\''+n.id+'\')">Mark Read</button>':''}</div></div>`).join(''):'<div class="notice">No notifications for this user.</div>'}
+function notificationAction(n){
+ if(n.action.type==='ot-response'){return `<button class="btn good" onclick="respondFromNotif('${n.id}',true)">Available</button><button class="btn danger" onclick="respondFromNotif('${n.id}',false)">Not Available</button>`}
+ if(n.action.type==='ack-assignment'){return `<button class="btn primary" onclick="ackAssignment('${n.id}')">Acknowledge Assignment</button>`}
+ if(n.action.type==='trade'){return `<button class="btn primary" onclick="acceptTrade('${n.action.requestId}');readNotif('${n.id}')">Accept Trade</button>`}
+ return ''
+}
+function respondFromNotif(notifId,available){const n=state.notifications.find(x=>x.id===notifId),need=state.shortages.find(x=>x.id===n.action.needId);const existing=need.responses.find(r=>r.personId===state.user);if(existing){existing.available=available}else need.responses.push({personId:state.user,available,minutes:Math.max(1,Math.round((Date.now()-(need.notifiedAt||Date.now()))/60000)),at:Date.now()});need.status='Responses received';n.read=true;n.action=null;log('OT response',currentUser().name+' responded '+(available?'AVAILABLE':'NOT AVAILABLE')+' for '+need.position);renderAll()}
+function ackAssignment(notifId){const n=state.notifications.find(x=>x.id===notifId);n.read=true;n.action=null;log('Assignment acknowledged',currentUser().name+' acknowledged staffing assignment');renderAll()}
+function readNotif(id){const n=state.notifications.find(x=>x.id===id);if(n)n.read=true;renderAll()}
+function markAllRead(){state.notifications.filter(n=>n.userId===state.user).forEach(n=>n.read=true);renderAll()}
+
+function renderAudit(){document.getElementById('auditLog').innerHTML=state.audit.length?state.audit.map(a=>`<div class="entry"><b>${a.action}</b><br><span>${a.detail}</span><br><time>${new Date(a.at).toLocaleString()} • ${a.actor}</time></div>`).join(''):'<div class="notice">No actions recorded yet.</div>'}
+
+function fillPersonnelSelects(){for(const id of ['leavePerson','tradeA','tradeB']){const el=document.getElementById(id);if(el)el.innerHTML=state.personnel.map(p=>`<option value="${p.id}">${p.name} — ${p.shift} — ${p.rank}</option>`).join('')}}
+function openUsers(){document.getElementById('usersList').innerHTML=state.personnel.map(p=>`<div class="item"><h3>${p.name}</h3><div class="meta">${p.shift} Shift • ${p.rank} • ${roleTags(p).join(' • ')}</div><div class="actions"><button class="btn primary" onclick="switchUser('${p.id}')">Use This User</button></div></div>`).join('');openModal('usersModal')}
+function switchUser(id){state.user=id;closeModal('usersModal');renderAll();gotoView('schedule')}
+function openCreateShortage(){openModal('shortageModal')}
+function createShortage(){const n=makeNeed(document.getElementById('shortDate').value,document.getElementById('shortPos').value,'manual');state.shortages.push(n);log('Manual shortage created',n.position+' • '+n.date);closeModal('shortageModal');renderAll()}
+function openModal(id){document.getElementById(id).classList.add('show')}
+function closeModal(id){document.getElementById(id).classList.remove('show')}
+function gotoToday(){state.selectedDate='2026-09-27';renderAll()}
+
+if(!state.audit.length)seedWelcome();
+fillPersonnelSelects();renderAll();
 </script>
 </body></html>
