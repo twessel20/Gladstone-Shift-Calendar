@@ -220,6 +220,13 @@ function rankPriority(p){
   if(p.rank==='Paramedic') return 20;
   return 10;
 }
+function previousShift(shift){
+  return shift==='A'?'C':shift==='B'?'A':'B';
+}
+function shiftForDate(date){
+  const diff=Math.round((new Date(date+'T12:00:00')-start)/(1000*60*60*24));
+  return ['A','B','C'][((diff%3)+3)%3];
+}
 function rankPriorityLabel(p){
   if(p.rank==='Battalion Chief'||p.rank==='Captain') return 'Officer deferred priority';
   if(p.rank==='Paramedic' && p.single_role_medic) return 'Single-role medic priority group';
@@ -312,9 +319,16 @@ function openOtForce(){
 function selectOtShortage(date,item){
   selectedShortage=date+'|'+item; shortageButtons('otShortageList','selectOtShortage');
   document.getElementById('otTitle').textContent=(otMode==='regular'?'Regular OT — ':'Forced OT — ')+item;
-  document.getElementById('otSub').textContent=prettyDate(date)+' • responders received • '+(otMode==='regular'?'Regular OT award rules':'Force rotation order');
+  const needShift=shiftForDate(date);
+  const sourceShift=previousShift(needShift);
+  document.getElementById('otSub').textContent=prettyDate(date)+' • '+needShift+' Shift shortage • '+(otMode==='regular'?'responders received • Regular OT award rules':'force from '+sourceShift+' Shift • rotation order');
   let candidates=demoPersonnel.map(p=>({p,e:eligibility(p,item)})).filter(x=>x.e.ok);
   if(otMode==='regular') candidates=candidates.filter(x=>x.p.available);
+  if(otMode==='force'){
+    const needShift=shiftForDate(date);
+    const sourceShift=previousShift(needShift);
+    candidates=candidates.filter(x=>x.p.shift===sourceShift);
+  }
   if(otMode==='force') candidates.sort((a,b)=>a.p.force_order-b.p.force_order);
   else candidates.sort((a,b)=>rankPriority(a.p)-rankPriority(b.p) || (a.p.response_minutes??999)-(b.p.response_minutes??999) || a.p.ot14-b.p.ot14 || a.p.name.localeCompare(b.p.name));
   document.getElementById('otCandidateList').innerHTML=candidates.map(({p,e},i)=>{
@@ -330,7 +344,7 @@ function selectOtShortage(date,item){
         <span class="pill">Force #${p.force_order}</span>
         <span class="pill ${p.denials>=2?'bad':''}">${p.denials} denial${p.denials===1?'':'s'}</span>
         <span class="pill ${p.available?'good':'bad'}">${otMode==='regular'?(p.available?'RESPONDED AVAILABLE':'NO AVAILABLE RESPONSE'):(firstUp?'FIRST UP':'FORCE LIST')}</span>
-      </div><div class="decision-line">${otMode==='regular'?'<b>'+rankPriorityLabel(p)+'</b> • '+p.response_minutes+' min response • ':''}${p.ot14}h OT / 14d • Force #${p.force_order} • ${p.denials} denial${p.denials===1?'':'s'}<br>${otMode==='regular'?(regularEligible?'Awardable now':'Not awardable under current OT rules'):(firstUp?'Current first-up qualified member':'Qualified force-list member')}</div></div>
+      </div><div class="decision-line">${otMode==='regular'?'<b>'+rankPriorityLabel(p)+'</b> • '+p.response_minutes+' min response • ':''}${p.ot14}h OT / 14d • Force #${p.force_order} • ${p.denials} denial${p.denials===1?'':'s'}<br>${otMode==='regular'?(regularEligible?'Awardable now':'Not awardable under current OT rules'):(firstUp?'Current first-up qualified member from '+previousShift(shiftForDate(date))+' Shift':'Qualified '+previousShift(shiftForDate(date))+' Shift force-list member')}</div></div>
       <div><button class="btn ${canAward?(otMode==='regular'?'greenb':'blue'):'dark'}" ${canAward?'':'disabled'} onclick="awardOt('${date}','${item.replaceAll("'","\\'")}','${p.id}')">${otMode==='regular'?'Award OT':'Force'}</button></div>
     </div>`;
   }).join('') || '<div class="flow-note">No qualified candidates.</div>';
