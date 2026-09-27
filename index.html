@@ -83,6 +83,10 @@ render();showDay('2026-09-30');
    <div class="flow-note"><b>BC award stage:</b> qualified responses are in. Review availability, rolling 14-day OT, 72-hour conflicts, and assignment restrictions, then award the slot.</div>
           <div id="fillSub" class="muted" style="margin-bottom:10px"></div>
           <div id="candidateList"></div>
+   <div id="forceEscalation" style="display:none;margin-top:12px" class="flow-note">
+     <b>No Regular OT takers are awardable.</b>
+     <button class="btn blue" style="margin-left:10px" onclick="openForceFromShortage()">Move to Force</button>
+   </div>
         </div>
       </div>
     </div>
@@ -254,6 +258,7 @@ function selectFillShortage(date,item){
   const awardable=responders.filter(x=>x.p.ot14<24 && !x.p.scheduled72);
   document.getElementById('fillSub').textContent=prettyDate(date)+' • '+shortageRules[item].unit+' • '+responders.length+' qualified response'+(responders.length===1?'':'s')+' • '+awardable.length+' awardable • lower rank first, response time breaks ties';
   responders.sort((a,b)=>rankPriority(a.p)-rankPriority(b.p) || (a.p.response_minutes??999)-(b.p.response_minutes??999) || a.p.ot14-b.p.ot14 || a.p.name.localeCompare(b.p.name));
+  document.getElementById('forceEscalation').style.display=awardable.length===0?'block':'none';
   document.getElementById('candidateList').innerHTML=responders.map(({p,e})=>{
     const overOt=p.ot14>=24;
     const blocked=overOt || p.scheduled72;
@@ -272,6 +277,17 @@ function selectFillShortage(date,item){
       <div><button class="btn ${blocked?'dark':'greenb'}" ${blocked?'disabled':''} onclick="awardResponse('${date}','${item.replaceAll("'","\\'")}','${p.id}')">Award OT</button></div>
     </div>`;
   }).join('') || '<div class="flow-note">No qualified personnel responded available. Use the OT / Force workflow to move to the force list.</div>';
+}
+function openForceFromShortage(){
+  const parts=(selectedShortage||'|').split('|');
+  if(parts.length<2||!parts[0]||!parts[1]) return;
+  closeWorkflow('fillModal');
+  otMode='force';
+  document.getElementById('regularMode').classList.remove('on');
+  document.getElementById('forceMode').classList.add('on');
+  document.getElementById('otModal').classList.add('show');
+  shortageButtons('otShortageList','selectOtShortage');
+  selectOtShortage(parts[0],parts[1]);
 }
 function awardResponse(date,item,pid){
   const p=demoPersonnel.find(x=>x.id===pid); if(!p)return;
