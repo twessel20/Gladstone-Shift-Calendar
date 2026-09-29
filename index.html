@@ -620,6 +620,12 @@ main{overflow-x:hidden}
  .modalbox .notice{padding:7px;font-size:10px}
  .modalbox .btn,.modalbox .ctl{min-height:32px;padding:6px 8px}
 }
+
+.cmd-date.kelly{box-shadow:inset 0 -3px 0 #f0b323}
+.cmd-kelly-pill{display:block;width:max-content;max-width:100%;margin:3px auto 0;padding:1px 4px;border-radius:999px;background:#6a4c0b;color:#ffe49a;font-size:6px;font-weight:1000;line-height:1.2}
+.kelly-day-strip{display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap;padding:7px 10px;margin:6px 0 8px;border:1px solid #8a6720;border-radius:8px;background:#2a210e;color:#ffe5a6;text-align:center;font-size:10px;font-weight:800}
+.kelly-day-strip strong{font-size:11px;letter-spacing:.04em}
+
 </style>
 </head>
 <body>
@@ -1033,6 +1039,12 @@ function dayStaffingCompliance(date){
  const details=units.map(unit=>({unit,...unitCompliance(date,unit)}));
  return {ok:details.every(x=>x.ok),details}
 }
+function kellyPersonnelForDate(date,shift=shiftForDate(date)){
+ return sourceCells.filter(x=>x.duty_date===date&&x.shift===shift&&x.source_section==='ANCHOR'&&String(x.raw_assignment||'').trim().toUpperCase()==='K')
+}
+function kellyNamesForDate(date,shift=shiftForDate(date)){
+ return kellyPersonnelForDate(date,shift).map(x=>x.source_name).filter(Boolean)
+}
 function renderCommandDashboard(){
  const period=activeSchedulePeriod();
  const days=periodDays(period);
@@ -1051,8 +1063,9 @@ function renderCommandDashboard(){
  for(const date of days){
    const dt=new Date(date+'T12:00:00'), sel=date===dashboardSelectedDate, duty=shiftForDate(date)===selectedShift;
    const dayStatus=duty?dayStaffingCompliance(date):null;
+   const kelly=duty?kellyNamesForDate(date,selectedShift):[];
    const statusClass=duty?(dayStatus.ok?'daygood ':'daybad '):'';
-   html+='<button class="cmd-date '+(duty?'dutyhead ':'gap ')+statusClass+(sel?'sel ':'')+(date===today?'today':'')+'" '+(duty?'onclick="selectDashboardDate(\''+date+'\')"':'disabled')+'><b>'+dt.getDate()+'</b><small>'+dt.toLocaleDateString(undefined,{weekday:'short'})+'</small>'+(duty?'<div class="shiftmark">'+selectedShift+' • '+(dayStatus.ok?'✓':'!')+'</div>':'')+'</button>'
+   html+='<button class="cmd-date '+(duty?'dutyhead ':'gap ')+statusClass+(kelly.length?'kelly ':'')+(sel?'sel ':'')+(date===today?'today':'')+'" '+(duty?'onclick="selectDashboardDate(\''+date+'\')"':'disabled')+'><b>'+dt.getDate()+'</b><small>'+dt.toLocaleDateString(undefined,{weekday:'short'})+'</small>'+(duty?'<div class="shiftmark">'+selectedShift+' • '+(dayStatus.ok?'✓':'!')+'</div>':'')+(kelly.length?'<span class="cmd-kelly-pill">K'+(kelly.length>1?' ×'+kelly.length:'')+'</span>':'')+'</button>'
  }
  const cycleHasSpecial=days.some(date=>['M3','GATOR1'].some(u=>unitPeople(date,u).length>0));
  const rows=[['STATION 1','band','s1'],['BC','unit'],['E1','unit'],['M1','unit'],['STATION 2','band','s2'],['E2','unit'],['M2','unit']];
@@ -1504,9 +1517,11 @@ function renderCommandDayDetail(){
  const note=dayNotes.find(x=>x.duty_date===date&&x.shift===shift);
  const dayReqs=dayRequestCount(date);
  const firstNeed=firstOpenNeedForDate(date);
+ const kellyNames=kellyNamesForDate(date,shift);
 
  let html='<div class="command-dashboard">';
  html+='<div class="command-dashboard-head"><div><div class="command-dashboard-date">'+dt.toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'})+' • '+shift+' Shift</div><div class="command-dashboard-sub">'+period.label+' • '+(note?.note?'BC note on file':'No BC note')+' • '+dayReqs+' request'+(dayReqs===1?'':'s')+' affecting this day</div></div><div class="command-dashboard-status '+(dayStatus.ok?'good':'bad')+'">'+(dayStatus.ok?'GREEN • MINIMUMS MET':'RED • STAFFING ACTION NEEDED')+'</div></div>';
+ if(kellyNames.length)html+='<div class="kelly-day-strip"><strong>KELLY DAY</strong><span>'+kellyNames.join(' • ')+'</span></div>';
 
  html+='<div class="command-dashboard-main">';
  html+='<div class="station-board s1"><div class="station-board-title">STATION 1</div>'+apparatusSummaryButton(date,'BC')+apparatusSummaryButton(date,'E1')+apparatusSummaryButton(date,'M1')+'</div>';
