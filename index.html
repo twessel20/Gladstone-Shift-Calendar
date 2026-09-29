@@ -543,6 +543,15 @@ function rankLabel(p){
  return 'Firefighter'
 }
 function rankAndTypeLabel(p){return rankLabel(p)+' • '+personnelTypeLabel(p)}
+function apparatusRoleLabel(p){
+ const r=rankLabel(p);
+ if(r==='Battalion Chief'||r==='Captain')return 'Officer';
+ if(p.is_fao)return 'FAO';
+ if(p.personnel_type==='FF_PARAMEDIC')return 'FF/Paramedic';
+ if(p.personnel_type==='FF_EMT')return 'FF/EMT';
+ if(p.personnel_type==='SINGLE_ROLE_PARAMEDIC')return 'Paramedic';
+ return personnelTypeLabel(p)
+}
 function assignmentClass(a,p,date){
  const dutyShift=shiftForDate(date);
  if(a.assignment_type==='OT'||p.shift!==dutyShift)return 'OT_FILL';
@@ -567,14 +576,12 @@ function openApparatusDetail(date,unit){
          ?'<span class="tag bad">FORCED OT • '+x.p.shift+' SHIFT</span>'
          :'<span class="tag">EVENT / SPECIAL</span>';
    const quals=[
-     rankLabel(x.p),
-     personnelTypeLabel(x.p),
-     x.p.is_fao?'FAO':null,
+     apparatusRoleLabel(x.p),
      x.p.is_fto?'FTO TRAINER':null,
      x.p.captain_step_up?'CAPT STEP-UP':null,
      x.p.bc_step_up?'BC STEP-UP':null
    ].filter(Boolean);
-   return '<div class="unit-person"><div class="unit-person-head"><div><div class="unit-person-name">'+x.p.name+'</div><div class="unit-person-meta">'+x.p.shift+' Shift • '+rankAndTypeLabel(x.p)+' • '+(x.a.start_time||'08:00')+'–'+(x.a.end_time||'08:00')+' • '+Number(x.a.hours||24)+'h</div></div><div class="grow"></div>'+assignmentTag+'</div>'+
+   return '<div class="unit-person"><div class="unit-person-head"><div><div class="unit-person-name">'+x.p.name+'</div><div class="unit-person-meta">'+x.p.shift+' Shift • '+apparatusRoleLabel(x.p)+' • '+(x.a.start_time||'08:00')+'–'+(x.a.end_time||'08:00')+' • '+Number(x.a.hours||24)+'h</div></div><div class="grow"></div>'+assignmentTag+'</div>'+
      '<div class="unit-person-tags">'+quals.map(q=>'<span class="tag">'+q+'</span>').join('')+
      (x.p.employment_status==='PROBATIONARY_FTO'?'<span class="tag bad">⚠ ON FTO / PROBATIONARY</span>':'')+
      '</div></div>'
@@ -603,7 +610,7 @@ function openSpecialUnitsDetail(date){
  unitDetailBody.innerHTML=active.map(u=>{
    const ps=unitPeople(date,u);
    return '<div class="cmd-station res"><h3>'+(u==='GATOR1'?'Gator 1':'Medic 3')+'</h3>'+
-     ps.map(x=>'<div class="cmd-row"><b>'+u+'</b><div><div class="person">'+x.p.name+'</div><div class="role">'+rankAndTypeLabel(x.p)+' • '+x.p.shift+' Shift</div></div><span class="tag '+(x.a.assignment_type==='EVENT'?'purp':'good')+'">'+x.a.assignment_type.replaceAll('_',' ')+'</span></div>').join('')+
+     ps.map(x=>'<div class="cmd-row"><b>'+u+'</b><div><div class="person">'+x.p.name+'</div><div class="role">'+apparatusRoleLabel(x.p)+' • '+x.p.shift+' Shift</div></div><span class="tag '+(x.a.assignment_type==='EVENT'?'purp':'good')+'">'+x.a.assignment_type.replaceAll('_',' ')+'</span></div>').join('')+
    '</div>'
  }).join('');
  openModal('unitDetailModal')
