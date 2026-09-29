@@ -92,7 +92,7 @@ main{padding:18px;min-width:0}.view{display:none}.view.on{display:block}.top{dis
 </section>
 
 <section id="view-personnel" class="view">
- <div class="top"><div><h1>Personnel</h1><div class="muted">Roster, qualifications, promotions and shift changes</div></div><div class="grow"></div><button id="managePersonnelBtn" class="btn primary hidden" onclick="openPersonnelManager()">Manage Personnel</button></div>
+ <div class="top"><div><h1>Personnel</h1><div class="muted">Roster, qualifications, promotions and shift changes</div></div><div class="grow"></div><button id="newPersonnelBtn" class="btn good hidden" onclick="openNewPersonnel()">New Employee</button><button id="managePersonnelBtn" class="btn primary hidden" onclick="openPersonnelManager()">Manage Personnel</button></div>
  <div class="card"><div style="overflow:auto"><table class="table"><thead><tr><th>Name</th><th>Shift</th><th>Rank</th><th>Qualifications</th><th>OT 14d</th><th></th></tr></thead><tbody id="personnelRows"></tbody></table></div></div>
 </section>
 
@@ -143,6 +143,7 @@ main{padding:18px;min-width:0}.view{display:none}.view.on{display:block}.top{dis
   <div class="field"><label>Shift</label><select id="pmShift"><option>A</option><option>B</option><option>C</option></select></div>
   <div class="field"><label>EMS Level</label><select id="pmEMS"><option value="">None</option><option>EMT</option><option>Paramedic</option></select></div>
   <div class="field"><label>App Permission Role</label><select id="pmAppRole"><option value="personnel">Personnel</option><option value="captain">Captain</option><option value="bc">Battalion Chief</option><option value="chief">Chief/Admin View</option><option value="admin">System Admin</option></select></div>
+  <div class="field"><label>Employment Status</label><select id="pmEmployment"><option value="REGULAR">Regular</option><option value="PROBATIONARY_FTO">On FTO / Probationary</option><option value="INACTIVE">Inactive</option></select></div>
  </div>
  <div class="card" style="margin-top:10px">
   <div class="panel-title">Qualifications / Roles</div>
@@ -159,6 +160,27 @@ main{padding:18px;min-width:0}.view{display:none}.view.on{display:block}.top{dis
  <div class="formgrid" style="margin-top:10px"><div class="field"><label>Effective Date</label><input id="pmEffective" type="date"></div><div class="field"><label>Reason</label><input id="pmReason" placeholder="Promotion, shift transfer, qualification change…"></div></div>
  <div class="notice warn" style="margin-top:10px">Changes immediately affect scheduling eligibility and app permissions. The previous rank, shift and qualifications are retained in history and audit.</div>
  <div class="actions"><button class="btn good" onclick="savePersonnelRole()">Apply Change</button></div>
+</div></div>
+
+<div id="newPersonnelModal" class="modal"><div class="modalbox"><div class="modalhead"><h2>Add New Employee</h2><div class="grow"></div><button class="ctl" onclick="closeModal('newPersonnelModal')">Close</button></div>
+ <div class="formgrid">
+  <div class="field"><label>Name</label><input id="npName"></div>
+  <div class="field"><label>Hire Date</label><input id="npHireDate" type="date"></div>
+  <div class="field"><label>Shift</label><select id="npShift"><option>A</option><option>B</option><option>C</option></select></div>
+  <div class="field"><label>Rank / Classification</label><input id="npRank" value="FF/EMT"></div>
+  <div class="field"><label>EMS Level</label><select id="npEMS"><option value="">None</option><option>EMT</option><option>Paramedic</option></select></div>
+  <div class="field"><label>Employment Status</label><select id="npEmployment"><option value="PROBATIONARY_FTO">On FTO / Probationary</option><option value="REGULAR">Regular</option><option value="INACTIVE">Inactive</option></select></div>
+ </div>
+ <div class="card" style="margin-top:10px"><div class="panel-title">Qualifications / Roles</div><div class="actions">
+  <label><input id="npFF" type="checkbox" checked> Firefighter</label>
+  <label><input id="npFAO" type="checkbox"> FAO</label>
+  <label><input id="npFTO" type="checkbox"> FTO</label>
+  <label><input id="npCaptainSU" type="checkbox"> Captain Step-Up</label>
+  <label><input id="npBCSU" type="checkbox"> BC Step-Up</label>
+  <label><input id="npSingle" type="checkbox"> Single-Role Paramedic</label>
+ </div></div>
+ <div class="notice warn" style="margin-top:10px">Employees marked <b>On FTO / Probationary</b> may be scheduled for training/shadowing but are excluded from Regular OT, Forced OT, and event OT until an admin changes them to Regular.</div>
+ <div class="actions"><button class="btn good" onclick="createPersonnel()">Create Employee</button></div>
 </div></div>
 
 <div id="leaveModal" class="modal"><div class="modalbox"><div class="modalhead"><h2>Request Leave</h2><div class="grow"></div><button class="ctl" onclick="closeModal('leaveModal')">Close</button></div>
@@ -190,13 +212,15 @@ async function boot(){
  meName.textContent=me.name;meRole.textContent=me.rank+' • '+me.shift+' Shift • '+profile.app_role.toUpperCase();
  createNeedBtn.classList.toggle('hidden',!isAdmin());
  managePersonnelBtn.classList.toggle('hidden',!isAdmin());
+ newPersonnelBtn.classList.toggle('hidden',!isAdmin());
  await loadAll();subscribeRealtime();registerSW();
 }
 function isAdmin(){return adminRoles.includes(profile?.app_role)}
 function rankPriority(p){if(p.rank.includes('Battalion'))return 40;if(p.rank==='Captain')return 30;if(p.single_role_paramedic)return 20;return 10}
 function priorShift(s){return s==='A'?'C':s==='B'?'A':'B'}
 function qLabel(g){return g==='FF_EMT'?'FF/EMT':g||'Officer / Special'}
-function qualifies(p,n){if(n.qualification_group==='PARAMEDIC')return p.ems_level==='Paramedic';if(n.qualification_group==='FAO')return p.is_fao;if(n.qualification_group==='FF_EMT')return p.is_firefighter;return p.rank.includes('Battalion')||p.bc_step_up}
+function otEligible(p){return p.active&&p.employment_status==='REGULAR'}
+function qualifies(p,n){if(!otEligible(p))return false;if(n.qualification_group==='PARAMEDIC')return p.ems_level==='Paramedic';if(n.qualification_group==='FAO')return p.is_fao;if(n.qualification_group==='FF_EMT')return p.is_firefighter;return p.rank.includes('Battalion')||p.bc_step_up}
 function formatDate(d){return new Date(d+'T12:00:00').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}
 function coverageSum(nid){return assignments.filter(a=>a.staffing_need_id===nid).reduce((s,a)=>s+Number(a.hours),0)}
 function remaining(n){return Math.max(0,Number(n.required_hours)-coverageSum(n.id))}
@@ -309,7 +333,7 @@ async function confirmAward(){
  await logAudit('STAFFING_ASSIGNED','staffing_need',n.id,{personnel_id:pendingAward.pid,type:pendingAward.type,start:awardStart.value,end:awardEnd.value,hours});
  closeModal('awardModal');closeModal('workflowModal');await loadAll()
 }
-function renderPersonnel(){personnelRows.innerHTML=personnel.map(p=>`<tr><td><b>${p.name}</b></td><td>${p.shift}</td><td>${p.rank}</td><td>${p.single_role_paramedic?'<span class="tag warn">SINGLE-ROLE MEDIC</span>':''}${p.is_firefighter?'<span class="tag">FF</span>':''}${p.ems_level?'<span class="tag">'+p.ems_level+'</span>':''}${p.is_fao?'<span class="tag">FAO</span>':''}${p.is_fto?'<span class="tag">FTO</span>':''}${p.captain_step_up?'<span class="tag purp">CAPT STEP-UP</span>':''}${p.bc_step_up?'<span class="tag purp">BC STEP-UP</span>':''}</td><td>${otFor(p.id).regular_ot_hours_14d}h</td><td>${isAdmin()?'<button class="btn" onclick="openPersonnelManager(\''+p.id+'\')">Edit</button>':''}</td></tr>`).join('')}
+function renderPersonnel(){personnelRows.innerHTML=personnel.map(p=>`<tr><td><b>${p.name}</b></td><td>${p.shift}</td><td>${p.rank}<br>${p.employment_status==='PROBATIONARY_FTO'?'<span class="tag warn">ON FTO</span>':p.employment_status==='INACTIVE'?'<span class="tag bad">INACTIVE</span>':'<span class="tag good">REGULAR</span>'}</td><td>${p.single_role_paramedic?'<span class="tag warn">SINGLE-ROLE MEDIC</span>':''}${p.is_firefighter?'<span class="tag">FF</span>':''}${p.ems_level?'<span class="tag">'+p.ems_level+'</span>':''}${p.is_fao?'<span class="tag">FAO</span>':''}${p.is_fto?'<span class="tag">FTO</span>':''}${p.captain_step_up?'<span class="tag purp">CAPT STEP-UP</span>':''}${p.bc_step_up?'<span class="tag purp">BC STEP-UP</span>':''}</td><td>${otFor(p.id).regular_ot_hours_14d}h</td><td>${isAdmin()?'<button class="btn" onclick="openPersonnelManager(\''+p.id+'\')">Edit</button>':''}</td></tr>`).join('')}
 async function openPersonnelManager(id){
  if(!isAdmin())return;
  pmPerson.innerHTML=personnel.map(p=>'<option value="'+p.id+'">'+p.name+' — '+p.shift+' — '+p.rank+'</option>').join('');
@@ -330,6 +354,7 @@ async function loadPersonnelManager(){
  pmCaptainSU.checked=!!p.captain_step_up;
  pmBCSU.checked=!!p.bc_step_up;
  pmSingle.checked=!!p.single_role_paramedic;
+ pmEmployment.value=p.employment_status||'REGULAR';
  const {data:pr}=await sb.from('profiles').select('app_role').eq('personnel_id',p.id).maybeSingle();
  pmAppRole.value=pr?.app_role||'personnel';
  if(p.ems_level==='Paramedic'){
@@ -359,9 +384,44 @@ async function savePersonnelRole(){
  };
  const {error}=await sb.rpc('admin_update_personnel_role',args);
  if(error)return alert(error.message);
+ const {error:empErr}=await sb.rpc('admin_set_employment_status',{p_personnel_id:p.id,p_new_status:pmEmployment.value,p_effective_date:pmEffective.value||new Date().toISOString().slice(0,10),p_reason:pmReason.value.trim()||'Personnel status update'});
+ if(empErr)return alert(empErr.message);
  closeModal('personnelModal');
  await loadAll();
  alert('Personnel record updated. Rank, shift, qualifications and permissions are now live.')
+}
+function openNewPersonnel(){
+ if(!isAdmin())return;
+ npName.value='';
+ npHireDate.value=new Date().toISOString().slice(0,10);
+ npShift.value='A';
+ npRank.value='FF/EMT';
+ npEMS.value='EMT';
+ npEmployment.value='PROBATIONARY_FTO';
+ npFF.checked=true;npFAO.checked=false;npFTO.checked=false;npCaptainSU.checked=false;npBCSU.checked=false;npSingle.checked=false;
+ openModal('newPersonnelModal')
+}
+async function createPersonnel(){
+ if(!npName.value.trim())return alert('Name is required.');
+ if(npSingle.checked&&npEMS.value!=='Paramedic')return alert('Single-role paramedic must have Paramedic EMS level.');
+ const {data,error}=await sb.rpc('admin_create_personnel',{
+  p_name:npName.value.trim(),
+  p_shift:npShift.value,
+  p_rank:npRank.value.trim()||'New Employee',
+  p_hire_date:npHireDate.value||new Date().toISOString().slice(0,10),
+  p_is_firefighter:npFF.checked,
+  p_ems_level:npEMS.value,
+  p_is_fao:npFAO.checked,
+  p_is_fto:npFTO.checked,
+  p_captain_step_up:npCaptainSU.checked,
+  p_bc_step_up:npBCSU.checked,
+  p_single_role_paramedic:npSingle.checked,
+  p_employment_status:npEmployment.value
+ });
+ if(error)return alert(error.message);
+ closeModal('newPersonnelModal');
+ await loadAll();
+ alert('New employee added to the roster.')
 }
 function notifCard(n){return `<div class="item"><h3>${n.title} ${!n.read_at?'<span class="tag bad">UNREAD</span>':''}</h3><div class="meta">${new Date(n.created_at).toLocaleString()} • ${n.body}</div><div class="actions">${!n.read_at?'<button class="btn" onclick="readNotif(\''+n.id+'\')">Mark Read</button>':''}${n.action_type==='OT_RESPONSE'?'<button class="btn primary" onclick="selectNeed(\''+n.action_id+'\');goto(\'ot\')">Open OT Request</button>':''}${n.action_type==='ACK_ASSIGNMENT'&&!n.acknowledged_at?'<button class="btn good" onclick="ackNotif(\''+n.id+'\')">Acknowledge</button>':''}</div></div>`}
 function renderNotifications(){notificationList.innerHTML=notifications.map(notifCard).join('')||'<div class="notice">No notifications.</div>'}
