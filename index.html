@@ -753,6 +753,20 @@ main{overflow-x:hidden}
   #view-personnel .table th,#view-personnel .table td{padding:7px 5px}
 }
 
+
+.seat-fill-box{width:min(1180px,calc(100vw - 24px));max-width:1180px}
+.seat-fill-summary{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 11px;border:1px solid #294b69;border-radius:8px;background:#0c2033;margin-bottom:10px}
+.seat-fill-summary strong{font-size:15px}
+.seat-fill-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.seat-fill-section{border:1px solid #294b69;border-radius:8px;background:#081827;overflow:hidden;min-width:0}
+.seat-fill-section-title{padding:9px 11px;background:#0d2236;border-bottom:1px solid #294b69;font-size:11px;font-weight:1000;text-transform:uppercase;letter-spacing:.04em}
+.seat-fill-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 11px;border-top:1px solid #1c3348}
+.seat-fill-row:first-child{border-top:0}
+.seat-fill-row .name{font-size:13px;font-weight:1000}
+.seat-fill-row .meta{font-size:9px;margin-top:2px}
+.seat-fill-row .btn{min-width:94px}
+.seat-fill-empty{padding:14px;color:#8fa5b8;font-size:10px;text-align:center}
+@media(max-width:800px){.seat-fill-grid{grid-template-columns:1fr}.seat-fill-box{width:calc(100vw - 8px)}}
 </style>
 </head>
 <body>
@@ -938,6 +952,8 @@ main{overflow-x:hidden}
   <div id="unitInspectorStatus" class="unit-inspector-status"></div>
   <div id="unitDetailBody" class="unit-inspector-body"></div>
 </aside>
+
+<div id="seatFillModal" class="modal"><div class="modalbox seat-fill-box"><div class="modalhead"><h2 id="seatFillTitle">Fill Open Seat</h2><div class="grow"></div><button class="ctl" onclick="closeModal('seatFillModal')">Close</button></div><div id="seatFillBody"></div></div></div>
 
 <div id="awardModal" class="modal"><div class="modalbox"><div class="modalhead"><h2>Schedule Coverage Block</h2><div class="grow"></div><button class="ctl" onclick="closeModal('awardModal')">Close</button></div>
  <div id="awardWho" class="notice"></div>
@@ -1375,7 +1391,7 @@ function positionCandidateAllowed(code,p,a){
  if(code==='FAO_DRIVER')return p.is_fao||rankLabel(p)==='Battalion Chief';
  if(code==='SEAT_1'||code==='SEAT_2'||code==='SEAT_3')return p.is_firefighter||rankLabel(p)==='Battalion Chief';
  if(code==='MEDIC_1'||code==='MEDIC_2'||code==='EVENT_1'||code==='EVENT_2')return p.ems_level==='Paramedic'||p.ems_level==='EMT';
- if(code==='COMMAND')return officerEligible(p,a);
+ if(code==='COMMAND')return rankLabel(p)==='Battalion Chief'||!!p.bc_step_up;
  return true
 }
 function effectiveUnitPositions(date,unit){
@@ -1454,7 +1470,7 @@ function seatMapHtml(date,unit){
    const x=result.get(def.code);
    const drag=isAdmin()&&x?' draggable="true" ondragstart="startSeatDrag(event,\''+date+'\',\''+unit+'\',\''+x.a.id+'\',\''+def.code+'\')" ondragend="endSeatDrag(event)"':'';
    const drop=isAdmin()?' ondragover="seatDragOver(event)" ondragleave="seatDragLeave(event)" ondrop="dropSeatAssignment(event,\''+date+'\',\''+unit+'\',\''+def.code+'\')"':'';
-   const action=!x&&def.required&&isAdmin()?'<button class="btn danger" onclick="event.stopPropagation();openOtForSeat(\''+date+'\',\''+unit+'\',\''+def.code+'\')">OT</button>':(x?'<span class="tag '+(x.p.ems_level==='Paramedic'?'good':'')+'">'+(x.p.ems_level||'—')+'</span>':'<span class="tag">OPTIONAL</span>');
+   const action=!x&&isAdmin()?'<button class="btn '+(def.required?'danger':'')+'" onclick="event.stopPropagation();openSeatFillPicker(\''+date+'\',\''+unit+'\',\''+def.code+'\')">'+(def.required?'FILL SEAT':'ASSIGN')+'</button>':(x?'<span class="tag '+(x.p.ems_level==='Paramedic'?'good':'')+'">'+(x.p.ems_level||'—')+'</span>':'<span class="tag">OPTIONAL</span>');
    return '<div class="seat-row '+(x?'seat-ok':def.required?'seat-missing':'')+'"'+drag+drop+'><div class="seat-position">'+def.label+(def.required?' *':'')+'</div>'+
      (x?'<div><div class="seat-person">'+x.p.name+'</div><div class="seat-meta">'+rankLabel(x.p)+' • '+(x.p.ems_level||'No EMS level')+(x.p.is_fao?' • FAO':'')+' • '+x.p.shift+' Shift</div></div>':
      '<div class="seat-empty">OPEN</div>')+action+
@@ -1504,17 +1520,112 @@ function qualificationGroupForSeat(date,unit,code){
  }
  return null
 }
-async function openOtForSeat(date,unit,code){
+let pendingSeatFill=null;
+function personUnavailableForSeat(p,date){
+ const off=dayOffPersonnel(date,shiftForDate(date));
+ return off.some(x=>x.name===p.name)
+}
+function alreadyAssignedOnDate(p,date){
+ return unitAssignments.some(a=>a.duty_date===date&&a.personnel_id===p.id)
+}
+function seatSyntheticNeed(date,unit,code){
+ return {
+   duty_date:date,
+   shift:shiftForDate(date),
+   unit,
+   position_label:positionLabel(code),
+   qualification_group:qualificationGroupForSeat(date,unit,code),
+   start_time:'08:00',
+   end_time:'08:00',
+   required_hours:24
+ }
+}
+function seatCandidateQualified(p,date,unit,code){
+ if(!p||!p.active)return false;
+ return positionCandidateAllowed(code,p,{assignment_type:p.shift===shiftForDate(date)?'REGULAR':'OT'})
+}
+function directSeatCandidates(date,unit,code){
+ const dutyShift=shiftForDate(date);
+ return personnel
+   .filter(p=>p.active&&p.shift===dutyShift)
+   .filter(p=>seatCandidateQualified(p,date,unit,code))
+   .filter(p=>!personUnavailableForSeat(p,date))
+   .filter(p=>!alreadyAssignedOnDate(p,date))
+   .sort((a,b)=>apparatusRolePriority(a)-apparatusRolePriority(b)||a.name.localeCompare(b.name))
+}
+function seatOtCandidates(date,unit,code){
+ const n=seatSyntheticNeed(date,unit,code);
+ return personnel
+   .filter(p=>p.active&&p.shift!==n.shift&&otEligible(p))
+   .filter(p=>seatCandidateQualified(p,date,unit,code))
+   .filter(p=>!personUnavailableForSeat(p,date))
+   .filter(p=>!alreadyAssignedOnDate(p,date))
+   .map(p=>({p,ot:otFor(p.id),pos:otRotationPosition(p),hours:projectedConsecutiveHours(p.id,date,'08:00','08:00',24)}))
+   .filter(x=>Number(x.ot.regular_ot_hours_14d)<24&&x.hours<=48)
+   .sort((a,b)=>{
+     const alo=datePriorityValue(a.ot.last_ot_worked),blo=datePriorityValue(b.ot.last_ot_worked);
+     if(alo!==blo)return alo-blo;
+     const alf=datePriorityValue(a.ot.last_forced_ot_date),blf=datePriorityValue(b.ot.last_forced_ot_date);
+     if(alf!==blf)return alf-blf;
+     return a.pos-b.pos
+   })
+}
+function openSeatFillPicker(date,unit,code){
  if(!isAdmin())return;
+ pendingSeatFill={date,unit,code};
+ const label=positionLabel(code),direct=directSeatCandidates(date,unit,code),ot=seatOtCandidates(date,unit,code);
+ seatFillTitle.textContent='Fill '+unit+' — '+label;
+ const directRows=direct.map(p=>'<div class="seat-fill-row"><div><div class="name">'+p.name+'</div><div class="meta">'+rankLabel(p)+' • '+(p.ems_level||'No EMS')+(p.is_fao?' • FAO':'')+' • '+p.shift+' Shift</div></div><button class="btn good" onclick="assignDirectSeat(\''+p.id+'\')">Assign Seat</button></div>').join('');
+ const otRows=ot.map(x=>'<div class="seat-fill-row"><div><div class="name">#'+x.pos+' '+x.p.name+'</div><div class="meta">'+x.p.shift+' Shift • '+Number(x.ot.regular_ot_hours_14d||0)+'h OT / 14d • Last OT '+(x.ot.last_ot_worked||'Never')+'</div></div><button class="btn primary" onclick="startSeatOtAward(\''+x.p.id+'\')">Add OT</button></div>').join('');
+ seatFillBody.innerHTML='<div class="seat-fill-summary"><div><strong>'+formatDate(date)+' • '+shiftForDate(date)+' Shift • '+unit+' • '+label+'</strong><div class="meta">Choose an on-duty employee for immediate placement, or award Regular OT for this exact seat.</div></div></div>'+
+   '<div class="seat-fill-grid">'+
+   '<section class="seat-fill-section"><div class="seat-fill-section-title">On-duty / Unassigned</div>'+(directRows||'<div class="seat-fill-empty">No qualified on-duty personnel are currently unassigned.</div>')+'</section>'+
+   '<section class="seat-fill-section"><div class="seat-fill-section-title">Regular OT Eligible</div>'+(otRows||'<div class="seat-fill-empty">No off-shift personnel are currently eligible for Regular OT.</div>')+'</section>'+
+   '</div>'+
+   '<div class="actions"><button class="btn danger" onclick="openSeatOtCommand()">Open Full OT / Force Workflow</button></div>';
+ openModal('seatFillModal')
+}
+async function assignDirectSeat(personnelId){
+ const x=pendingSeatFill;if(!x)return;
+ const p=pById(personnelId);if(!p)return;
+ if(!seatCandidateQualified(p,x.date,x.unit,x.code))return alert(p.name+' is not qualified for '+positionLabel(x.code)+'.');
+ if(personUnavailableForSeat(p,x.date))return alert(p.name+' is scheduled off or unavailable on this date.');
+ if(alreadyAssignedOnDate(p,x.date))return alert(p.name+' is already assigned on this date.');
+ const row={duty_date:x.date,unit:x.unit,position_label:positionLabel(x.code),personnel_id:p.id,assignment_type:'REGULAR',start_time:'08:00',end_time:'08:00',hours:24,position_code:x.code,created_by:session.user.id};
+ const {data,error}=await sb.from('unit_assignments').insert(row).select().single();
+ if(error)return alert(error.message);
+ await logAudit('APPARATUS_SEAT_ASSIGNED','unit_assignment',data?.id||null,{date:x.date,unit:x.unit,position_code:x.code,personnel_id:p.id,assignment_type:'REGULAR'});
+ closeModal('seatFillModal');
+ await loadAll();
+ openApparatusDetail(x.date,x.unit)
+}
+async function ensureSeatNeed(date,unit,code){
  const label=positionLabel(code);
  let n=needs.find(x=>x.duty_date===date&&x.unit===unit&&!['FILLED','CANCELLED'].includes(x.status)&&String(x.position_label).toLowerCase()===label.toLowerCase());
- if(!n){
-   const row={duty_date:date,shift:shiftForDate(date),unit,position_label:label,qualification_group:qualificationGroupForSeat(date,unit,code),source:'APPARATUS_SEAT',status:'NOT_PAGED',start_time:'08:00',end_time:'08:00',required_hours:24,created_by:session.user.id};
-   const {data,error}=await sb.from('staffing_needs').insert(row).select().single();
-   if(error)return alert(error.message);
-   n=data;
-   await logAudit('STAFFING_NEED_CREATED','staffing_need',n.id,{...row,position_code:code})
- }
+ if(n)return n;
+ const row={duty_date:date,shift:shiftForDate(date),unit,position_label:label,qualification_group:qualificationGroupForSeat(date,unit,code),source:'APPARATUS_SEAT',status:'NOT_PAGED',start_time:'08:00',end_time:'08:00',required_hours:24,created_by:session.user.id};
+ const {data,error}=await sb.from('staffing_needs').insert(row).select().single();
+ if(error){alert(error.message);return null}
+ await logAudit('STAFFING_NEED_CREATED','staffing_need',data.id,{...row,position_code:code});
+ return data
+}
+async function startSeatOtAward(personnelId){
+ const x=pendingSeatFill;if(!x)return;
+ const n=await ensureSeatNeed(x.date,x.unit,x.code);if(!n)return;
+ closeModal('seatFillModal');
+ await loadAll();
+ openAward(n.id,personnelId,'REGULAR_OT')
+}
+async function openSeatOtCommand(){
+ const x=pendingSeatFill;if(!x)return;
+ const n=await ensureSeatNeed(x.date,x.unit,x.code);if(!n)return;
+ closeModal('seatFillModal');closeUnitInspector();
+ await loadAll();
+ openWorkflow(n.id)
+}
+async function openOtForSeat(date,unit,code){
+ if(!isAdmin())return;
+ const n=await ensureSeatNeed(date,unit,code);if(!n)return;
  closeUnitInspector();
  await loadAll();
  openWorkflow(n.id)
