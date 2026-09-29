@@ -540,6 +540,31 @@ main{overflow-x:hidden}
 .force-deadline-banner strong{font-size:12px}
 
 .ot-need-card.force-due{border-color:#9c3945;background:#2a1217}
+
+.staffing-day-header{display:flex;gap:10px;align-items:center;justify-content:space-between;border:1px solid #294b69;border-radius:10px;background:#0b1d2d;padding:10px 12px;margin-bottom:10px}
+.staffing-day-header .date{font-size:18px;font-weight:1000}
+.staffing-day-header .shift{font-size:13px;font-weight:1000}
+.staffing-day-board{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.staffing-station{border:1px solid #294b69;border-radius:10px;background:#081827;overflow:hidden}
+.staffing-station-head{padding:9px 11px;font-size:13px;font-weight:1000;text-transform:uppercase;letter-spacing:.04em}
+.staffing-station-head.s1{background:#6b2330}.staffing-station-head.s2{background:#153b72}.staffing-station-head.special{background:#3c3a55}
+.staffing-unit{border-top:1px solid #294b69}
+.staffing-unit-button{width:100%;display:grid;grid-template-columns:72px 1fr auto;gap:8px;align-items:center;padding:9px 10px;background:transparent;border:0;color:inherit;text-align:left;cursor:pointer}
+.staffing-unit-button:hover{background:#0d2236}
+.staffing-unit-code{font-size:16px;font-weight:1000}
+.staffing-seat-list{display:grid;gap:4px}
+.staffing-seat-line{display:grid;grid-template-columns:95px 1fr auto;gap:7px;align-items:center;font-size:10px}
+.staffing-seat-line .pos{color:#9fb2c4;font-weight:900}
+.staffing-seat-line .person{font-size:11px;font-weight:900}
+.staffing-seat-line .meta{font-size:8px;color:#8da3b7}
+.staffing-open{color:#ff6978;font-weight:1000}
+.staffing-status{font-size:9px;font-weight:1000;padding:4px 6px;border-radius:999px;border:1px solid #38566f}
+.staffing-status.regular{color:#a7d9ff}.staffing-status.ot{color:#5ee0a7}.staffing-status.forced{color:#ff9aa4}.staffing-status.trade{color:#d9b7ff}.staffing-status.event{color:#ffd37a}
+.staffing-needs-strip{grid-column:1/-1;border:1px solid #6b3c43;border-radius:10px;background:#251318;padding:10px}
+.staffing-needs-strip h3{margin:0 0 6px;font-size:12px;text-transform:uppercase}
+.staffing-need-row{display:flex;gap:8px;align-items:center;justify-content:space-between;border-top:1px solid #56323a;padding:7px 0;font-size:10px}
+@media(max-width:900px){.staffing-day-board{grid-template-columns:1fr}.staffing-needs-strip{grid-column:auto}.staffing-unit-button{grid-template-columns:58px 1fr}.staffing-unit-button>span:last-child{grid-column:2}.staffing-seat-line{grid-template-columns:82px 1fr auto}}
+
 </style>
 </head>
 <body>
@@ -612,8 +637,17 @@ main{overflow-x:hidden}
 </section>
 
 <section id="view-staffing" class="view">
- <div class="top"><div><h1>Staffing Board</h1><div class="muted">Shortages, compliance, and current fill status</div></div><div class="grow"></div><button id="createNeedBtn" class="btn primary" onclick="openNeedCreator()">Create Staffing Need</button></div>
- <div class="split"><div class="card"><div class="panel-title">Open Staffing Needs</div><div id="staffingList" class="list"></div></div><div class="card"><div class="panel-title">Recently Filled</div><div id="filledNeeds" class="list"></div></div></div>
+ <div class="top">
+   <div><h1>Staffing Board</h1><div class="muted">Day view — who is where and what they are riding</div></div>
+   <div class="grow"></div>
+   <button class="ctl" onclick="stepStaffingDay(-1)">‹</button>
+   <input id="staffingDatePicker" class="ctl" type="date" onchange="setStaffingDate(this.value)">
+   <button class="ctl" onclick="stepStaffingDay(1)">›</button>
+   <button class="ctl" onclick="staffingToday()">Today</button>
+   <button id="createNeedBtn" class="btn primary" onclick="openNeedCreatorForDate(staffingSelectedDate,shiftForDate(staffingSelectedDate))">Create Staffing Need</button>
+ </div>
+ <div id="staffingDayHeader" class="staffing-day-header"></div>
+ <div id="staffingDayBoard" class="staffing-day-board"></div>
 </section>
 
 <section id="view-ot" class="view">
@@ -795,7 +829,7 @@ main{overflow-x:hidden}
 const SUPABASE_URL='https://hnktbvfzrccfrgfrgehr.supabase.co';
 const SUPABASE_KEY='sb_publishable_sdPmMJGLy0H1HSAxa1ngZQ_yYR3miIW';
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-let session=null, profile=null, me=null, personnel=[], otStatus=[], needs=[], responses=[], assignments=[], unitAssignments=[], events=[], eventSlots=[], dayNotes=[], notifications=[], leaves=[], trades=[], audits=[], shiftDays=[], sourceCells=[], rules=[], schedulePeriods=[], selectedPeriodStart='2026-09-30', selectedNeed=null, pendingAward=null, pendingFtoPairing=null, conceptSelectedDate='2026-09-30', dashboardSelectedDate='2026-09-30', personnelShiftFilter='ALL';
+let session=null, profile=null, me=null, personnel=[], otStatus=[], needs=[], responses=[], assignments=[], unitAssignments=[], events=[], eventSlots=[], dayNotes=[], notifications=[], leaves=[], trades=[], audits=[], shiftDays=[], sourceCells=[], rules=[], schedulePeriods=[], selectedPeriodStart='2026-09-30', selectedNeed=null, pendingAward=null, pendingFtoPairing=null, conceptSelectedDate='2026-09-30', dashboardSelectedDate='2026-09-30', staffingSelectedDate='2026-09-30', personnelShiftFilter='ALL';
 const adminRoles=['bc','chief','admin'];
 
 function msg(id,text,bad=false){const el=document.getElementById(id);el.textContent=text;el.className='notice'+(bad?' bad':'')}
@@ -1602,11 +1636,82 @@ function prettyRule(v){
  return Object.entries(v).map(([k,val])=>'<b>'+k.replaceAll('_',' ')+':</b> '+(typeof val==='object'?JSON.stringify(val):String(val))).join('<br>')
 }
 function needCard(n){const covered=coverageSum(n.id),pct=Math.min(100,(covered/Number(n.required_hours))*100);return `<div class="item"><h3>${formatDate(n.duty_date)} — ${n.position_label}</h3><div class="meta">${n.shift} Shift • ${n.unit} • ${qLabel(n.qualification_group)} • ${n.status.replaceAll('_',' ')}</div><div class="coverage"><span style="width:${pct}%"></span></div><div class="meta">${covered}/${Number(n.required_hours)}h covered • ${remaining(n)}h remaining</div><div class="actions"><button class="btn primary" onclick="openWorkflow('${n.id}')">Open</button></div></div>`}
+function staffingAssignmentLabel(a,p,date){
+ const cls=assignmentClass(a,p,date);
+ if(cls==='FORCED_OT')return {text:'FORCED OT',css:'forced'};
+ if(cls==='OT_FILL')return {text:'OT',css:'ot'};
+ if(cls==='EVENT')return {text:'EVENT',css:'event'};
+ if(a.assignment_type==='TRADE')return {text:'TRADE',css:'trade'};
+ return {text:'REGULAR',css:'regular'}
+}
+function staffingSeatLines(date,unit){
+ const {defs,result}=effectiveUnitPositions(date,unit);
+ return defs.map(def=>{
+   const x=result.get(def.code);
+   if(!x)return '<div class="staffing-seat-line"><div class="pos">'+def.label+'</div><div class="staffing-open">OPEN</div><span></span></div>';
+   const badge=staffingAssignmentLabel(x.a,x.p,date);
+   return '<div class="staffing-seat-line"><div class="pos">'+def.label+'</div><div><div class="person">'+x.p.name+'</div><div class="meta">'+rankLabel(x.p)+' • '+(x.p.ems_level||'No EMS')+(x.p.is_fao?' • FAO':'')+'</div></div><span class="staffing-status '+badge.css+'">'+badge.text+'</span></div>'
+ }).join('')
+}
+function staffingUnitBlock(date,unit){
+ const ps=unitPeople(date,unit);
+ const comp=unitCompliance(date,unit);
+ return '<div class="staffing-unit"><button class="staffing-unit-button" onclick="openApparatusDetail(\''+date+'\',\''+unit+'\')">'+
+   '<div class="staffing-unit-code">'+unit+'</div>'+
+   '<div class="staffing-seat-list">'+staffingSeatLines(date,unit)+'</div>'+
+   '<span class="tag '+(comp.ok?'good':'bad')+'">'+(comp.ok?'GREEN':'RED')+'</span>'+
+ '</button></div>'
+}
+function setStaffingDate(date){
+ if(!date)return;
+ staffingSelectedDate=date;
+ renderStaffing()
+}
+function stepStaffingDay(direction){
+ const d=new Date(staffingSelectedDate+'T12:00:00');
+ d.setDate(d.getDate()+direction);
+ staffingSelectedDate=d.toISOString().slice(0,10);
+ renderStaffing()
+}
+function staffingToday(){
+ staffingSelectedDate=new Date().toISOString().slice(0,10);
+ renderStaffing()
+}
 function renderStaffing(){
- const open=needs.filter(n=>!['FILLED','CANCELLED'].includes(n.status));
- const filled=needs.filter(n=>n.status==='FILLED').sort((a,b)=>String(b.duty_date).localeCompare(String(a.duty_date))).slice(0,12);
- staffingList.innerHTML=open.length?open.map(needCard).join(''):'<div class="notice">No open staffing needs.</div>';
- filledNeeds.innerHTML=filled.length?filled.map(needCard).join(''):'<div class="notice">No recently filled needs.</div>'
+ if(!staffingSelectedDate)staffingSelectedDate=new Date().toISOString().slice(0,10);
+ const picker=document.getElementById('staffingDatePicker');if(picker)picker.value=staffingSelectedDate;
+ const shift=shiftForDate(staffingSelectedDate);
+ const dt=new Date(staffingSelectedDate+'T12:00:00');
+ const open=needs.filter(n=>n.duty_date===staffingSelectedDate&&!['FILLED','CANCELLED'].includes(n.status));
+ const baseUnits=['BC','E1','M1','E2','M2'];
+ const activeSpecial=['M3','GATOR1'].filter(u=>unitPeople(staffingSelectedDate,u).length||open.some(n=>n.unit===u));
+ const totalAssigned=[...baseUnits,...activeSpecial].reduce((s,u)=>s+unitPeople(staffingSelectedDate,u).length,0);
+ const allGreen=['E1','M1','E2','M2'].every(u=>unitCompliance(staffingSelectedDate,u).ok);
+ staffingDayHeader.innerHTML=
+   '<div><div class="date">'+dt.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric',year:'numeric'})+'</div><div class="shift">'+shift+' Shift • '+totalAssigned+' personnel assigned</div></div>'+
+   '<div><span class="tag '+(allGreen?'good':'bad')+'">'+(allGreen?'MINIMUM STAFFING MET':'STAFFING ACTION NEEDED')+'</span></div>';
+
+ let html=
+   '<section class="staffing-station"><div class="staffing-station-head s1">Station 1 — Headquarters</div>'+
+     staffingUnitBlock(staffingSelectedDate,'BC')+
+     staffingUnitBlock(staffingSelectedDate,'E1')+
+     staffingUnitBlock(staffingSelectedDate,'M1')+
+   '</section>'+
+   '<section class="staffing-station"><div class="staffing-station-head s2">Station 2 — West Side</div>'+
+     staffingUnitBlock(staffingSelectedDate,'E2')+
+     staffingUnitBlock(staffingSelectedDate,'M2')+
+   '</section>';
+
+ if(activeSpecial.length){
+   html+='<section class="staffing-station" style="grid-column:1/-1"><div class="staffing-station-head special">Reserve / Special Event</div>'+
+     activeSpecial.map(u=>staffingUnitBlock(staffingSelectedDate,u)).join('')+'</section>'
+ }
+ if(open.length){
+   html+='<section class="staffing-needs-strip"><h3>Open Staffing Needs</h3>'+
+     open.map(n=>'<div class="staffing-need-row"><div><b>'+n.unit+' — '+n.position_label+'</b><div class="meta">'+remaining(n)+'h remaining • '+qLabel(n.qualification_group)+'</div></div><button class="btn primary" onclick="selectedNeed=\''+n.id+'\';goto(\'ot\');selectNeed(\''+n.id+'\')">OT / Force</button></div>').join('')+
+   '</section>'
+ }
+ staffingDayBoard.innerHTML=html
 }
 function forceDeadlineForNeed(n){
  const d=new Date(n.duty_date+'T20:00:00');
