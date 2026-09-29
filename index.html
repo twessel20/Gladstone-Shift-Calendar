@@ -53,11 +53,13 @@ main{padding:18px;min-width:0}.view{display:none}.view.on{display:block}.top{dis
   <div class="brand">GLADSTONE<br>FIRE DEPARTMENT<small>STAFFING & SCHEDULING</small></div>
   <div class="nav" id="nav">
     <button class="on" data-view="dashboard">▣ Dashboard</button>
+    <button data-view="schedule">▦ Schedule</button>
     <button data-view="staffing">◉ Staffing</button>
     <button data-view="ot">♟ OT / Force</button>
     <button data-view="requests">▤ Leave & Trades</button>
     <button data-view="personnel">♙ Personnel</button>
     <button data-view="notifications">● Notifications</button>
+    <button data-view="rules">⚙ Rules</button>
     <button data-view="audit">☷ Audit</button>
   </div>
   <div class="me"><b id="meName"></b><br><small id="meRole"></small><div class="actions"><button class="ctl" onclick="enableNotifications()">Mobile Alerts</button><button class="ctl" onclick="signOut()">Sign Out</button></div></div>
@@ -67,6 +69,11 @@ main{padding:18px;min-width:0}.view{display:none}.view.on{display:block}.top{dis
   <div class="hero"><div class="eyebrow">GLADSTONE FIRE DEPARTMENT</div><h2>People. Apparatus. Readiness.</h2><p>Live staffing, overtime, force rotation, leave, trades and personnel notifications.</p></div>
   <div id="dashboardMetrics" class="grid4"></div>
   <div class="split"><div class="card"><div class="panel-title">Open Staffing Needs</div><div id="dashNeeds" class="list"></div></div><div class="card"><div class="panel-title">Recent Notifications</div><div id="dashNotifs" class="list"></div></div></div>
+</section>
+
+<section id="view-schedule" class="view">
+ <div class="top"><div><h1>Current 28-Day Schedule</h1><div class="muted">Imported from the A/B/C Sep 30–Oct 27 department schedules</div></div><div class="grow"></div><select id="scheduleShift" class="ctl" onchange="renderSchedule()"><option value="ALL">All Shifts</option><option>A</option><option>B</option><option>C</option></select></div>
+ <div class="card"><div id="scheduleDays" class="list"></div></div>
 </section>
 
 <section id="view-staffing" class="view">
@@ -92,6 +99,11 @@ main{padding:18px;min-width:0}.view{display:none}.view.on{display:block}.top{dis
 <section id="view-notifications" class="view">
  <div class="top"><div><h1>Notifications</h1><div class="muted">Your scheduling alerts and action items</div></div><div class="grow"></div><button class="btn" onclick="markAllRead()">Mark All Read</button></div>
  <div class="card"><div id="notificationList" class="list"></div></div>
+</section>
+
+<section id="view-rules" class="view">
+ <div class="top"><div><h1>Operating Rules</h1><div class="muted">Live staffing, OT/Force, qualification, leave/trade and notification rules</div></div></div>
+ <div class="card"><div id="rulesList" class="list"></div></div>
 </section>
 
 <section id="view-audit" class="view">
@@ -134,7 +146,7 @@ main{padding:18px;min-width:0}.view{display:none}.view.on{display:block}.top{dis
 const SUPABASE_URL='https://hnktbvfzrccfrgfrgehr.supabase.co';
 const SUPABASE_KEY='sb_publishable_sdPmMJGLy0H1HSAxa1ngZQ_yYR3miIW';
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-let session=null, profile=null, me=null, personnel=[], otStatus=[], needs=[], responses=[], assignments=[], notifications=[], leaves=[], trades=[], audits=[], selectedNeed=null, pendingAward=null;
+let session=null, profile=null, me=null, personnel=[], otStatus=[], needs=[], responses=[], assignments=[], notifications=[], leaves=[], trades=[], audits=[], shiftDays=[], sourceCells=[], rules=[], selectedNeed=null, pendingAward=null;
 const adminRoles=['bc','chief','admin'];
 
 function msg(id,text,bad=false){const el=document.getElementById(id);el.textContent=text;el.className='notice'+(bad?' bad':'')}
@@ -167,7 +179,7 @@ function pById(id){return personnel.find(p=>p.id===id)}
 function otFor(id){return otStatus.find(x=>x.personnel_id===id)||{regular_ot_hours_14d:0,hours_remaining_to_24:24}}
 
 async function loadAll(){
- const [p,o,n,r,a,no,l,t,au]=await Promise.all([
+ const [p,o,n,r,a,no,l,t,au,sd,sc,ru]=await Promise.all([
   sb.from('personnel').select('*').eq('active',true).order('shift').order('hire_date',{ascending:false}),
   sb.from('personnel_ot_status').select('*'),
   sb.from('staffing_needs').select('*').neq('status','CANCELLED').order('duty_date'),
@@ -176,16 +188,42 @@ async function loadAll(){
   sb.from('notifications').select('*').eq('recipient_personnel_id',me.id).order('created_at',{ascending:false}).limit(100),
   sb.from('leave_requests').select('*').order('created_at',{ascending:false}).limit(100),
   sb.from('trade_requests').select('*').order('created_at',{ascending:false}).limit(100),
-  isAdmin()?sb.from('audit_events').select('*').order('created_at',{ascending:false}).limit(100):Promise.resolve({data:[]})
+  isAdmin()?sb.from('audit_events').select('*').order('created_at',{ascending:false}).limit(100):Promise.resolve({data:[]}),
+  sb.from('shift_days').select('*').gte('duty_date','2026-09-30').lte('duty_date','2026-10-27').order('duty_date'),
+  sb.from('schedule_source_cells').select('*').gte('duty_date','2026-09-30').lte('duty_date','2026-10-27').order('duty_date').order('source_name'),
+  sb.from('app_rules').select('*').order('category').order('key')
  ]);
- personnel=p.data||[];otStatus=o.data||[];needs=n.data||[];responses=r.data||[];assignments=a.data||[];notifications=no.data||[];leaves=l.data||[];trades=t.data||[];audits=au.data||[];renderAll()
+ personnel=p.data||[];otStatus=o.data||[];needs=n.data||[];responses=r.data||[];assignments=a.data||[];notifications=no.data||[];leaves=l.data||[];trades=t.data||[];audits=au.data||[];shiftDays=sd.data||[];sourceCells=sc.data||[];rules=ru.data||[];renderAll()
 }
-function renderAll(){renderDashboard();renderStaffing();renderOT();renderPersonnel();renderNotifications();renderRequests();renderAudit()}
+function renderAll(){renderDashboard();renderSchedule();renderStaffing();renderOT();renderPersonnel();renderNotifications();renderRequests();renderRules();renderAudit()}
 function renderDashboard(){
  const active=needs.filter(n=>n.status!=='FILLED'), unread=notifications.filter(n=>!n.read_at).length, mine=assignments.filter(a=>a.personnel_id===me.id).length;
  dashboardMetrics.innerHTML=`<div class="card metric"><strong>${active.length}</strong><span class="muted">Open staffing needs</span></div><div class="card metric"><strong>${unread}</strong><span class="muted">Unread notifications</span></div><div class="card metric"><strong>${mine}</strong><span class="muted">My staffing assignments</span></div><div class="card metric"><strong>${otFor(me.id).regular_ot_hours_14d}</strong><span class="muted">My Regular OT hours / 14d</span></div>`;
  dashNeeds.innerHTML=active.slice(0,6).map(needCard).join('')||'<div class="notice">No open staffing needs.</div>';
  dashNotifs.innerHTML=notifications.slice(0,6).map(notifCard).join('')||'<div class="notice">No notifications.</div>'
+}
+function renderSchedule(){
+ const filter=document.getElementById('scheduleShift')?.value||'ALL';
+ const days=shiftDays.filter(d=>filter==='ALL'||d.shift===filter);
+ scheduleDays.innerHTML=days.map(d=>{
+   const cells=sourceCells.filter(x=>x.duty_date===d.duty_date&&x.shift===d.shift);
+   const unitRows=['BC','E1','M1','E2','M2'].map(unit=>{
+     const exact=assignments.filter(a=>a.duty_date===d.duty_date&&a.unit===unit);
+     const names=exact.map(a=>pById(a.personnel_id)?.name).filter(Boolean);
+     return '<div class="meta"><b>'+unit+':</b> '+(names.length?names.join(', '):'—')+'</div>'
+   }).join('');
+   const exceptions=cells.filter(x=>!['BC','E1','M1','E2','M2','M3'].includes(String(x.raw_assignment).replace(/\s+/g,''))).slice(0,12);
+   return '<div class="item"><h3>'+formatDate(d.duty_date)+' — '+d.shift+' Shift</h3>'+unitRows+(exceptions.length?'<div class="decision"><b>Source schedule notes / exceptions</b><br>'+exceptions.map(x=>x.source_name+': '+x.raw_assignment).join(' • ')+'</div>':'')+'</div>'
+ }).join('')||'<div class="notice">No schedule rows match this filter.</div>'
+}
+function renderRules(){
+ rulesList.innerHTML=rules.map(r=>'<div class="item"><h3>'+r.description+'</h3><div class="meta">'+r.category.toUpperCase()+' • '+r.key+'</div><div class="decision">'+prettyRule(r.value)+'</div></div>').join('')||'<div class="notice">No rules loaded.</div>'
+}
+function prettyRule(v){
+ if(v==null)return '';
+ if(Array.isArray(v))return v.join(', ');
+ if(typeof v!=='object')return String(v);
+ return Object.entries(v).map(([k,val])=>'<b>'+k.replaceAll('_',' ')+':</b> '+(typeof val==='object'?JSON.stringify(val):String(val))).join('<br>')
 }
 function needCard(n){const covered=coverageSum(n.id),pct=Math.min(100,(covered/Number(n.required_hours))*100);return `<div class="item"><h3>${formatDate(n.duty_date)} — ${n.position_label}</h3><div class="meta">${n.shift} Shift • ${n.unit} • ${qLabel(n.qualification_group)} • ${n.status.replaceAll('_',' ')}</div><div class="coverage"><span style="width:${pct}%"></span></div><div class="meta">${covered}/${Number(n.required_hours)}h covered • ${remaining(n)}h remaining</div><div class="actions"><button class="btn primary" onclick="openWorkflow('${n.id}')">Open</button></div></div>`}
 function renderStaffing(){staffingList.innerHTML=needs.length?needs.map(needCard).join(''):'<div class="notice">No staffing needs.</div>'}
