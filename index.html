@@ -23,6 +23,8 @@ main{padding:18px;min-width:0}.view{display:none}.view.on{display:block}.top{dis
 .table{width:100%;border-collapse:collapse}.table th,.table td{padding:8px;border-bottom:1px solid #203149;text-align:left;vertical-align:top}.table th{font-size:11px;color:#aebed0}
 .coverage{height:9px;background:#1d2b3d;border-radius:999px;overflow:hidden;margin:8px 0}.coverage span{display:block;height:100%;background:var(--green)}
 .concept-wrap{display:grid;grid-template-columns:minmax(0,1fr) 385px;gap:12px;margin-top:12px}.concept-calendar{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:auto}.concept-grid{display:grid;grid-template-columns:170px repeat(28,43px);min-width:1374px}.concept-corner,.concept-dayh{background:#0a1726;border-bottom:1px solid var(--line)}.concept-corner{padding:12px;font-weight:800}.concept-dayh{padding:7px 3px;text-align:center;border-left:1px solid #1d2d42}.concept-dayh small{display:block;color:var(--muted);font-size:9px}.concept-dayh b{font-size:12px}.concept-dot{width:8px;height:8px;border-radius:50%;margin:5px auto 0}.concept-dot.g{background:var(--green)}.concept-dot.r{background:var(--red)}.concept-dot.n{background:#66758a}.concept-band{grid-column:1/-1;padding:8px 11px;font-weight:900}.concept-band.s1{background:linear-gradient(90deg,#91212a,#4b171c)}.concept-band.s2{background:linear-gradient(90deg,#1454a3,#0a2c5c)}.concept-band.res{background:linear-gradient(90deg,#5d31b5,#29144f)}.concept-rowlabel{padding:9px 10px;background:#0b1726;border-top:1px solid #1b2c42}.concept-rowlabel b{margin-right:6px}.concept-rowlabel small{color:var(--muted)}.concept-cell{border:0;border-left:1px solid #1d2d42;border-top:1px solid #1d2d42;min-height:41px;color:white;font-weight:900}.concept-cell.off{background:#25374a;color:#8494a8;font-size:9px}.concept-cell.ok{background:linear-gradient(#19ad6b,#0d8350);cursor:pointer}.concept-cell.bad{background:linear-gradient(#e65260,#bd2a36);cursor:pointer}.concept-cell.warn{background:linear-gradient(#d89a23,#966515);cursor:pointer}.concept-detail{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px;position:sticky;top:12px}.concept-banner{padding:10px;border-radius:8px;margin:10px 0;background:#143c2a;color:#9beabb;font-weight:900}.concept-banner.bad{background:#4d1b22;color:#ffc0c5}.concept-unit{border:1px solid var(--line);border-radius:8px;margin:8px 0;overflow:hidden}.concept-unit h3{margin:0;padding:7px 9px;font-size:12px}.concept-unit.s1 h3{background:#5a1b22}.concept-unit.s2 h3{background:#123e76}.concept-assign{display:grid;grid-template-columns:42px 1fr auto;gap:8px;padding:8px 9px;border-top:1px solid #1f3046}.concept-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.cycle-board{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px}.cycle-day{background:#0a1624;border:1px solid #22364f;border-radius:9px;padding:7px;min-height:176px;min-width:0}.cycle-day.today{outline:2px solid var(--blue)}.cycle-day.hasneed{border-color:#8b343d}.cycle-head{display:flex;justify-content:space-between;gap:5px;align-items:flex-start}.cycle-date{font-weight:900;font-size:12px}.cycle-shift{font-size:10px;border-radius:999px;padding:2px 5px;background:#173451;color:#d8e7f8}.cycle-unit{margin-top:4px;padding-top:4px;border-top:1px solid #1d2d42;font-size:9px;line-height:1.25}.cycle-unit b{display:inline-block;width:26px;color:#9fb0c7}.cycle-name{color:#eef5ff}.cycle-fto{color:#ffd980;font-weight:800}.cycle-open{color:#ff9da6;font-weight:800}.cycle-event{margin-top:4px;padding:4px 5px;border-radius:6px;background:#241d36;color:#d8c8ff;font-size:9px}.cycle-board .tag{font-size:8px;padding:2px 4px}
+@media(max-width:900px){.cycle-board{grid-template-columns:repeat(7,minmax(92px,1fr));gap:4px}.cycle-day{padding:5px;min-height:158px}.cycle-unit{font-size:8px}.cycle-date{font-size:11px}}
 .dashboard-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:12px}.quickgrid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin:12px 0}.quick{min-height:82px;text-align:left;display:flex;flex-direction:column;justify-content:space-between}.quick b{font-size:13px}.quick small{color:#b7c7d9}
 .calendar-wrap{overflow-x:auto}.calendar28{display:grid;grid-template-columns:repeat(7,minmax(135px,1fr));gap:7px;min-width:980px}.calday{min-height:138px;background:#0a1624;border:1px solid #22364f;border-radius:10px;padding:9px;position:relative}.calday.today{outline:2px solid #187ff3}.calday .date{font-weight:900;font-size:14px}.calday .shift{font-size:11px;margin-top:2px;color:#9fb0c7}.calday .unitline{font-size:10px;color:#c9d7e7;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.calday .badgeline{position:absolute;bottom:7px;left:7px;right:7px;display:flex;gap:4px;flex-wrap:wrap}.calday.hasneed{border-color:#8b343d}.calday.hasfto{box-shadow:inset 0 0 0 1px #b27a18}.sectiongrid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;margin-top:12px}.stack{display:flex;flex-direction:column;gap:10px}.sectionhead{display:flex;align-items:center;gap:8px;margin-bottom:9px}.sectionhead .grow{flex:1}.dense .item{padding:8px}.kpirow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:12px 0}.kpi{background:#0d1a2a;border:1px solid #22364f;border-radius:10px;padding:10px}.kpi strong{display:block;font-size:22px}.subtle{font-size:10px;color:#8fa3ba}
 @media(max-width:1100px){.quickgrid{grid-template-columns:repeat(3,1fr)}.sectiongrid{grid-template-columns:1fr 1fr}.sectiongrid>.card:first-child{grid-column:1/-1}.kpirow{grid-template-columns:repeat(3,1fr)}}
@@ -72,15 +74,14 @@ main{padding:18px;min-width:0}.view{display:none}.view.on{display:block}.top{dis
 <main>
 <section id="view-dashboard" class="view on">
   <div class="top">
-    <div><h1>28-Day Schedule</h1><div class="muted">Live working model • column view • all changes update staffing immediately</div></div>
+    <div><h1>28-Day Staffing Board</h1><div class="muted">Full cycle on one page • every calendar day • live assignments by unit and shift</div></div>
     <div class="grow"></div>
-    <select id="conceptShiftFilter" class="ctl" onchange="renderConceptDashboard()"><option value="ALL">Whole Schedule</option><option>A</option><option>B</option><option>C</option></select>
-    <button class="ctl" onclick="conceptToday()">Today</button>
+    <button id="activateM3Btn" class="btn primary hidden" onclick="openSpecialAssignment('M3')">Place Medic 3 In Service</button>
+    <button id="activateGatorBtn" class="btn hidden" onclick="openSpecialAssignment('GATOR1')">Special / Event Assignment</button>
   </div>
-  <div id="conceptMetrics" class="grid4"></div>
-  <div class="concept-wrap">
-    <div class="concept-calendar"><div class="concept-grid" id="conceptGrid"></div></div>
-    <div class="concept-detail" id="conceptDetail"></div>
+  <div id="landingMetrics" class="grid4"></div>
+  <div class="card">
+    <div id="cycleBoard" class="cycle-board"></div>
   </div>
 </section>
 
@@ -204,6 +205,24 @@ main{padding:18px;min-width:0}.view{display:none}.view.on{display:block}.top{dis
  <div class="actions"><button class="btn good" onclick="confirmFtoPairing()">Confirm FTO Pairing</button></div>
 </div></div>
 
+<div id="specialAssignmentModal" class="modal"><div class="modalbox">
+ <div class="modalhead"><h2 id="saTitle">Special Assignment</h2><div class="grow"></div><button class="ctl" onclick="closeModal('specialAssignmentModal')">Close</button></div>
+ <div class="formgrid">
+  <div class="field"><label>Unit</label><select id="saUnit"><option value="M3">Medic 3</option><option value="GATOR1">Gator 1</option></select></div>
+  <div class="field"><label>Date</label><input id="saDate" type="date"></div>
+  <div class="field"><label>Assignment Type</label><select id="saType"><option value="IN_SERVICE">Place In Service</option><option value="EVENT">Event</option><option value="SPECIAL_ASSIGNMENT">Special Assignment</option></select></div>
+  <div class="field"><label>Title / Event</label><input id="saName" placeholder="e.g. Gladfest, standby, reserve coverage"></div>
+  <div class="field"><label>Start</label><input id="saStart" type="time" value="08:00"></div>
+  <div class="field"><label>End</label><input id="saEnd" type="time" value="08:00"></div>
+  <div class="field"><label>Hours</label><input id="saHours" type="number" min=".5" max="24" step=".5" value="24"></div>
+  <div class="field"><label>Location</label><input id="saLocation"></div>
+  <div class="field"><label>Primary Personnel</label><select id="saPerson1"></select></div>
+  <div class="field"><label>Second Personnel</label><select id="saPerson2"><option value="">None</option></select></div>
+ </div>
+ <div class="notice warn" style="margin-top:10px">Medic 3 is hidden from the schedule unless activated here. M3 requires 2 personnel and at least 1 Paramedic. Gator 1 may be used for special/event staffing and appears only while assigned.</div>
+ <div class="actions"><button class="btn good" onclick="saveSpecialAssignment()">Activate / Schedule</button></div>
+</div></div>
+
 <div id="leaveModal" class="modal"><div class="modalbox"><div class="modalhead"><h2>Request Leave</h2><div class="grow"></div><button class="ctl" onclick="closeModal('leaveModal')">Close</button></div>
  <div class="formgrid"><div class="field"><label>Date</label><input id="leaveDate" type="date"></div><div class="field"><label>Leave Type</label><select id="leaveType"><option>Vacation</option><option>Kelly</option><option>Holiday</option><option>Sick</option><option>Family Sick</option><option>Bereavement</option><option>Comp</option><option>Training</option></select></div><div class="field"><label>Start</label><input id="leaveStart" type="time" value="08:00"></div><div class="field"><label>End</label><input id="leaveEnd" type="time" value="08:00"></div><div class="field"><label>Hours</label><input id="leaveHours" type="number" min=".5" max="24" step=".5" value="24"></div><div class="field"><label>Note</label><input id="leaveNote"></div></div>
  <div class="actions"><button class="btn primary" onclick="submitLeave()">Submit</button></div>
@@ -214,7 +233,7 @@ main{padding:18px;min-width:0}.view{display:none}.view.on{display:block}.top{dis
 const SUPABASE_URL='https://hnktbvfzrccfrgfrgehr.supabase.co';
 const SUPABASE_KEY='sb_publishable_sdPmMJGLy0H1HSAxa1ngZQ_yYR3miIW';
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-let session=null, profile=null, me=null, personnel=[], otStatus=[], needs=[], responses=[], assignments=[], notifications=[], leaves=[], trades=[], audits=[], shiftDays=[], sourceCells=[], rules=[], selectedNeed=null, pendingAward=null, pendingFtoPairing=null, conceptSelectedDate='2026-09-30';
+let session=null, profile=null, me=null, personnel=[], otStatus=[], needs=[], responses=[], assignments=[], unitAssignments=[], events=[], eventSlots=[], notifications=[], leaves=[], trades=[], audits=[], shiftDays=[], sourceCells=[], rules=[], selectedNeed=null, pendingAward=null, pendingFtoPairing=null, conceptSelectedDate='2026-09-30';
 const adminRoles=['bc','chief','admin'];
 
 function msg(id,text,bad=false){const el=document.getElementById(id);el.textContent=text;el.className='notice'+(bad?' bad':'')}
@@ -234,6 +253,8 @@ async function boot(){
  createNeedBtn.classList.toggle('hidden',!isAdmin());
  managePersonnelBtn.classList.toggle('hidden',!isAdmin());
  newPersonnelBtn.classList.toggle('hidden',!isAdmin());
+ if(document.getElementById('activateM3Btn'))activateM3Btn.classList.toggle('hidden',!isAdmin());
+ if(document.getElementById('activateGatorBtn'))activateGatorBtn.classList.toggle('hidden',!isAdmin());
  await loadAll();subscribeRealtime();registerSW();
 }
 function isAdmin(){return adminRoles.includes(profile?.app_role)}
@@ -250,12 +271,15 @@ function pById(id){return personnel.find(p=>p.id===id)}
 function otFor(id){return otStatus.find(x=>x.personnel_id===id)||{regular_ot_hours_14d:0,hours_remaining_to_24:24}}
 
 async function loadAll(){
- const [p,o,n,r,a,no,l,t,au,sd,sc,ru]=await Promise.all([
+ const [p,o,n,r,a,ua,ev,es,no,l,t,au,sd,sc,ru]=await Promise.all([
   sb.from('personnel').select('*').eq('active',true).order('shift').order('hire_date',{ascending:false}),
   sb.from('personnel_ot_status').select('*'),
   sb.from('staffing_needs').select('*').neq('status','CANCELLED').order('duty_date'),
   sb.from('ot_responses').select('*').order('responded_at'),
   sb.from('staffing_assignments').select('*').order('awarded_at'),
+  sb.from('unit_assignments').select('*').gte('duty_date','2026-09-30').lte('duty_date','2026-10-27').order('duty_date'),
+  sb.from('events').select('*').gte('event_date','2026-09-30').lte('event_date','2026-10-27').order('event_date'),
+  sb.from('event_slots').select('*'),
   sb.from('notifications').select('*').eq('recipient_personnel_id',me.id).order('created_at',{ascending:false}).limit(100),
   sb.from('leave_requests').select('*').order('created_at',{ascending:false}).limit(100),
   sb.from('trade_requests').select('*').order('created_at',{ascending:false}).limit(100),
@@ -264,111 +288,68 @@ async function loadAll(){
   sb.from('schedule_source_cells').select('*').gte('duty_date','2026-09-30').lte('duty_date','2026-10-27').order('duty_date').order('source_name'),
   sb.from('app_rules').select('*').order('category').order('key')
  ]);
- personnel=p.data||[];otStatus=o.data||[];needs=n.data||[];responses=r.data||[];assignments=a.data||[];notifications=no.data||[];leaves=l.data||[];trades=t.data||[];audits=au.data||[];shiftDays=sd.data||[];sourceCells=sc.data||[];rules=ru.data||[];renderAll()
+ personnel=p.data||[];otStatus=o.data||[];needs=n.data||[];responses=r.data||[];assignments=a.data||[];unitAssignments=ua.data||[];events=ev.data||[];eventSlots=es.data||[];notifications=no.data||[];leaves=l.data||[];trades=t.data||[];audits=au.data||[];shiftDays=sd.data||[];sourceCells=sc.data||[];rules=ru.data||[];renderAll()
 }
 function renderAll(){renderDashboard();renderSchedule();renderStaffing();renderOT();renderPersonnel();renderNotifications();renderRequests();renderRules();renderAudit()}
-function renderDashboard(){renderConceptDashboard()}
-const CONCEPT_ROWS=[
- ['STATION 1','band','s1'],['BC','unit'],['E1','unit'],['M1','unit'],
- ['STATION 2','band','s2'],['E2','unit'],['M2','unit'],
- ['RESERVE / EVENTS','band','res'],['M3','unit']
-];
-function conceptToday(){
- const t=new Date().toISOString().slice(0,10);
- if(shiftDays.some(d=>d.duty_date===t))conceptSelectedDate=t;
- renderConceptDashboard()
+function renderDashboard(){renderLandingBoard()}
+function shiftForDate(date){
+ const known=shiftDays.find(d=>d.duty_date===date); if(known)return known.shift;
+ const base=new Date('2026-09-30T12:00:00'),cur=new Date(date+'T12:00:00');
+ const diff=Math.round((cur-base)/86400000);
+ return ['B','C','A'][((diff%3)+3)%3]
 }
-function conceptSelectDate(d){conceptSelectedDate=d;renderConceptDetail()}
-function renderConceptDashboard(){
- const filter=document.getElementById('conceptShiftFilter')?.value||'ALL';
- const active=needs.filter(n=>!['FILLED','CANCELLED'].includes(n.status));
- const ftoCount=personnel.filter(p=>p.active&&p.employment_status==='PROBATIONARY_FTO').length;
+function shortName(name){if(!name)return '—';const a=name.trim().split(/\s+/);return a.length>1?a[0]+' '+a[a.length-1][0]+'.':name}
+function unitPeople(date,unit){
+ return unitAssignments.filter(a=>a.duty_date===date&&a.unit===unit).map(a=>({a,p:pById(a.personnel_id)})).filter(x=>x.p)
+}
+function renderLandingBoard(){
+ const activeNeeds=needs.filter(n=>!['FILLED','CANCELLED'].includes(n.status));
+ const probationary=personnel.filter(p=>p.active&&p.employment_status==='PROBATIONARY_FTO').length;
  const unread=notifications.filter(n=>!n.read_at).length;
- const myOt=otFor(me.id).regular_ot_hours_14d||0;
- conceptMetrics.innerHTML=
-  '<div class="card metric"><strong>'+active.length+'</strong><span class="muted">Open staffing needs</span></div>'+
-  '<div class="card metric"><strong>'+ftoCount+'</strong><span class="muted">On FTO / probationary</span></div>'+
-  '<div class="card metric"><strong>'+unread+'</strong><span class="muted">Unread notifications</span></div>'+
-  '<div class="card metric"><strong>'+myOt+'</strong><span class="muted">My Regular OT / 14d</span></div>';
+ const today=new Date().toISOString().slice(0,10);
+ landingMetrics.innerHTML=
+   '<div class="card metric"><strong>'+activeNeeds.length+'</strong><span class="muted">Open staffing needs</span></div>'+
+   '<div class="card metric"><strong>'+probationary+'</strong><span class="muted">On FTO / probationary</span></div>'+
+   '<div class="card metric"><strong>'+unread+'</strong><span class="muted">Unread notifications</span></div>'+
+   '<div class="card metric"><strong>'+otFor(me.id).regular_ot_hours_14d+'</strong><span class="muted">My Regular OT / 14d</span></div>';
 
- const dates=shiftDays.slice(0,28);
- let html='<div class="concept-corner">Unit / Position</div>';
- for(const d of dates){
-   const open=active.some(n=>n.duty_date===d.duty_date);
-   const fto=sourceCells.some(x=>x.duty_date===d.duty_date&&pById(x.personnel_id)?.employment_status==='PROBATIONARY_FTO');
-   const dt=new Date(d.duty_date+'T12:00:00');
-   html+='<div class="concept-dayh"><small>'+dt.toLocaleDateString(undefined,{weekday:'short'})+'</small><b>'+dt.getDate()+'</b><div class="concept-dot '+(open?'r':fto?'n':'g')+'"></div></div>'
- }
- for(const row of CONCEPT_ROWS){
-   if(row[1]==='band'){html+='<div class="concept-band '+row[2]+'">'+row[0]+'</div>';continue}
-   html+='<div class="concept-rowlabel"><b>'+row[0]+'</b><small>'+conceptUnitRule(row[0])+'</small></div>';
-   for(const d of dates){
-     const visible=filter==='ALL'||d.shift===filter;
-     if(!visible){html+='<button class="concept-cell off">OFF</button>';continue}
-     const unitNeeds=active.filter(n=>n.duty_date===d.duty_date&&n.unit===row[0]);
-     const unitAssignments=assignments.filter(a=>a.duty_date===d.duty_date&&a.unit===row[0]);
-     const hasFto=unitAssignments.some(a=>pById(a.personnel_id)?.employment_status==='PROBATIONARY_FTO');
-     const cls=unitNeeds.length?'bad':hasFto?'warn':'ok';
-     const symbol=unitNeeds.length?'!':hasFto?'F':'✓';
-     html+='<button class="concept-cell '+cls+'" onclick="conceptSelectDate(\''+d.duty_date+'\')">'+symbol+'</button>'
-   }
- }
- conceptGrid.innerHTML=html;
- if(!dates.some(d=>d.duty_date===conceptSelectedDate))conceptSelectedDate=dates[0]?.duty_date||conceptSelectedDate;
- renderConceptDetail()
+ const days=[];let d=new Date('2026-09-30T12:00:00');
+ for(let i=0;i<28;i++){days.push(d.toISOString().slice(0,10));d=new Date(d.getTime()+86400000)}
+ cycleBoard.innerHTML=days.map(date=>{
+   const shift=shiftForDate(date);
+   const dt=new Date(date+'T12:00:00');
+   const open=activeNeeds.filter(n=>n.duty_date===date);
+   const units=['BC','E1','M1','E2','M2'];
+   const rows=units.map(u=>{
+      const ps=unitPeople(date,u);
+      const names=ps.map(x=>'<span class="'+(x.p.employment_status==='PROBATIONARY_FTO'?'cycle-fto':'cycle-name')+'">'+shortName(x.p.name)+(x.p.employment_status==='PROBATIONARY_FTO'?' ⚠':'')+'</span>').join(', ');
+      const need=open.filter(n=>n.unit===u);
+      return '<div class="cycle-unit"><b>'+u+'</b> '+(names||'<span class="muted">—</span>')+(need.length?' <span class="cycle-open">OPEN</span>':'')+'</div>'
+   }).join('');
+   const special=['M3','GATOR1'].map(u=>{
+      const ps=unitPeople(date,u); if(!ps.length)return '';
+      return '<div class="cycle-event"><b>'+(u==='GATOR1'?'Gator 1':'M3')+':</b> '+ps.map(x=>shortName(x.p.name)).join(', ')+'</div>'
+   }).join('');
+   return '<div class="cycle-day '+(date===today?'today ':'')+(open.length?'hasneed':'')+'"><div class="cycle-head"><div class="cycle-date">'+dt.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})+'</div><span class="cycle-shift">'+shift+'</span></div>'+rows+special+(open.length?'<div style="margin-top:4px"><span class="tag bad">'+open.length+' NEED'+(open.length>1?'S':'')+'</span></div>':'')+'</div>'
+ }).join('')
 }
-function conceptUnitRule(unit){
- if(unit==='BC')return 'Command';
- if(unit==='E1'||unit==='E2')return 'Min 3 • ALS • FAO';
- if(unit==='M1'||unit==='M2')return 'Min 2 • ALS';
- if(unit==='M3')return 'Reserve / Event';
- return ''
-}
-function renderConceptDetail(){
- const d=conceptSelectedDate;
- const day=shiftDays.find(x=>x.duty_date===d);
- if(!day){conceptDetail.innerHTML='<div class="notice">Select a date.</div>';return}
- const open=needs.filter(n=>n.duty_date===d&&!['FILLED','CANCELLED'].includes(n.status));
- const fto=sourceCells.filter(x=>x.duty_date===d&&pById(x.personnel_id)?.employment_status==='PROBATIONARY_FTO');
- conceptDetail.innerHTML=
-  '<h2 style="margin:0">'+formatDate(d)+', '+new Date(d+'T12:00:00').getFullYear()+'</h2>'+
-  '<div class="muted">'+day.shift+' Shift • 24-hour duty</div>'+
-  '<div class="concept-banner '+(open.length?'bad':'')+'">'+(open.length?open.length+' OPEN POSITION'+(open.length>1?'S':''):'COMPLIANT / FILLED')+'</div>'+
-  (fto.length?'<div class="notice warn"><b>⚠ FTO STAFFING</b><br>'+[...new Set(fto.map(x=>pById(x.personnel_id)?.name).filter(Boolean))].join(', ')+'</div>':'')+
-  '<div class="concept-unit s1"><h3>STATION 1</h3>'+conceptDetailRow('BC',d)+conceptDetailRow('E1',d)+conceptDetailRow('M1',d)+'</div>'+
-  '<div class="concept-unit s2"><h3>STATION 2</h3>'+conceptDetailRow('E2',d)+conceptDetailRow('M2',d)+'</div>'+
-  '<div class="concept-actions">'+
-    (isAdmin()?'<button class="btn primary" onclick="openNeedCreator()">Create Staffing Need</button>':'')+
-    '<button class="btn good" onclick="goto(\'ot\')">OT / Force</button>'+
-    '<button class="btn" onclick="goto(\'requests\')">Leave / Trades</button>'+
-    (isAdmin()?'<button class="btn" onclick="openPersonnelManager()">Manage Personnel</button>':'')+
-  '</div>'
-}
-function conceptDetailRow(unit,d){
- const ua=assignments.filter(a=>a.duty_date===d&&a.unit===unit);
- const n=needs.filter(x=>x.duty_date===d&&x.unit===unit&&!['FILLED','CANCELLED'].includes(x.status));
- const names=ua.map(a=>{
-   const p=pById(a.personnel_id); if(!p)return 'Unknown';
-   return p.name+(p.employment_status==='PROBATIONARY_FTO'?' ⚠ FTO':'')
- }).join(', ');
- const text=n.length?n.map(x=>x.position_label+' • '+remaining(x)+'h open').join('<br>'):(names||conceptUnitRule(unit));
- return '<div class="concept-assign"><b>'+unit+'</b><span>'+text+'</span><span class="tag '+(n.length?'bad':'good')+'">'+(n.length?'OPEN':'GOOD')+'</span></div>'
-}
-
 function renderSchedule(){
  const filter=document.getElementById('scheduleShift')?.value||'ALL';
  const days=shiftDays.filter(d=>filter==='ALL'||d.shift===filter);
  scheduleDays.innerHTML=days.map(d=>{
    const cells=sourceCells.filter(x=>x.duty_date===d.duty_date&&x.shift===d.shift);
-   const unitRows=['BC','E1','M1','E2','M2'].map(unit=>{
-     const exact=assignments.filter(a=>a.duty_date===d.duty_date&&a.unit===unit);
-     const names=exact.map(a=>pById(a.personnel_id)?.name).filter(Boolean);
+   const baseUnits=['BC','E1','M1','E2','M2'];
+   const specialUnits=['M3','GATOR1'].filter(u=>unitPeople(d.duty_date,u).length);
+   const unitRows=[...baseUnits,...specialUnits].map(unit=>{
+     const people=unitPeople(d.duty_date,unit);
+     const names=people.map(x=>x.p.name+(x.p.employment_status==='PROBATIONARY_FTO'?' ⚠ ON FTO':''));
      return '<div class="meta"><b>'+unit+':</b> '+(names.length?names.join(', '):'—')+'</div>'
    }).join('');
    const exceptions=cells.filter(x=>!['BC','E1','M1','E2','M2','M3'].includes(String(x.raw_assignment).replace(/\s+/g,''))).slice(0,12);
-   return '<div class="item"><h3>'+formatDate(d.duty_date)+' — '+d.shift+' Shift</h3>'+unitRows+(cells.some(x=>pById(x.personnel_id)?.employment_status==='PROBATIONARY_FTO')?'<div class="notice bad" style="margin-top:8px"><b>⚠ FTO STAFFING PRESENT</b><br>Any On-FTO employee on M1, M2, or M3 must be paired with an appropriate FTO trainer.</div>':'')+(exceptions.length?'<div class="decision"><b>Source schedule notes / exceptions</b><br>'+exceptions.map(x=>x.source_name+': '+x.raw_assignment).join(' • ')+'</div>':'')+'</div>'
+   return '<div class="item"><h3>'+formatDate(d.duty_date)+' — '+d.shift+' Shift</h3>'+unitRows+(exceptions.length?'<div class="decision"><b>Source schedule notes / exceptions</b><br>'+exceptions.map(x=>x.source_name+': '+x.raw_assignment).join(' • ')+'</div>':'')+'</div>'
  }).join('')||'<div class="notice">No schedule rows match this filter.</div>'
 }
+
 function renderRules(){
  rulesList.innerHTML=rules.map(r=>'<div class="item"><h3>'+r.description+'</h3><div class="meta">'+r.category.toUpperCase()+' • '+r.key+'</div><div class="decision">'+prettyRule(r.value)+'</div></div>').join('')||'<div class="notice">No rules loaded.</div>'
 }
@@ -572,6 +553,37 @@ async function createPersonnel(){
  closeModal('newPersonnelModal');
  await loadAll();
  alert('New employee added to the roster.')
+}
+function openSpecialAssignment(unit){
+ if(!isAdmin())return;
+ saUnit.value=unit||'M3';
+ saDate.value=new Date().toISOString().slice(0,10);
+ saType.value=unit==='M3'?'IN_SERVICE':'EVENT';
+ saName.value=unit==='M3'?'Medic 3 In Service':'Special Event';
+ saLocation.value='';
+ const opts=personnel.filter(p=>p.active).map(p=>'<option value="'+p.id+'">'+p.name+' — '+p.shift+' — '+(p.personnel_type==='FF_PARAMEDIC'?'FF/Paramedic':p.personnel_type==='SINGLE_ROLE_PARAMEDIC'?'Single-Role Paramedic':'FF/EMT')+'</option>').join('');
+ saPerson1.innerHTML=opts;
+ saPerson2.innerHTML='<option value="">None</option>'+opts;
+ saTitle.textContent=unit==='M3'?'Place Medic 3 In Service':'Special / Event Assignment';
+ openModal('specialAssignmentModal')
+}
+async function saveSpecialAssignment(){
+ const unit=saUnit.value,date=saDate.value,p1=saPerson1.value,p2=saPerson2.value||null,hours=Number(saHours.value);
+ if(!date||!p1)return alert('Date and primary personnel are required.');
+ if(unit==='M3'){
+   if(!p2)return alert('Medic 3 requires two personnel.');
+   const pair=[pById(p1),pById(p2)];
+   if(!pair.some(p=>p?.ems_level==='Paramedic'))return alert('Medic 3 requires at least one Paramedic.');
+ }
+ const {data:event,error}=await sb.from('events').insert({name:saName.value.trim()||unit,event_date:date,location:saLocation.value.trim()||null,notes:saType.value,status:'OPEN',created_by:session.user.id}).select().single();
+ if(error)return alert(error.message);
+ const {error:slotErr}=await sb.from('event_slots').insert({event_id:event.id,label:saName.value.trim()||unit,apparatus:unit,start_time:saStart.value,end_time:saEnd.value,hours,required_staff:unit==='M3'?2:1,requires_paramedic:unit==='M3'});
+ if(slotErr)return alert(slotErr.message);
+ const rows=[p1,p2].filter(Boolean).map((pid,i)=>({duty_date:date,unit,position_label:(saName.value.trim()||unit)+(i===0?' • Primary':' • Partner'),personnel_id:pid,assignment_type:'EVENT',start_time:saStart.value,end_time:saEnd.value,hours,created_by:session.user.id}));
+ const {error:assignErr}=await sb.from('unit_assignments').insert(rows);
+ if(assignErr)return alert(assignErr.message);
+ await logAudit('SPECIAL_ASSIGNMENT_ACTIVATED','event',event.id,{unit,date,title:saName.value,hours,personnel:rows.map(r=>r.personnel_id)});
+ closeModal('specialAssignmentModal');await loadAll()
 }
 function notifCard(n){return `<div class="item"><h3>${n.title} ${!n.read_at?'<span class="tag bad">UNREAD</span>':''}</h3><div class="meta">${new Date(n.created_at).toLocaleString()} • ${n.body}</div><div class="actions">${!n.read_at?'<button class="btn" onclick="readNotif(\''+n.id+'\')">Mark Read</button>':''}${n.action_type==='OT_RESPONSE'?'<button class="btn primary" onclick="selectNeed(\''+n.action_id+'\');goto(\'ot\')">Open OT Request</button>':''}${n.action_type==='ACK_ASSIGNMENT'&&!n.acknowledged_at?'<button class="btn good" onclick="ackNotif(\''+n.id+'\')">Acknowledge</button>':''}</div></div>`}
 function renderNotifications(){notificationList.innerHTML=notifications.map(notifCard).join('')||'<div class="notice">No notifications.</div>'}
