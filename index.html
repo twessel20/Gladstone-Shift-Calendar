@@ -694,6 +694,65 @@ main{overflow-x:hidden}
   main{padding:12px 10px 18px}
 }
 
+
+/* Mobile UX shell: simple day-first navigation */
+.mobile-bottom-nav,.mobile-more-sheet,.mobile-more-backdrop{display:none}
+@media(max-width:700px){
+  body{padding-bottom:74px}
+  .app,.app.sidebar-collapsed{display:block;min-height:100vh}
+  .sidebar{display:none!important}
+  main{padding:12px 10px 92px!important;width:100%;max-width:100vw;overflow-x:hidden}
+  .top{gap:8px}
+  .top h1{font-size:23px;line-height:1.1}
+  .top .muted{font-size:11px;line-height:1.35}
+  .btn,.ctl{min-height:44px;font-size:14px}
+  .split,.grid4,.dashboard-grid,.quickgrid{grid-template-columns:1fr!important}
+  .card{border-radius:12px}
+  #view-requests .top .grow,#view-events .top .grow,#view-notifications .top .grow{display:none}
+  #view-requests .top,#view-events .top,#view-notifications .top{align-items:stretch}
+  #view-requests .top>div:first-child,#view-events .top>div:first-child,#view-notifications .top>div:first-child{width:100%}
+  #view-requests .top .btn,#view-events .top .btn,#view-notifications .top .btn{flex:1 1 100%}
+  .mobile-bottom-nav{
+    position:fixed;display:grid;grid-template-columns:repeat(5,1fr);
+    left:0;right:0;bottom:0;z-index:950;
+    padding:6px 6px calc(6px + env(safe-area-inset-bottom));
+    background:rgba(6,16,27,.97);border-top:1px solid #29425e;
+    box-shadow:0 -8px 24px rgba(0,0,0,.32)
+  }
+  .mobile-bottom-nav button{
+    border:0;background:transparent;color:#9fb2c4;border-radius:10px;
+    min-height:52px;padding:5px 2px;font-size:10px;font-weight:800
+  }
+  .mobile-bottom-nav button .mi{display:block;font-size:20px;line-height:1.1;margin-bottom:3px}
+  .mobile-bottom-nav button.on{background:#17324d;color:#fff}
+  .mobile-more-backdrop{
+    position:fixed;inset:0;z-index:960;background:rgba(0,0,0,.55)
+  }
+  .mobile-more-backdrop.show{display:block}
+  .mobile-more-sheet{
+    position:fixed;display:block;left:8px;right:8px;bottom:calc(70px + env(safe-area-inset-bottom));
+    z-index:970;background:#0a1827;border:1px solid #294b69;border-radius:16px;
+    padding:10px;box-shadow:0 16px 40px rgba(0,0,0,.5);
+    transform:translateY(130%);opacity:0;pointer-events:none;transition:.18s ease
+  }
+  .mobile-more-sheet.show{transform:translateY(0);opacity:1;pointer-events:auto}
+  .mobile-more-head{display:flex;align-items:center;justify-content:space-between;padding:4px 4px 10px}
+  .mobile-more-head b{font-size:16px}
+  .mobile-more-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+  .mobile-more-grid button{
+    min-height:48px;border:1px solid #294b69;background:#102238;color:#fff;
+    border-radius:10px;text-align:left;padding:10px;font-weight:800
+  }
+  .mobile-more-grid button.danger{border-color:#71313a;background:#2d171b;color:#ffc0c5}
+  .staffing-day-board{gap:10px}
+  .staffing-unit-button{min-height:58px}
+  .staffing-seat-line{padding:3px 0}
+  .staffing-status{font-size:8px}
+  #view-personnel .card{padding:8px}
+  #view-personnel table{font-size:10px}
+  #view-personnel .table th,#view-personnel .table td{padding:7px 5px}
+}
+
 </style>
 </head>
 <body>
@@ -828,7 +887,27 @@ main{overflow-x:hidden}
  <div class="top"><div><h1>Audit Log</h1><div class="muted">BC/admin scheduling activity</div></div></div>
  <div class="card"><div id="auditList" class="list"></div></div>
 </section>
-</main></div>
+</main>
+<nav id="mobileBottomNav" class="mobile-bottom-nav" aria-label="Mobile navigation">
+  <button data-mobile-view="staffing" onclick="mobileGoto('staffing')"><span class="mi">◉</span>Today</button>
+  <button data-mobile-view="ot" onclick="mobileGoto('ot')"><span class="mi">♟</span>OT</button>
+  <button data-mobile-view="requests" onclick="mobileGoto('requests')"><span class="mi">▤</span>Requests</button>
+  <button data-mobile-view="notifications" onclick="mobileGoto('notifications')"><span class="mi">●</span>Alerts</button>
+  <button id="mobileMoreBtn" onclick="toggleMobileMore()"><span class="mi">•••</span>More</button>
+</nav>
+<div id="mobileMoreBackdrop" class="mobile-more-backdrop" onclick="closeMobileMore()"></div>
+<div id="mobileMoreSheet" class="mobile-more-sheet" role="dialog" aria-label="More options">
+  <div class="mobile-more-head"><b>More</b><button class="ctl" onclick="closeMobileMore()">Close</button></div>
+  <div class="mobile-more-grid">
+    <button onclick="mobileGoto('events')">☆ Special Events</button>
+    <button onclick="mobileGoto('personnel')">♙ Personnel</button>
+    <button onclick="mobileGoto('rules')">⚙ Operating Rules</button>
+    <button onclick="mobileGoto('audit')">☷ Audit Log</button>
+    <button onclick="enableNotifications();closeMobileMore()">● Enable Alerts</button>
+    <button class="danger" onclick="signOut()">Sign Out</button>
+  </div>
+</div>
+</div>
 
 <div id="needModal" class="modal"><div class="modalbox"><div class="modalhead"><h2>Create Staffing Need</h2><div class="grow"></div><button class="ctl" onclick="closeModal('needModal')">Close</button></div>
  <div class="formgrid">
@@ -2534,7 +2613,23 @@ function restoreSidebarState(){
  const root=document.getElementById('app');if(root)root.classList.toggle('sidebar-collapsed',collapsed);
  const btn=document.getElementById('sidebarToggle');if(btn){btn.title=collapsed?'Expand navigation':'Collapse navigation';btn.setAttribute('aria-label',btn.title);btn.textContent=collapsed?'›':'‹ Collapse'}
 }
-function goto(v){document.querySelectorAll('.view').forEach(x=>x.classList.remove('on'));document.getElementById('view-'+v).classList.add('on');document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.view===v));if(v==='ot'&&selectedNeed)selectNeed(selectedNeed)}
+function goto(v){
+ const view=document.getElementById('view-'+v);if(!view)return;
+ document.querySelectorAll('.view').forEach(x=>x.classList.remove('on'));view.classList.add('on');
+ document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.view===v));
+ document.querySelectorAll('[data-mobile-view]').forEach(b=>b.classList.toggle('on',b.dataset.mobileView===v));
+ if(v==='ot'&&selectedNeed)selectNeed(selectedNeed);
+ if(window.innerWidth<=700)window.scrollTo({top:0,behavior:'instant'})
+}
+function mobileGoto(v){closeMobileMore();goto(v)}
+function toggleMobileMore(){
+ const sheet=document.getElementById('mobileMoreSheet'),back=document.getElementById('mobileMoreBackdrop');
+ const show=!sheet.classList.contains('show');sheet.classList.toggle('show',show);back.classList.toggle('show',show)
+}
+function closeMobileMore(){
+ document.getElementById('mobileMoreSheet')?.classList.remove('show');
+ document.getElementById('mobileMoreBackdrop')?.classList.remove('show')
+}
 document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>goto(b.dataset.view));
 window.addEventListener('resize',()=>{document.querySelectorAll('.modal.show').forEach(m=>fitModalToScreen(m.id))});
 
@@ -2551,8 +2646,13 @@ function applyMobileDayView(){
     const title=document.querySelector('#view-staffing h1');
     const sub=document.querySelector('#view-staffing .muted');
     if(title) title.textContent='Daily Assignment';
-    if(sub) sub.textContent='Today’s apparatus assignments and staffing';
+    if(sub) sub.textContent='Who is where and what they are riding';
+    document.querySelectorAll('[data-mobile-view]').forEach(b=>{
+      const active=document.querySelector('.view.on')?.id==='view-'+b.dataset.mobileView;
+      b.classList.toggle('on',active)
+    });
   }else{
+    closeMobileMore();
     const title=document.querySelector('#view-staffing h1');
     const sub=document.querySelector('#view-staffing .muted');
     if(title) title.textContent='Staffing Board';
