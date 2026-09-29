@@ -367,10 +367,12 @@ main{overflow-x:hidden}
 <main>
 <section id="view-dashboard" class="view on">
   <div class="top">
-    <div><h1>28-Day Schedule</h1><div class="muted"><span id="headerShiftText" style="color:#ff4251;font-weight:900">A Shift</span> &nbsp;•&nbsp; Sep 30, 2026 – Oct 27, 2026 &nbsp;•&nbsp; <span class="header-cycle">Current Cycle</span></div></div>
+    <div><h1>28-Day Schedule</h1><div class="muted"><span id="headerShiftText" style="color:#ff4251;font-weight:900">A Shift</span> &nbsp;•&nbsp; <span id="headerPeriodText">Sep 30, 2026 – Oct 27, 2026</span> &nbsp;•&nbsp; <span id="headerCycleStatus" class="header-cycle">Current Cycle</span></div></div>
     <div class="grow"></div>
+    <button class="ctl" onclick="stepSchedulePeriod(-1)" title="Previous 28-day cycle">‹</button>
+    <select id="schedulePeriodFilter" class="ctl period-picker" onchange="changeSchedulePeriod(this.value)"></select>
+    <button class="ctl" onclick="stepSchedulePeriod(1)" title="Next 28-day cycle">›</button>
     <button class="ctl" onclick="selectDashboardToday()">Today</button>
-    <div class="header-range">Sep 30, 2026 – Oct 27, 2026</div>
     <select id="dashboardShiftFilter" class="ctl shift-picker" onchange="dashboardSelectedDate=firstDutyDateForShift(this.value);renderCommandDashboard()"><option>A</option><option>B</option><option>C</option></select>
     <button id="activateM3Btn" class="btn primary hidden" onclick="openSpecialAssignment('M3')">Medic 3</button>
     <button id="activateGatorBtn" class="btn hidden" onclick="openSpecialAssignment('GATOR1')">Special Event</button>
@@ -392,7 +394,7 @@ main{overflow-x:hidden}
 </section>
 
 <section id="view-schedule" class="view">
- <div class="top"><div><h1>Current 28-Day Schedule</h1><div class="muted">Imported from the A/B/C Sep 30–Oct 27 department schedules</div></div><div class="grow"></div><select id="scheduleShift" class="ctl" onchange="renderSchedule()"><option value="ALL">All Shifts</option><option>A</option><option>B</option><option>C</option></select></div>
+ <div class="top"><div><h1>28-Day Schedule Detail</h1><div class="muted">Selected schedule cycle detail</div></div><div class="grow"></div><select id="scheduleShift" class="ctl" onchange="renderSchedule()"><option value="ALL">All Shifts</option><option>A</option><option>B</option><option>C</option></select></div>
  <div class="card"><div id="scheduleDays" class="list"></div></div>
 </section>
 
@@ -559,7 +561,7 @@ main{overflow-x:hidden}
 const SUPABASE_URL='https://hnktbvfzrccfrgfrgehr.supabase.co';
 const SUPABASE_KEY='sb_publishable_sdPmMJGLy0H1HSAxa1ngZQ_yYR3miIW';
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-let session=null, profile=null, me=null, personnel=[], otStatus=[], needs=[], responses=[], assignments=[], unitAssignments=[], events=[], eventSlots=[], dayNotes=[], notifications=[], leaves=[], trades=[], audits=[], shiftDays=[], sourceCells=[], rules=[], selectedNeed=null, pendingAward=null, pendingFtoPairing=null, conceptSelectedDate='2026-09-30', dashboardSelectedDate='2026-09-30', personnelShiftFilter='ALL';
+let session=null, profile=null, me=null, personnel=[], otStatus=[], needs=[], responses=[], assignments=[], unitAssignments=[], events=[], eventSlots=[], dayNotes=[], notifications=[], leaves=[], trades=[], audits=[], shiftDays=[], sourceCells=[], rules=[], schedulePeriods=[], selectedPeriodStart='2026-09-30', selectedNeed=null, pendingAward=null, pendingFtoPairing=null, conceptSelectedDate='2026-09-30', dashboardSelectedDate='2026-09-30', personnelShiftFilter='ALL';
 const adminRoles=['bc','chief','admin'];
 
 function msg(id,text,bad=false){const el=document.getElementById(id);el.textContent=text;el.className='notice'+(bad?' bad':'')}
@@ -577,9 +579,6 @@ async function boot(){
  authScreen.classList.add('hidden');claimScreen.classList.add('hidden');app.classList.remove('hidden');
  meName.textContent=me.name;meRole.textContent=me.rank+' • '+me.shift+' Shift • '+profile.app_role.toUpperCase();
  if(document.getElementById('dashboardShiftFilter')) dashboardShiftFilter.value=me.shift;
- const cycleStart='2026-09-30';
- const firstHomeShiftDay=shiftDays.find(d=>d.duty_date>=cycleStart&&d.shift===me.shift)?.duty_date;
- if(firstHomeShiftDay)dashboardSelectedDate=firstHomeShiftDay;
  createNeedBtn.classList.toggle('hidden',!isAdmin());
  managePersonnelBtn.classList.toggle('hidden',!isAdmin());
  newPersonnelBtn.classList.toggle('hidden',!isAdmin());
@@ -601,31 +600,85 @@ function pById(id){return personnel.find(p=>p.id===id)}
 function otFor(id){return otStatus.find(x=>x.personnel_id===id)||{regular_ot_hours_14d:0,hours_remaining_to_24:24}}
 
 async function loadAll(){
- const [p,o,n,r,a,ua,ev,es,dn,no,l,t,au,sd,sc,ru]=await Promise.all([
+ const [p,o,n,r,a,ua,ev,es,dn,no,l,t,au,sd,sc,ru,sp]=await Promise.all([
   sb.from('personnel').select('*').eq('active',true).order('shift').order('hire_date',{ascending:false}),
   sb.from('personnel_ot_status').select('*'),
   sb.from('staffing_needs').select('*').neq('status','CANCELLED').order('duty_date'),
   sb.from('ot_responses').select('*').order('responded_at'),
   sb.from('staffing_assignments').select('*').order('awarded_at'),
-  sb.from('unit_assignments').select('*').gte('duty_date','2026-09-30').lte('duty_date','2026-10-27').order('duty_date'),
-  sb.from('events').select('*').gte('event_date','2026-09-30').lte('event_date','2026-10-27').order('event_date'),
+  sb.from('unit_assignments').select('*').order('duty_date'),
+  sb.from('events').select('*').order('event_date'),
   sb.from('event_slots').select('*'),
-  sb.from('day_notes').select('*').gte('duty_date','2026-09-30').lte('duty_date','2026-10-27'),
+  sb.from('day_notes').select('*').order('duty_date'),
   sb.from('notifications').select('*').eq('recipient_personnel_id',me.id).order('created_at',{ascending:false}).limit(100),
-  sb.from('leave_requests').select('*').order('created_at',{ascending:false}).limit(100),
-  sb.from('trade_requests').select('*').order('created_at',{ascending:false}).limit(100),
+  sb.from('leave_requests').select('*').order('created_at',{ascending:false}).limit(250),
+  sb.from('trade_requests').select('*').order('created_at',{ascending:false}).limit(250),
   isAdmin()?sb.from('audit_events').select('*').order('created_at',{ascending:false}).limit(100):Promise.resolve({data:[]}),
-  sb.from('shift_days').select('*').gte('duty_date','2026-09-30').lte('duty_date','2026-10-27').order('duty_date'),
-  sb.from('schedule_source_cells').select('*').gte('duty_date','2026-09-30').lte('duty_date','2026-10-27').order('duty_date').order('source_name'),
-  sb.from('app_rules').select('*').order('category').order('key')
+  sb.from('shift_days').select('*').order('duty_date'),
+  sb.from('schedule_source_cells').select('*').order('duty_date').order('source_name'),
+  sb.from('app_rules').select('*').order('category').order('key'),
+  sb.from('schedule_periods').select('*').order('start_date')
  ]);
- personnel=p.data||[];otStatus=o.data||[];needs=n.data||[];responses=r.data||[];assignments=a.data||[];unitAssignments=ua.data||[];events=ev.data||[];eventSlots=es.data||[];dayNotes=dn.data||[];notifications=no.data||[];leaves=l.data||[];trades=t.data||[];audits=au.data||[];shiftDays=sd.data||[];sourceCells=sc.data||[];rules=ru.data||[];renderAll()
+ personnel=p.data||[];otStatus=o.data||[];needs=n.data||[];responses=r.data||[];assignments=a.data||[];unitAssignments=ua.data||[];events=ev.data||[];eventSlots=es.data||[];dayNotes=dn.data||[];notifications=no.data||[];leaves=l.data||[];trades=t.data||[];audits=au.data||[];shiftDays=sd.data||[];sourceCells=sc.data||[];rules=ru.data||[];schedulePeriods=sp.data||[];
+
+ if(schedulePeriods.length){
+   const today=new Date().toISOString().slice(0,10);
+   const current=schedulePeriods.find(x=>x.period_status==='CURRENT')
+     ||schedulePeriods.find(x=>x.start_date<=today&&x.end_date>=today)
+     ||schedulePeriods[schedulePeriods.length-1];
+   if(!schedulePeriods.some(x=>x.start_date===selectedPeriodStart))selectedPeriodStart=current.start_date;
+   if(selectedPeriodStart==='2026-09-30'&&current)selectedPeriodStart=current.start_date;
+ }
+ renderPeriodSelector();
+ const shift=document.getElementById('dashboardShiftFilter')?.value||me.shift;
+ dashboardSelectedDate=firstDutyDateForShift(shift);
+ renderAll()
+}
+function activeSchedulePeriod(){
+ return schedulePeriods.find(x=>x.start_date===selectedPeriodStart)
+   ||schedulePeriods.find(x=>x.period_status==='CURRENT')
+   ||schedulePeriods[0]
+}
+function periodDays(period=activeSchedulePeriod()){
+ if(!period)return [];
+ const out=[];let d=new Date(period.start_date+'T12:00:00Z');
+ for(let i=0;i<28;i++){out.push(d.toISOString().slice(0,10));d=new Date(d.getTime()+86400000)}
+ return out
+}
+function periodStatusLabel(p){
+ if(!p)return '';
+ return p.period_status==='CURRENT'?'Current Cycle':p.period_status==='HISTORICAL'?'Previous Cycle':p.period_status==='FUTURE'?'Future Cycle':'Planning Cycle'
+}
+function renderPeriodSelector(){
+ const sel=document.getElementById('schedulePeriodFilter');
+ if(!sel)return;
+ sel.innerHTML=schedulePeriods.map(p=>'<option value="'+p.start_date+'">'+p.label+(p.period_status==='CURRENT'?' • CURRENT':'')+'</option>').join('');
+ sel.value=selectedPeriodStart;
+ const p=activeSchedulePeriod();
+ if(document.getElementById('headerPeriodText'))headerPeriodText.textContent=p?.label||'';
+ if(document.getElementById('headerCycleStatus'))headerCycleStatus.textContent=periodStatusLabel(p)
+}
+function changeSchedulePeriod(start){
+ if(!schedulePeriods.some(x=>x.start_date===start))return;
+ selectedPeriodStart=start;
+ renderPeriodSelector();
+ const shift=document.getElementById('dashboardShiftFilter')?.value||me.shift;
+ dashboardSelectedDate=firstDutyDateForShift(shift);
+ renderCommandDashboard();
+ if(document.getElementById('scheduleDays'))renderSchedule()
+}
+function stepSchedulePeriod(direction){
+ const idx=schedulePeriods.findIndex(x=>x.start_date===selectedPeriodStart);
+ const next=Math.max(0,Math.min(schedulePeriods.length-1,idx+direction));
+ if(next!==idx)changeSchedulePeriod(schedulePeriods[next].start_date)
 }
 function renderAll(){renderDashboard();renderSchedule();renderStaffing();renderOT();renderRequests();renderEvents();renderPersonnel();renderNotifications();renderRules();renderAudit()}
 function renderDashboard(){renderCommandDashboard()}
 function firstDutyDateForShift(shift){
- const d=shiftDays.find(x=>x.shift===shift&&x.duty_date>='2026-09-30'&&x.duty_date<='2026-10-27');
- return d?.duty_date||'2026-09-30'
+ const p=activeSchedulePeriod();
+ if(!p)return dashboardSelectedDate;
+ const d=shiftDays.find(x=>x.shift===shift&&x.duty_date>=p.start_date&&x.duty_date<=p.end_date);
+ return d?.duty_date||p.start_date
 }
 function selectDashboardDate(date){
  const selectedShift=document.getElementById('dashboardShiftFilter')?.value||me.shift;
@@ -634,8 +687,16 @@ function selectDashboardDate(date){
 }
 function selectDashboardToday(){
  const t=new Date().toISOString().slice(0,10);
+ const containing=schedulePeriods.find(p=>p.start_date<=t&&p.end_date>=t);
+ if(containing)selectedPeriodStart=containing.start_date;
+ else {
+   const current=schedulePeriods.find(p=>p.period_status==='CURRENT');
+   if(current)selectedPeriodStart=current.start_date
+ }
+ renderPeriodSelector();
  const selectedShift=document.getElementById('dashboardShiftFilter')?.value||me.shift;
- dashboardSelectedDate=(t>='2026-09-30'&&t<='2026-10-27'&&shiftForDate(t)===selectedShift)?t:firstDutyDateForShift(selectedShift);
+ const p=activeSchedulePeriod();
+ dashboardSelectedDate=(p&&t>=p.start_date&&t<=p.end_date&&shiftForDate(t)===selectedShift)?t:firstDutyDateForShift(selectedShift);
  renderCommandDashboard()
 }
 function dayStaffingCompliance(date){
@@ -644,9 +705,11 @@ function dayStaffingCompliance(date){
  return {ok:details.every(x=>x.ok),details}
 }
 function renderCommandDashboard(){
- const days=[];let d=new Date('2026-09-30T12:00:00');
- for(let i=0;i<28;i++){days.push(d.toISOString().slice(0,10));d=new Date(d.getTime()+86400000)}
- const activeNeeds=needs.filter(n=>!['FILLED','CANCELLED'].includes(n.status));
+ const period=activeSchedulePeriod();
+ const days=periodDays(period);
+ if(!days.length)return;
+ renderPeriodSelector();
+ const activeNeeds=needs.filter(n=>!['FILLED','CANCELLED'].includes(n.status)&&n.duty_date>=period.start_date&&n.duty_date<=period.end_date);
  const selectedShift=document.getElementById('dashboardShiftFilter')?.value||me.shift;
  if(document.getElementById('headerShiftText'))headerShiftText.textContent=selectedShift+' Shift';
  const dutyDays=days.filter(x=>shiftForDate(x)===selectedShift);
@@ -703,7 +766,7 @@ function renderCommandDashboard(){
  const forceCount=activeNeeds.filter(n=>n.status==='FORCE_NEEDED').length;
  cmdOverview.innerHTML='<div class="grid4" style="grid-template-columns:repeat(2,1fr);margin:0"><div class="metric"><strong>'+staffedDuty+' / '+dutyDays.length+'</strong><span class="muted">Minimums met</span></div><div class="metric"><strong>'+totalOpen+'</strong><span class="muted">Open needs</span></div><div class="metric"><strong>'+forceCount+'</strong><span class="muted">Force needed</span></div><div class="metric"><strong>'+(dutyDays.length-staffedDuty)+'</strong><span class="muted">Red duty days</span></div></div>';
 
- const upcoming=activeNeeds.filter(n=>n.duty_date>=days[0]).sort((a,b)=>a.duty_date.localeCompare(b.duty_date)).slice(0,5);
+ const upcoming=activeNeeds.filter(n=>n.duty_date>=period.start_date&&n.duty_date<=period.end_date).sort((a,b)=>a.duty_date.localeCompare(b.duty_date)).slice(0,5);
  cmdIssues.innerHTML=upcoming.map(n=>'<div class="item"><b>'+formatDate(n.duty_date)+'</b><div class="meta">'+n.unit+' — '+n.position_label+' • '+remaining(n)+'h open</div><div class="actions"><button class="btn" onclick="openWorkflow(\''+n.id+'\')">Fill</button></div></div>').join('')||'<div class="notice">No upcoming staffing issues.</div>';
  renderCommandDayDetail()
 }
@@ -1148,7 +1211,8 @@ function renderLandingBoard(){
 }
 function renderSchedule(){
  const filter=document.getElementById('scheduleShift')?.value||'ALL';
- const days=shiftDays.filter(d=>filter==='ALL'||d.shift===filter);
+ const p=activeSchedulePeriod();
+ const days=shiftDays.filter(d=>d.duty_date>=p.start_date&&d.duty_date<=p.end_date&&(filter==='ALL'||d.shift===filter));
  scheduleDays.innerHTML=days.map(d=>{
    const cells=sourceCells.filter(x=>x.duty_date===d.duty_date&&x.shift===d.shift);
    const baseUnits=['BC','E1','M1','E2','M2'];
