@@ -22,8 +22,11 @@ main{padding:18px;min-width:0}.view{display:none}.view.on{display:block}.top{dis
 .authwrap{min-height:100vh;display:grid;place-items:center;padding:20px;background:radial-gradient(circle at 50% 10%,#1a334f 0,transparent 35%),#07111d}.authbox{width:min(450px,100%);background:#0d1a2a;border:1px solid #2b4564;border-radius:15px;padding:18px}.authbox h1{margin:0 0 4px}.authbox .field{margin-top:10px}.authactions{display:flex;gap:8px;margin-top:12px}
 .table{width:100%;border-collapse:collapse}.table th,.table td{padding:8px;border-bottom:1px solid #203149;text-align:left;vertical-align:top}.table th{font-size:11px;color:#aebed0}
 .coverage{height:9px;background:#1d2b3d;border-radius:999px;overflow:hidden;margin:8px 0}.coverage span{display:block;height:100%;background:var(--green)}
+.dashboard-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:12px}.quickgrid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin:12px 0}.quick{min-height:82px;text-align:left;display:flex;flex-direction:column;justify-content:space-between}.quick b{font-size:13px}.quick small{color:#b7c7d9}
+.calendar-wrap{overflow-x:auto}.calendar28{display:grid;grid-template-columns:repeat(7,minmax(135px,1fr));gap:7px;min-width:980px}.calday{min-height:138px;background:#0a1624;border:1px solid #22364f;border-radius:10px;padding:9px;position:relative}.calday.today{outline:2px solid #187ff3}.calday .date{font-weight:900;font-size:14px}.calday .shift{font-size:11px;margin-top:2px;color:#9fb0c7}.calday .unitline{font-size:10px;color:#c9d7e7;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.calday .badgeline{position:absolute;bottom:7px;left:7px;right:7px;display:flex;gap:4px;flex-wrap:wrap}.calday.hasneed{border-color:#8b343d}.calday.hasfto{box-shadow:inset 0 0 0 1px #b27a18}.sectiongrid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;margin-top:12px}.stack{display:flex;flex-direction:column;gap:10px}.sectionhead{display:flex;align-items:center;gap:8px;margin-bottom:9px}.sectionhead .grow{flex:1}.dense .item{padding:8px}.kpirow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:12px 0}.kpi{background:#0d1a2a;border:1px solid #22364f;border-radius:10px;padding:10px}.kpi strong{display:block;font-size:22px}.subtle{font-size:10px;color:#8fa3ba}
+@media(max-width:1100px){.quickgrid{grid-template-columns:repeat(3,1fr)}.sectiongrid{grid-template-columns:1fr 1fr}.sectiongrid>.card:first-child{grid-column:1/-1}.kpirow{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:900px){.app{grid-template-columns:1fr}.sidebar{position:sticky;top:0;z-index:20;padding:8px;display:block}.brand{display:none}.nav{display:flex;overflow:auto;gap:4px}.nav button{white-space:nowrap;width:auto}.me{margin-top:8px}.split,.grid4{grid-template-columns:1fr 1fr}main{padding:10px}}
-@media(max-width:600px){.split,.grid4,.formgrid{grid-template-columns:1fr}.hero h2{font-size:24px}.top h1{font-size:23px}.candidate{grid-template-columns:1fr}}
+@media(max-width:600px){.split,.grid4,.formgrid,.sectiongrid{grid-template-columns:1fr}.quickgrid{grid-template-columns:repeat(2,1fr)}.kpirow{grid-template-columns:repeat(2,1fr)}.hero h2{font-size:24px}.top h1{font-size:23px}.candidate{grid-template-columns:1fr}.calendar28{grid-template-columns:repeat(7,minmax(118px,1fr));min-width:860px}}
 </style>
 </head>
 <body>
@@ -66,9 +69,28 @@ main{padding:18px;min-width:0}.view{display:none}.view.on{display:block}.top{dis
 </aside>
 <main>
 <section id="view-dashboard" class="view on">
-  <div class="hero"><div class="eyebrow">GLADSTONE FIRE DEPARTMENT</div><h2>People. Apparatus. Readiness.</h2><p>Live staffing, overtime, force rotation, leave, trades and personnel notifications.</p></div>
-  <div id="dashboardMetrics" class="grid4"></div>
-  <div class="split"><div class="card"><div class="panel-title">Open Staffing Needs</div><div id="dashNeeds" class="list"></div></div><div class="card"><div class="panel-title">Recent Notifications</div><div id="dashNotifs" class="list"></div></div></div>
+  <div class="hero"><div class="eyebrow">GLADSTONE FIRE DEPARTMENT</div><h2>28-Day Staffing Command Dashboard</h2><p>Full-cycle staffing visibility with shortages, overtime, FTO status, requests, and quick actions in one operational view.</p></div>
+
+  <div id="dashboardKpis" class="kpirow"></div>
+
+  <div class="card">
+    <div class="sectionhead"><div><div class="panel-title">Current 28-Day Cycle</div><div class="muted">All 28 days visible at once • B → C → A rotation</div></div><div class="grow"></div><button class="btn" onclick="goto('schedule')">Open Detailed Schedule</button></div>
+    <div class="calendar-wrap"><div id="dashboardCalendar" class="calendar28"></div></div>
+  </div>
+
+  <div class="quickgrid" id="quickActions"></div>
+
+  <div class="sectiongrid">
+    <div class="card dense"><div class="sectionhead"><div class="panel-title">Open Staffing Needs</div><div class="grow"></div><button class="btn" onclick="goto('staffing')">View All</button></div><div id="dashNeeds" class="list"></div></div>
+    <div class="card dense"><div class="sectionhead"><div class="panel-title">FTO / Probationary</div><div class="grow"></div><button class="btn" onclick="goto('personnel')">Personnel</button></div><div id="dashFto" class="list"></div></div>
+    <div class="card dense"><div class="sectionhead"><div class="panel-title">OT / Force Attention</div><div class="grow"></div><button class="btn" onclick="goto('ot')">Open OT / Force</button></div><div id="dashOt" class="list"></div></div>
+  </div>
+
+  <div class="sectiongrid">
+    <div class="card dense"><div class="sectionhead"><div class="panel-title">Upcoming Duty / Staffing</div><div class="grow"></div></div><div id="dashUpcoming" class="list"></div></div>
+    <div class="card dense"><div class="sectionhead"><div class="panel-title">Leave & Trades</div><div class="grow"></div><button class="btn" onclick="goto('requests')">Requests</button></div><div id="dashRequests" class="list"></div></div>
+    <div class="card dense"><div class="sectionhead"><div class="panel-title">Notifications</div><div class="grow"></div><button class="btn" onclick="goto('notifications')">View All</button></div><div id="dashNotifs" class="list"></div></div>
+  </div>
 </section>
 
 <section id="view-schedule" class="view">
@@ -255,9 +277,61 @@ async function loadAll(){
 }
 function renderAll(){renderDashboard();renderSchedule();renderStaffing();renderOT();renderPersonnel();renderNotifications();renderRequests();renderRules();renderAudit()}
 function renderDashboard(){
- const active=needs.filter(n=>n.status!=='FILLED'), unread=notifications.filter(n=>!n.read_at).length, mine=assignments.filter(a=>a.personnel_id===me.id).length;
- dashboardMetrics.innerHTML=`<div class="card metric"><strong>${active.length}</strong><span class="muted">Open staffing needs</span></div><div class="card metric"><strong>${unread}</strong><span class="muted">Unread notifications</span></div><div class="card metric"><strong>${mine}</strong><span class="muted">My staffing assignments</span></div><div class="card metric"><strong>${otFor(me.id).regular_ot_hours_14d}</strong><span class="muted">My Regular OT hours / 14d</span></div>`;
- dashNeeds.innerHTML=active.slice(0,6).map(needCard).join('')||'<div class="notice">No open staffing needs.</div>';
+ const active=needs.filter(n=>n.status!=='FILLED'&&n.status!=='CANCELLED');
+ const unread=notifications.filter(n=>!n.read_at).length;
+ const probationary=personnel.filter(p=>p.active&&p.employment_status==='PROBATIONARY_FTO');
+ const forceNeeded=active.filter(n=>n.status==='FORCE_NEEDED').length;
+ const partial=active.filter(n=>coverageSum(n.id)>0&&remaining(n)>0).length;
+ const today=new Date().toISOString().slice(0,10);
+ const todayShift=shiftDays.find(d=>d.duty_date===today)?.shift||'—';
+ dashboardKpis.innerHTML=
+  '<div class="kpi"><strong>'+active.length+'</strong><span class="muted">Open needs</span><div class="subtle">'+partial+' partially filled</div></div>'+
+  '<div class="kpi"><strong>'+forceNeeded+'</strong><span class="muted">Force needed</span><div class="subtle">Immediate attention</div></div>'+
+  '<div class="kpi"><strong>'+probationary.length+'</strong><span class="muted">On FTO</span><div class="subtle">Probationary personnel</div></div>'+
+  '<div class="kpi"><strong>'+unread+'</strong><span class="muted">Unread alerts</span><div class="subtle">Your notifications</div></div>'+
+  '<div class="kpi"><strong>'+todayShift+'</strong><span class="muted">Today\'s shift</span><div class="subtle">'+formatDate(today)+'</div></div>';
+
+ dashboardCalendar.innerHTML=shiftDays.map(d=>{
+   const dayNeeds=active.filter(n=>n.duty_date===d.duty_date);
+   const dayAssignments=assignments.filter(a=>a.duty_date===d.duty_date);
+   const ftoPresent=dayAssignments.some(a=>pById(a.personnel_id)?.employment_status==='PROBATIONARY_FTO')||
+     sourceCells.some(x=>x.duty_date===d.duty_date&&pById(x.personnel_id)?.employment_status==='PROBATIONARY_FTO');
+   const units=['BC','E1','M1','E2','M2'].map(u=>{
+     const names=dayAssignments.filter(a=>a.unit===u).map(a=>pById(a.personnel_id)?.name?.split(' ').pop()).filter(Boolean);
+     return '<div class="unitline"><b>'+u+':</b> '+(names.length?names.join(', '):'—')+'</div>'
+   }).join('');
+   const cls='calday'+(d.duty_date===today?' today':'')+(dayNeeds.length?' hasneed':'')+(ftoPresent?' hasfto':'');
+   return '<div class="'+cls+'" onclick="goto(\'schedule\')" style="cursor:pointer"><div class="date">'+new Date(d.duty_date+'T12:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric'})+'</div><div class="shift">'+d.shift+' Shift</div>'+units+'<div class="badgeline">'+
+    (dayNeeds.length?'<span class="tag bad">'+dayNeeds.length+' NEED'+(dayNeeds.length>1?'S':'')+'</span>':'')+
+    (ftoPresent?'<span class="tag warn">FTO</span>':'')+
+    '</div></div>'
+ }).join('');
+
+ quickActions.innerHTML=[
+   isAdmin()?['Create Staffing Need',"openNeedCreator()",'Open a shortage and begin OT/Force workflow','primary']:null,
+   ['OT / Force',"goto('ot')",'Review responses, awards, and force order','danger'],
+   ['Leave / Trade',"goto('requests')",'Submit or review personnel requests',''],
+   isAdmin()?['New Employee',"openNewPersonnel()",'Add regular or probationary personnel','good']:null,
+   isAdmin()?['Manage Personnel',"openPersonnelManager()",'Promotions, shifts, roles, FTO status','']:null,
+   ['Detailed Schedule',"goto('schedule')",'Open the full day-by-day staffing view','']
+ ].filter(Boolean).map(x=>'<button class="btn quick '+x[3]+'" onclick="'+x[1]+'"><b>'+x[0]+'</b><small>'+x[2]+'</small></button>').join('');
+
+ dashNeeds.innerHTML=active.slice(0,8).map(needCard).join('')||'<div class="notice">No open staffing needs.</div>';
+
+ dashFto.innerHTML=probationary.slice(0,8).map(p=>'<div class="item"><b>'+p.name+'</b><div class="meta">'+p.shift+' Shift • '+(p.personnel_type==='FF_PARAMEDIC'?'FF/Paramedic':p.personnel_type==='SINGLE_ROLE_PARAMEDIC'?'Single-Role Paramedic':'FF/EMT')+'</div><div class="actions"><span class="tag bad">⚠ ON FTO</span>'+ (p.is_fto?'<span class="tag">FTO QUALIFIED</span>':'') +'</div></div>').join('')||'<div class="notice">No probationary personnel currently on FTO.</div>';
+
+ dashOt.innerHTML=active.filter(n=>['AVAILABILITY_REQUESTED','RESPONSES_RECEIVED','PARTIALLY_FILLED','FORCE_NEEDED'].includes(n.status)).slice(0,8).map(n=>'<div class="item"><b>'+formatDate(n.duty_date)+' — '+n.position_label+'</b><div class="meta">'+n.status.replaceAll('_',' ')+' • '+remaining(n)+'h remaining</div><div class="actions"><button class="btn" onclick="selectNeed(\''+n.id+'\');goto(\'ot\')">Open</button></div></div>').join('')||'<div class="notice">No OT/Force items requiring attention.</div>';
+
+ const upcoming=shiftDays.filter(d=>d.duty_date>=today).slice(0,5);
+ dashUpcoming.innerHTML=upcoming.map(d=>{
+   const mine=assignments.filter(a=>a.duty_date===d.duty_date&&a.personnel_id===me.id);
+   const cnt=assignments.filter(a=>a.duty_date===d.duty_date).length;
+   return '<div class="item"><b>'+formatDate(d.duty_date)+' — '+d.shift+' Shift</b><div class="meta">'+cnt+' unit assignments'+(mine.length?' • You: '+mine.map(a=>a.unit).join(', '):'')+'</div></div>'
+ }).join('')||'<div class="notice">No upcoming schedule data.</div>';
+
+ const req=[...leaves.map(x=>({type:'Leave',date:x.leave_date,status:x.status,name:pById(x.personnel_id)?.name||'Personnel'})),...trades.map(x=>({type:'Trade',date:x.requester_date,status:x.status,name:pById(x.requester_id)?.name||'Personnel'}))].sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,6);
+ dashRequests.innerHTML=req.map(x=>'<div class="item"><b>'+x.name+' — '+x.type+'</b><div class="meta">'+formatDate(x.date)+' • '+x.status.replaceAll('_',' ')+'</div></div>').join('')||'<div class="notice">No leave or trade activity.</div>';
+
  dashNotifs.innerHTML=notifications.slice(0,6).map(notifCard).join('')||'<div class="notice">No notifications.</div>'
 }
 function renderSchedule(){
