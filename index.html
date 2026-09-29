@@ -303,6 +303,22 @@ main{overflow-x:hidden}
  #view-dashboard .unified-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
 }
 
+
+/* Apparatus seat-map staffing */
+.seat-map{display:grid;gap:7px;margin-top:10px}
+.seat-row{display:grid;grid-template-columns:110px 1fr auto;gap:10px;align-items:center;padding:10px;border:1px solid #294b69;border-radius:8px;background:#0b1a2a}
+.seat-position{font-size:11px;font-weight:1000;letter-spacing:.03em;text-transform:uppercase;color:#d9e7f4}
+.seat-person{font-size:14px;font-weight:900}
+.seat-meta{font-size:9px;color:#91a6bb;margin-top:2px}
+.seat-empty{color:#ef6a75;font-weight:900}
+.seat-ok{border-left:4px solid #10c981}
+.seat-missing{border-left:4px solid #e73c4b}
+.seat-editor{margin-top:12px;padding:10px;border:1px solid #355773;border-radius:9px;background:#081522}
+.seat-editor-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.seat-editor .field{margin:0}
+.unit-compliance{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+@media(max-width:700px){.seat-row{grid-template-columns:90px 1fr}.seat-row>.tag{grid-column:2}.seat-editor-grid{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -711,6 +727,167 @@ function apparatusRoleDetail(p){
  if(rank==='Captain')return 'Officer • Captain';
  return apparatusRoleLabel(p)
 }
+function unitPositionDefs(unit){
+ if(unit==='E1'||unit==='E2')return [
+   {code:'OFFICER',label:'Officer',required:true},
+   {code:'FAO_DRIVER',label:'FAO / Driver',required:true},
+   {code:'SEAT_1',label:'Seat 1',required:true},
+   {code:'SEAT_2',label:'Seat 2',required:false}
+ ];
+ if(unit==='M1'||unit==='M2'||unit==='M3')return [
+   {code:'MEDIC_1',label:'Medic 1',required:true},
+   {code:'MEDIC_2',label:'Medic 2',required:true}
+ ];
+ if(unit==='GATOR1')return [
+   {code:'EVENT_1',label:'Position 1',required:true},
+   {code:'EVENT_2',label:'Position 2',required:true}
+ ];
+ if(unit==='BC')return [{code:'COMMAND',label:'Command',required:true}];
+ return []
+}
+function officerEligible(p,a){
+ const rank=rankLabel(p);
+ return rank==='Battalion Chief'||rank==='Captain'||(a?.assignment_type==='STEP_UP'&&(p.bc_step_up||p.captain_step_up))
+}
+function positionCandidateAllowed(code,p,a){
+ if(!p)return false;
+ if(code==='OFFICER')return officerEligible(p,a);
+ if(code==='FAO_DRIVER')return p.is_fao||rankLabel(p)==='Battalion Chief';
+ if(code==='SEAT_1'||code==='SEAT_2')return p.is_firefighter||rankLabel(p)==='Battalion Chief';
+ if(code==='MEDIC_1'||code==='MEDIC_2'||code==='EVENT_1'||code==='EVENT_2')return p.ems_level==='Paramedic'||p.ems_level==='EMT';
+ if(code==='COMMAND')return officerEligible(p,a);
+ return true
+}
+function effectiveUnitPositions(date,unit){
+ const people=unitAssignments
+   .filter(a=>a.duty_date===date&&a.unit===unit)
+   .map(a=>({a,p:pById(a.personnel_id)}))
+   .filter(x=>x.p);
+ const defs=unitPositionDefs(unit), result=new Map(), used=new Set();
+
+ // Saved/manual positions are authoritative.
+ for(const def of defs){
+   const hit=people.find(x=>x.a.position_code===def.code&&!used.has(x.a.id));
+   if(hit){result.set(def.code,hit);used.add(hit.a.id)}
+ }
+ const remaining=()=>people.filter(x=>!used.has(x.a.id));
+
+ if((unit==='E1'||unit==='E2')){
+   if(!result.has('OFFICER')){
+     const hit=remaining().filter(x=>officerEligible(x.p,x.a)).sort((x,y)=>apparatusRolePriority(x.p)-apparatusRolePriority(y.p)||x.p.name.localeCompare(y.p.name))[0];
+     if(hit){result.set('OFFICER',hit);used.add(hit.a.id)}
+   }
+   if(!result.has('FAO_DRIVER')){
+     const hit=remaining().filter(x=>positionCandidateAllowed('FAO_DRIVER',x.p,x.a)).sort((x,y)=>apparatusRolePriority(x.p)-apparatusRolePriority(y.p)||x.p.name.localeCompare(y.p.name))[0];
+     if(hit){result.set('FAO_DRIVER',hit);used.add(hit.a.id)}
+   }
+   for(const code of ['SEAT_1','SEAT_2']){
+     if(result.has(code))continue;
+     const hit=remaining().filter(x=>positionCandidateAllowed(code,x.p,x.a)).sort((x,y)=>{
+       const yp=y.p.ems_level==='Paramedic'?1:0, xp=x.p.ems_level==='Paramedic'?1:0;
+       return yp-xp||apparatusRolePriority(x.p)-apparatusRolePriority(y.p)||x.p.name.localeCompare(y.p.name)
+     })[0];
+     if(hit){result.set(code,hit);used.add(hit.a.id)}
+   }
+ } else if(unit==='M1'||unit==='M2'||unit==='M3'){
+   for(const code of ['MEDIC_1','MEDIC_2']){
+     if(result.has(code))continue;
+     const hit=remaining().filter(x=>positionCandidateAllowed(code,x.p,x.a)).sort((x,y)=>{
+       const xp=x.p.ems_level==='Paramedic'?0:1, yp=y.p.ems_level==='Paramedic'?0:1;
+       return xp-yp||x.p.name.localeCompare(y.p.name)
+     })[0];
+     if(hit){result.set(code,hit);used.add(hit.a.id)}
+   }
+ } else if(unit==='GATOR1'){
+   for(const code of ['EVENT_1','EVENT_2']){
+     if(result.has(code))continue;
+     const hit=remaining().sort((x,y)=>{
+       const xp=x.p.ems_level==='Paramedic'?0:1, yp=y.p.ems_level==='Paramedic'?0:1;
+       return xp-yp||x.p.name.localeCompare(y.p.name)
+     })[0];
+     if(hit){result.set(code,hit);used.add(hit.a.id)}
+   }
+ } else if(unit==='BC'&&!result.has('COMMAND')){
+   const hit=remaining().sort((x,y)=>apparatusRolePriority(x.p)-apparatusRolePriority(y.p)||x.p.name.localeCompare(y.p.name))[0];
+   if(hit)result.set('COMMAND',hit)
+ }
+ return {defs,result,people}
+}
+function unitCompliance(date,unit){
+ const {defs,result}=effectiveUnitPositions(date,unit);
+ const missing=defs.filter(d=>d.required&&!result.get(d.code)).map(d=>d.label);
+ const occupants=[...result.values()];
+ const paramedics=occupants.filter(x=>x.p.ems_level==='Paramedic').length;
+ let minParamedics=0;
+ if(['E1','E2','M1','M2','M3','GATOR1'].includes(unit))minParamedics=1;
+ if(paramedics<minParamedics)missing.push('ALS Paramedic');
+ return {ok:missing.length===0,missing,paramedics,staffed:occupants.length}
+}
+function positionLabel(code){
+ return {COMMAND:'Command',OFFICER:'Officer',FAO_DRIVER:'FAO / Driver',SEAT_1:'Seat 1',SEAT_2:'Seat 2',MEDIC_1:'Medic 1',MEDIC_2:'Medic 2',EVENT_1:'Position 1',EVENT_2:'Position 2'}[code]||code||'Unassigned'
+}
+function seatMapHtml(date,unit){
+ const {defs,result}=effectiveUnitPositions(date,unit);
+ return '<div class="seat-map">'+defs.map(def=>{
+   const x=result.get(def.code);
+   return '<div class="seat-row '+(x?'seat-ok':def.required?'seat-missing':'')+'"><div class="seat-position">'+def.label+(def.required?' *':'')+'</div>'+
+     (x?'<div><div class="seat-person">'+x.p.name+'</div><div class="seat-meta">'+rankLabel(x.p)+' • '+(x.p.ems_level||'No EMS level')+(x.p.is_fao?' • FAO':'')+' • '+x.p.shift+' Shift</div></div><span class="tag '+(x.p.ems_level==='Paramedic'?'good':'')+'">'+(x.p.ems_level||'—')+'</span>':
+     '<div class="seat-empty">OPEN</div><span class="tag bad">MISSING</span>')+
+   '</div>'
+ }).join('')+'</div>'
+}
+function manualSeatEditorHtml(date,unit){
+ if(!isAdmin())return '';
+ const {defs,people}=effectiveUnitPositions(date,unit);
+ const opts=people.map(x=>'<option value="'+x.a.id+'">'+x.p.name+' — '+rankLabel(x.p)+' / '+(x.p.ems_level||'')+(x.p.is_fao?' / FAO':'')+'</option>').join('');
+ return '<div class="seat-editor"><div class="panel-title">Scheduling BC Placement</div><div class="muted" style="margin-bottom:8px">Saved placement is authoritative. BCs may be manually placed in any apparatus position.</div><div class="seat-editor-grid">'+
+   defs.map(def=>{
+     const current=people.find(x=>x.a.position_code===def.code)?.a.id||'';
+     return '<div class="field"><label>'+def.label+'</label><select id="seat_'+unit+'_'+def.code+'"><option value="">— Open —</option>'+opts+'</select></div>'
+   }).join('')+
+   '</div><div class="actions"><button class="btn primary" onclick="saveManualSeatPlacement(\''+date+'\',\''+unit+'\')">Save Placement</button><button class="btn" onclick="clearManualSeatPlacement(\''+date+'\',\''+unit+'\')">Return to Auto Placement</button></div></div>'
+}
+async function saveManualSeatPlacement(date,unit){
+ if(!isAdmin())return;
+ const {defs,people}=effectiveUnitPositions(date,unit);
+ const chosen={};
+ for(const def of defs){
+   const v=document.getElementById('seat_'+unit+'_'+def.code)?.value||'';
+   if(v){
+     if(Object.values(chosen).includes(v))return alert('Each person can occupy only one apparatus position.');
+     chosen[def.code]=v;
+   }
+ }
+ for(const [code,id] of Object.entries(chosen)){
+   const x=people.find(y=>y.a.id===id);
+   if(x&&!positionCandidateAllowed(code,x.p,x.a)&&rankLabel(x.p)!=='Battalion Chief'){
+     return alert(x.p.name+' is not qualified for '+positionLabel(code)+'.');
+   }
+ }
+ const ids=people.map(x=>x.a.id);
+ if(ids.length){
+   const {error:clearErr}=await sb.from('unit_assignments').update({position_code:null}).in('id',ids);
+   if(clearErr)return alert(clearErr.message);
+ }
+ for(const [code,id] of Object.entries(chosen)){
+   const {error}=await sb.from('unit_assignments').update({position_code:code}).eq('id',id);
+   if(error)return alert(error.message);
+ }
+ await logAudit('APPARATUS_PLACEMENT_UPDATED','unit_assignment',null,{date,unit,placement:chosen});
+ await loadAll();
+ openApparatusDetail(date,unit)
+}
+async function clearManualSeatPlacement(date,unit){
+ if(!isAdmin())return;
+ const ids=unitAssignments.filter(a=>a.duty_date===date&&a.unit===unit).map(a=>a.id);
+ if(ids.length){
+   const {error}=await sb.from('unit_assignments').update({position_code:null}).in('id',ids);
+   if(error)return alert(error.message);
+ }
+ await logAudit('APPARATUS_PLACEMENT_AUTO','unit_assignment',null,{date,unit});
+ await loadAll();
+ openApparatusDetail(date,unit)
+}
 function assignmentClass(a,p,date){
  const dutyShift=shiftForDate(date);
  if(a.assignment_type==='OT'||p.shift!==dutyShift)return 'OT_FILL';
@@ -723,34 +900,26 @@ function openApparatusDetail(date,unit){
  const dutyShift=shiftForDate(date);
  const ps=unitPeople(date,unit);
  const open=needs.filter(n=>n.duty_date===date&&n.unit===unit&&!['FILLED','CANCELLED'].includes(n.status));
+ const compliance=unitCompliance(date,unit);
  unitDetailTitle.textContent=(unit==='GATOR1'?'Gator 1':unit)+' Staffing';
  unitDetailSub.textContent=formatDate(date)+' • '+dutyShift+' Shift';
- const rows=ps.map(x=>{
-   const cls=assignmentClass(x.a,x.p,date);
-   const assignmentTag=cls==='ANCHOR'
-     ?'<span class="tag good">ANCHOR CREW</span>'
-     :cls==='OT_FILL'
-       ?'<span class="tag purp">OT FILL • '+x.p.shift+' SHIFT</span>'
-       :cls==='FORCED_OT'
-         ?'<span class="tag bad">FORCED OT • '+x.p.shift+' SHIFT</span>'
-         :'<span class="tag">EVENT / SPECIAL</span>';
-   const quals=[
-     apparatusRoleLabel(x.p),
-     x.p.is_fto?'FTO TRAINER':null,
-     x.p.captain_step_up?'CAPT STEP-UP':null,
-     x.p.bc_step_up?'BC STEP-UP':null
-   ].filter(Boolean);
-   return '<div class="unit-person"><div class="unit-person-head"><div><div class="unit-person-name">'+x.p.name+'</div><div class="unit-person-meta">'+x.p.shift+' Shift • '+apparatusRoleDetail(x.p)+' • '+(x.a.start_time||'08:00')+'–'+(x.a.end_time||'08:00')+' • '+Number(x.a.hours||24)+'h</div></div><div class="grow"></div>'+assignmentTag+'</div>'+
-     '<div class="unit-person-tags">'+quals.map(q=>'<span class="tag">'+q+'</span>').join('')+
-     '</div></div>'
- }).join('');
  const needBlock=open.length?'<div class="notice bad" style="margin-top:10px"><b>OPEN STAFFING NEED</b><br>'+open.map(n=>n.position_label+' • '+remaining(n)+'h remaining').join('<br>')+'</div>':'';
- unitDetailBody.innerHTML='<div class="unit-pop-summary"><span class="tag">'+dutyShift+' SHIFT</span><span class="tag">'+ps.length+' ASSIGNED</span>'+(open.length?'<span class="tag bad">'+open.length+' OPEN</span>':'<span class="tag good">NO OPEN NEED</span>')+'</div>'+
-   (rows||'<div class="unit-empty">No personnel currently assigned to '+unit+' for this date.</div>')+
+ unitDetailBody.innerHTML=
+   '<div class="unit-pop-summary"><span class="tag">'+dutyShift+' SHIFT</span><span class="tag">'+ps.length+' ASSIGNED</span><span class="tag '+(compliance.ok?'good':'bad')+'">'+(compliance.ok?'MINIMUMS MET':'ACTION REQUIRED')+'</span></div>'+
+   seatMapHtml(date,unit)+
+   '<div class="unit-compliance">'+(compliance.ok?'<span class="tag good">✓ Minimum Staffing</span><span class="tag good">✓ ALS</span>':compliance.missing.map(m=>'<span class="tag bad">Missing: '+m+'</span>').join(''))+'</div>'+
    needBlock+
+   manualSeatEditorHtml(date,unit)+
    (isAdmin()?'<div class="actions" style="margin-top:12px">'+
       (open.length?'<button class="btn primary" onclick="closeModal(\'unitDetailModal\');openWorkflow(\''+open[0].id+'\')">Fill Open Position</button>':'')+
       '<button class="btn" onclick="closeModal(\'unitDetailModal\');openNeedCreatorForDate(\''+date+'\',\''+dutyShift+'\')">Create Staffing Need</button></div>':'');
+ for(const def of unitPositionDefs(unit)){
+   const select=document.getElementById('seat_'+unit+'_'+def.code);
+   if(select){
+     const current=unitAssignments.find(a=>a.duty_date===date&&a.unit===unit&&a.position_code===def.code);
+     select.value=current?.id||''
+   }
+ }
  openModal('unitDetailModal')
 }
 function openSpecialUnitsDetail(date){
@@ -872,17 +1041,16 @@ function resetDashboardLayout(){
 }
 function commandStation(title,units,date,cls,open,widgetId){
  let rows=units.map(unit=>{
-   const ps=unitPeople(date,unit), n=open.filter(x=>x.unit===unit);
-   const people=ps.map(x=>{
-     const cls=assignmentClass(x.a,x.p,date);
-     const fill=cls==='OT_FILL'?' <span class="tag purp">OT FILL • '+x.p.shift+'</span>':cls==='FORCED_OT'?' <span class="tag bad">FORCED OT • '+x.p.shift+'</span>':'';
-     return '<div class="person">'+x.p.name+fill+'</div><div class="role"><b>'+apparatusRoleLabel(x.p)+'</b>'+(x.p.is_fto?' • FTO Trainer':'')+'</div>'
+   const compliance=unitCompliance(date,unit);
+   const {defs,result}=effectiveUnitPositions(date,unit);
+   const seats=defs.map(def=>{
+     const x=result.get(def.code);
+     return '<div class="role"><b>'+def.label+':</b> '+(x?x.p.name+' <span class="muted">('+rankLabel(x.p)+(x.p.ems_level?' • '+x.p.ems_level:'')+')</span>':'<span class="seat-empty">OPEN</span>')+'</div>'
    }).join('');
-   return '<div class="cmd-row"><b>'+unit+'</b><div>'+(people||'<span class="muted">No assignment</span>')+'</div><span class="tag '+(n.length?'bad':'good')+'">'+(n.length?'OPEN':'✓')+'</span></div>'
+   return '<div class="cmd-row" style="grid-template-columns:44px 1fr auto;cursor:pointer" onclick="openApparatusDetail(\''+date+'\',\''+unit+'\')"><b>'+unit+'</b><div>'+seats+'</div><span class="tag '+(compliance.ok?'good':'bad')+'">'+(compliance.ok?'✓':'OPEN')+'</span></div>'
  }).join('');
  return '<div class="cmd-station '+cls+(widgetId?' dash-widget':'')+'"'+(widgetId?' data-widget-id="'+widgetId+'"':'')+'><h3>'+title+'</h3>'+rows+'</div>'
 }
-
 function shiftForDate(date){
  const known=shiftDays.find(d=>d.duty_date===date); if(known)return known.shift;
  const base=new Date('2026-09-30T12:00:00'),cur=new Date(date+'T12:00:00');
@@ -924,11 +1092,11 @@ function calendarPills(date){
 }
 function shortName(name){if(!name)return '—';const a=name.trim().split(/\s+/);return a.length>1?a[0]+' '+a[a.length-1][0]+'.':name}
 function unitPeople(date,unit){
- return unitAssignments
-   .filter(a=>a.duty_date===date&&a.unit===unit)
-   .map(a=>({a,p:pById(a.personnel_id)}))
-   .filter(x=>x.p)
-   .sort((x,y)=>apparatusRolePriority(x.p)-apparatusRolePriority(y.p)||x.p.name.localeCompare(y.p.name))
+ const {defs,result,people}=effectiveUnitPositions(date,unit);
+ const ordered=[];
+ for(const d of defs){const x=result.get(d.code);if(x)ordered.push(x)}
+ for(const x of people){if(!ordered.some(y=>y.a.id===x.a.id))ordered.push(x)}
+ return ordered
 }
 function renderLandingBoard(){
  const activeNeeds=needs.filter(n=>!['FILLED','CANCELLED'].includes(n.status));
