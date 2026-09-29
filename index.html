@@ -324,6 +324,72 @@ main{overflow-x:hidden}
 #view-dashboard .cmd-date.daybad{background:linear-gradient(180deg,#c8303f,#851d28)!important;box-shadow:inset 0 -3px 0 #ff6570}
 #view-dashboard .cmd-date.daygood b,#view-dashboard .cmd-date.daygood small,#view-dashboard .cmd-date.daybad b,#view-dashboard .cmd-date.daybad small{color:white!important}
 
+
+/* Single-screen command dashboard v2 */
+@media(min-width:901px){
+  body{overflow:hidden}
+  #app{height:100vh;min-height:0;overflow:hidden}
+  #app>main{height:100vh;min-height:0;overflow:hidden;padding:8px 10px 10px}
+  #view-dashboard.view.on{height:100%;min-height:0;overflow:hidden;display:flex;flex-direction:column}
+  #view-dashboard>.top{flex:0 0 54px;min-height:54px;margin:0 0 6px;padding:0 0 6px}
+  #view-dashboard>.top h1{font-size:24px;line-height:1.05}
+  #view-dashboard>.top .muted{font-size:10px}
+  #view-dashboard .cmd-dashboard{flex:1 1 auto;min-height:0;overflow:hidden}
+  #view-dashboard .cmd-main{height:100%;min-height:0;display:grid;grid-template-rows:minmax(285px,42%) minmax(0,1fr);gap:8px}
+  #view-dashboard .cmd-matrix{height:100%;min-height:0;align-self:stretch}
+  #view-dashboard .cmd-date{min-height:48px!important;padding:5px 1px}
+  #view-dashboard .cmd-date b{font-size:15px!important}
+  #view-dashboard .cmd-band{padding:4px 9px;font-size:10px}
+  #view-dashboard .cmd-label{padding:6px 6px;font-size:10px}
+  #view-dashboard .cmd-cell{height:auto!important;min-height:31px}
+  #view-dashboard .command-board-v2{height:100%;min-height:0;overflow:hidden;background:linear-gradient(180deg,#0b1b2b,#081522);border:1px solid #355773;border-radius:10px;padding:8px}
+  #view-dashboard .command-board-content{height:100%;min-height:0;overflow:hidden}
+}
+.command-dashboard{height:100%;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:7px}
+.command-dashboard-head{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:7px 9px;border:1px solid #294b69;border-radius:8px;background:#0c2033}
+.command-dashboard-date{font-size:20px;font-weight:1000;line-height:1.05}
+.command-dashboard-sub{font-size:10px;color:#9cafc1;margin-top:3px}
+.command-dashboard-status{font-size:14px;font-weight:1000;padding:8px 14px;border-radius:7px;text-align:center}
+.command-dashboard-status.good{background:#0b6948;color:#c9ffe8}
+.command-dashboard-status.bad{background:#9d2430;color:#fff}
+.command-dashboard-main{min-height:0;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1.15fr) minmax(260px,.8fr);gap:7px}
+.station-board{min-height:0;border:1px solid #294b69;border-radius:8px;overflow:hidden;background:#091725;display:flex;flex-direction:column}
+.station-board-title{padding:6px 9px;font-size:12px;font-weight:1000;letter-spacing:.03em}
+.station-board.s1 .station-board-title{background:#81252f}
+.station-board.s2 .station-board-title{background:#0b55a6}
+.apparatus-summary{display:grid;grid-template-columns:48px minmax(0,1fr) auto;gap:7px;align-items:center;padding:6px 8px;border-top:1px solid #1d344b;background:#0b1a2a;text-align:left;color:inherit;cursor:pointer;width:100%}
+.apparatus-summary:hover{background:#10243a}
+.apparatus-unit{font-size:15px;font-weight:1000}
+.apparatus-seats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 8px;min-width:0}
+.apparatus-seat{font-size:9px;color:#a9bbcc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.apparatus-seat b{color:#eef5fb;font-size:9px}
+.apparatus-status{font-size:10px;font-weight:1000;padding:5px 7px;border-radius:5px}
+.apparatus-status.good{background:#0b6948;color:#c9ffe8}
+.apparatus-status.bad{background:#9d2430;color:#fff}
+.command-summary-rail{min-height:0;display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:minmax(0,1fr);gap:6px}
+.command-tile{border:1px solid #294b69;border-radius:8px;background:#0b1a2a;color:#eef5fb;padding:7px 8px;text-align:left;cursor:pointer;min-width:0}
+.command-tile:hover{background:#10243a}
+.command-tile strong{display:block;font-size:18px;line-height:1}
+.command-tile span{display:block;font-size:9px;color:#9cafc1;margin-top:4px;line-height:1.1}
+.command-tile.bad{border-color:#87303b}
+.command-tile.good{border-color:#17694d}
+.command-dashboard-actions{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
+.command-action{min-height:36px;border:1px solid #315273;border-radius:7px;background:#10243a;color:#eef5fb;font-size:10px;font-weight:900;cursor:pointer;padding:6px}
+.command-action.primary{background:#b52936;border-color:#da4552}
+.command-action:hover{filter:brightness(1.12)}
+@media(max-width:1300px) and (min-width:901px){
+  #view-dashboard .cmd-main{grid-template-rows:minmax(255px,40%) minmax(0,1fr)}
+  .command-dashboard-main{grid-template-columns:1fr 1fr .72fr}
+  .apparatus-seat{font-size:8px}
+  .command-dashboard-actions{grid-template-columns:repeat(3,1fr)}
+}
+@media(max-width:900px){
+ .command-board-v2{margin-top:8px;padding:8px;border:1px solid #355773;border-radius:10px;background:#0b1b2b}
+ .command-dashboard-main{grid-template-columns:1fr}
+ .command-dashboard-actions{grid-template-columns:repeat(2,1fr)}
+ .command-summary-rail{grid-template-columns:repeat(2,1fr)}
+}
+
 </style>
 </head>
 <body>
@@ -380,14 +446,11 @@ main{overflow-x:hidden}
   <div class="cmd-dashboard">
     <div class="cmd-main">
       <div id="cmdMatrix" class="cmd-matrix"></div>
-      <section class="unified-command-board">
-        <div class="unified-board-title"><div><b>Command Board</b><span>Selected-day detail and cycle status</span></div></div>
-        <div id="cmdKpis" class="cmd-kpis unified-kpis"></div>
-        <section id="cmdDayDetail" class="cmd-right unified-day-detail"></section>
-        <div class="cmd-footer unified-footer">
-          <div class="unified-subsection"><div class="panel-title">Cycle Overview</div><div id="cmdOverview"></div></div>
-          <div class="unified-subsection"><div class="panel-title">Upcoming Issues</div><div id="cmdIssues" class="list"></div></div>
-        </div>
+      <section class="command-board-v2">
+        <section id="cmdDayDetail" class="command-board-content"></section>
+        <div id="cmdKpis" class="hidden"></div>
+        <div id="cmdOverview" class="hidden"></div>
+        <div id="cmdIssues" class="hidden"></div>
       </section>
     </div>
   </div>
@@ -715,12 +778,7 @@ function renderCommandDashboard(){
  const dutyDays=days.filter(x=>shiftForDate(x)===selectedShift);
  const staffedDuty=dutyDays.filter(x=>dayStaffingCompliance(x).ok).length;
  const specialCount=events.filter(e=>days.includes(e.event_date)&&e.status!=='CANCELLED').length;
- cmdKpis.innerHTML=
-  '<div class="cmd-kpi"><strong>'+dutyDays.length+'</strong><span class="muted">'+selectedShift+'-Shift Duty Days</span></div>'+
-  '<div class="cmd-kpi good"><strong>'+staffedDuty+' / '+dutyDays.length+'</strong><span>Fully Staffed Duty Days</span></div>'+
-  '<div class="cmd-kpi bad"><strong>'+(dutyDays.length-staffedDuty)+' / '+dutyDays.length+'</strong><span>Duty Days Need Staff</span></div>'+
-  '<div class="cmd-kpi blue"><strong>'+leaves.filter(x=>x.status==='SUBMITTED').length+'</strong><span>Pending Requests</span></div>'+
-  '<div class="cmd-kpi"><strong>'+specialCount+'</strong><span>Special Events</span></div>';
+ cmdKpis.innerHTML='';
 
  let html='<div class="cmd-corner">Station / Unit</div>';
  const today=new Date().toISOString().slice(0,10);
@@ -764,10 +822,10 @@ function renderCommandDashboard(){
 
  const totalOpen=activeNeeds.length;
  const forceCount=activeNeeds.filter(n=>n.status==='FORCE_NEEDED').length;
- cmdOverview.innerHTML='<div class="grid4" style="grid-template-columns:repeat(2,1fr);margin:0"><div class="metric"><strong>'+staffedDuty+' / '+dutyDays.length+'</strong><span class="muted">Minimums met</span></div><div class="metric"><strong>'+totalOpen+'</strong><span class="muted">Open needs</span></div><div class="metric"><strong>'+forceCount+'</strong><span class="muted">Force needed</span></div><div class="metric"><strong>'+(dutyDays.length-staffedDuty)+'</strong><span class="muted">Red duty days</span></div></div>';
+ cmdOverview.innerHTML='';
 
  const upcoming=activeNeeds.filter(n=>n.duty_date>=period.start_date&&n.duty_date<=period.end_date).sort((a,b)=>a.duty_date.localeCompare(b.duty_date)).slice(0,5);
- cmdIssues.innerHTML=upcoming.map(n=>'<div class="item"><b>'+formatDate(n.duty_date)+'</b><div class="meta">'+n.unit+' — '+n.position_label+' • '+remaining(n)+'h open</div><div class="actions"><button class="btn" onclick="openWorkflow(\''+n.id+'\')">Fill</button></div></div>').join('')||'<div class="notice">No upcoming staffing issues.</div>';
+ cmdIssues.innerHTML='';
  renderCommandDayDetail()
 }
 function personnelTypeLabel(p){
@@ -808,11 +866,18 @@ function apparatusRoleDetail(p){
  return apparatusRoleLabel(p)
 }
 function unitPositionDefs(unit){
- if(unit==='E1'||unit==='E2')return [
+ if(unit==='E1')return [
    {code:'OFFICER',label:'Officer',required:true},
    {code:'FAO_DRIVER',label:'FAO / Driver',required:true},
    {code:'SEAT_1',label:'Seat 1',required:true},
    {code:'SEAT_2',label:'Seat 2',required:false}
+ ];
+ if(unit==='E2')return [
+   {code:'OFFICER',label:'Officer',required:true},
+   {code:'FAO_DRIVER',label:'FAO / Driver',required:true},
+   {code:'SEAT_1',label:'Seat 1',required:true},
+   {code:'SEAT_2',label:'Seat 2',required:false},
+   {code:'SEAT_3',label:'Seat 3',required:false}
  ];
  if(unit==='M1'||unit==='M2'||unit==='M3')return [
    {code:'MEDIC_1',label:'Medic 1',required:true},
@@ -833,7 +898,7 @@ function positionCandidateAllowed(code,p,a){
  if(!p)return false;
  if(code==='OFFICER')return officerEligible(p,a);
  if(code==='FAO_DRIVER')return p.is_fao||rankLabel(p)==='Battalion Chief';
- if(code==='SEAT_1'||code==='SEAT_2')return p.is_firefighter||rankLabel(p)==='Battalion Chief';
+ if(code==='SEAT_1'||code==='SEAT_2'||code==='SEAT_3')return p.is_firefighter||rankLabel(p)==='Battalion Chief';
  if(code==='MEDIC_1'||code==='MEDIC_2'||code==='EVENT_1'||code==='EVENT_2')return p.ems_level==='Paramedic'||p.ems_level==='EMT';
  if(code==='COMMAND')return officerEligible(p,a);
  return true
@@ -861,7 +926,7 @@ function effectiveUnitPositions(date,unit){
      const hit=remaining().filter(x=>positionCandidateAllowed('FAO_DRIVER',x.p,x.a)).sort((x,y)=>apparatusRolePriority(x.p)-apparatusRolePriority(y.p)||x.p.name.localeCompare(y.p.name))[0];
      if(hit){result.set('FAO_DRIVER',hit);used.add(hit.a.id)}
    }
-   for(const code of ['SEAT_1','SEAT_2']){
+   for(const code of (unit==='E2'?['SEAT_1','SEAT_2','SEAT_3']:['SEAT_1','SEAT_2'])){
      if(result.has(code))continue;
      const hit=remaining().filter(x=>positionCandidateAllowed(code,x.p,x.a)).sort((x,y)=>{
        const yp=y.p.ems_level==='Paramedic'?1:0, xp=x.p.ems_level==='Paramedic'?1:0;
@@ -904,7 +969,7 @@ function unitCompliance(date,unit){
  return {ok:missing.length===0,missing,paramedics,staffed:occupants.length}
 }
 function positionLabel(code){
- return {COMMAND:'Command',OFFICER:'Officer',FAO_DRIVER:'FAO / Driver',SEAT_1:'Seat 1',SEAT_2:'Seat 2',MEDIC_1:'Medic 1',MEDIC_2:'Medic 2',EVENT_1:'Position 1',EVENT_2:'Position 2'}[code]||code||'Unassigned'
+ return {COMMAND:'Command',OFFICER:'Officer',FAO_DRIVER:'FAO / Driver',SEAT_1:'Seat 1',SEAT_2:'Seat 2',SEAT_3:'Seat 3',MEDIC_1:'Medic 1',MEDIC_2:'Medic 2',EVENT_1:'Position 1',EVENT_2:'Position 2'}[code]||code||'Unassigned'
 }
 function seatMapHtml(date,unit){
  const {defs,result}=effectiveUnitPositions(date,unit);
@@ -1029,48 +1094,68 @@ function dashboardUnitRule(unit){
  if(unit==='SPECIAL')return 'Shown only when M3 or Gator 1 is active';
  return ''
 }
+function compactSeatSummary(date,unit){
+ const {defs,result}=effectiveUnitPositions(date,unit);
+ return defs.map(def=>{
+   const x=result.get(def.code);
+   return '<div class="apparatus-seat"><b>'+def.label+':</b> '+(x?shortName(x.p.name):'OPEN')+'</div>'
+ }).join('')
+}
+function apparatusSummaryButton(date,unit){
+ const comp=unitCompliance(date,unit);
+ return '<button class="apparatus-summary" onclick="openApparatusDetail(\''+date+'\',\''+unit+'\')">'+
+   '<div class="apparatus-unit">'+unit+'</div>'+
+   '<div class="apparatus-seats">'+compactSeatSummary(date,unit)+'</div>'+
+   '<span class="apparatus-status '+(comp.ok?'good':'bad')+'">'+(comp.ok?'GREEN':'RED')+'</span></button>'
+}
+function dayRequestCount(date){
+ return leaves.filter(x=>x.leave_date===date&&x.status!=='DENIED').length+
+        trades.filter(x=>(x.requester_date===date||x.reciprocal_date===date)&&x.status!=='DENIED').length
+}
+function firstOpenNeedForDate(date){
+ return needs.find(n=>n.duty_date===date&&!['FILLED','CANCELLED'].includes(n.status))
+}
 function renderCommandDayDetail(){
  const selectedShift=document.getElementById('dashboardShiftFilter')?.value||me.shift;
- if(shiftForDate(dashboardSelectedDate)!==selectedShift)dashboardSelectedDate=firstDutyDateForShift(selectedShift);
- const date=dashboardSelectedDate, shift=shiftForDate(date), open=needs.filter(n=>n.duty_date===date&&!['FILLED','CANCELLED'].includes(n.status));
- const dt=new Date(date+'T12:00:00');
- const special=['M3','GATOR1'].filter(u=>unitPeople(date,u).length);
- const als=['E1','E2','M1','M2'].every(u=>unitPeople(date,u).some(x=>x.p.ems_level==='Paramedic')||!unitPeople(date,u).length);
- const fao=['E1','E2'].every(u=>unitPeople(date,u).some(x=>x.p.is_fao)||!unitPeople(date,u).length);
- const bc=unitPeople(date,'BC').length>0;
- const dayLeave=leaves.filter(x=>x.leave_date===date);
- const dayTrades=trades.filter(x=>x.requester_date===date||x.reciprocal_date===date);
+ const period=activeSchedulePeriod();
+ if(!period)return;
+ if(dashboardSelectedDate<period.start_date||dashboardSelectedDate>period.end_date||shiftForDate(dashboardSelectedDate)!==selectedShift){
+   dashboardSelectedDate=firstDutyDateForShift(selectedShift)
+ }
+ const date=dashboardSelectedDate, shift=shiftForDate(date), dt=new Date(date+'T12:00:00');
+ const dayStatus=dayStaffingCompliance(date);
+ const cycleDays=periodDays(period).filter(x=>shiftForDate(x)===selectedShift);
+ const cycleGreen=cycleDays.filter(x=>dayStaffingCompliance(x).ok).length;
+ const openCycle=needs.filter(n=>n.duty_date>=period.start_date&&n.duty_date<=period.end_date&&!['FILLED','CANCELLED'].includes(n.status));
+ const forceCycle=openCycle.filter(n=>n.status==='FORCE_NEEDED');
+ const pendingRequests=leaves.filter(x=>x.status==='SUBMITTED').length+trades.filter(x=>!['APPROVED','DENIED','APPLIED'].includes(x.status)).length;
+ const specialCount=events.filter(e=>e.event_date>=period.start_date&&e.event_date<=period.end_date&&e.status!=='CANCELLED').length;
  const note=dayNotes.find(x=>x.duty_date===date&&x.shift===shift);
+ const dayReqs=dayRequestCount(date);
+ const firstNeed=firstOpenNeedForDate(date);
 
- let html='<div class="day-board">';
- html+='<div class="day-board-head"><div><h2>'+dt.toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'})+'</h2><div class="muted">'+shift+' Shift • 24-hour duty</div>'+calendarPills(date)+'</div><div class="cmd-status '+(open.length?'bad':'')+'">'+(open.length?'NEEDS STAFF • '+open.length+' OPEN':'FULLY STAFFED / COMPLIANT')+'</div></div>';
+ let html='<div class="command-dashboard">';
+ html+='<div class="command-dashboard-head"><div><div class="command-dashboard-date">'+dt.toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'})+' • '+shift+' Shift</div><div class="command-dashboard-sub">'+period.label+' • '+(note?.note?'BC note on file':'No BC note')+' • '+dayReqs+' request'+(dayReqs===1?'':'s')+' affecting this day</div></div><div class="command-dashboard-status '+(dayStatus.ok?'good':'bad')+'">'+(dayStatus.ok?'GREEN • MINIMUMS MET':'RED • STAFFING ACTION NEEDED')+'</div></div>';
 
- html+=commandStation('STATION 1 — Headquarters',['BC','E1','M1'],date,'s1',open,'station-1');
- html+=commandStation('STATION 2 — West Side',['E2','M2'],date,'s2',open,'station-2');
-
- html+='<div class="cmd-panel dash-widget" data-widget-id="shift-compliance"><div class="panel-title">Shift Compliance</div>'+
-   '<div class="cmd-check">ALS Coverage <span style="float:right">'+(als?'✓ Met':'! Review')+'</span></div>'+
-   '<div class="cmd-check">FAO Coverage <span style="float:right">'+(fao?'✓ Met':'! Review')+'</span></div>'+
-   '<div class="cmd-check">BC / Command <span style="float:right">'+(bc?'✓ Met':'! Open')+'</span></div>'+
-   '<div class="cmd-check">Minimum Staffing <span style="float:right">'+(open.length?open.length+' short':'✓ Met')+'</span></div></div>';
-
- html+='<div class="cmd-panel dash-widget" data-widget-id="quick-actions"><div class="panel-title">Quick Actions</div><div class="cmd-actions">'+
-   (isAdmin()?'<button class="btn primary" onclick="openNeedCreatorForDate(\''+date+'\',\''+shift+'\')">Fill Day</button><button class="btn good" onclick="goto(\'ot\')">OT / Force</button><button class="btn" onclick="openMovePersonnel(\''+date+'\')">Move Personnel</button><button class="btn" onclick="openSpecialAssignment(\'M3\')">Medic 3</button>':'')+
-   '<button class="btn" onclick="openTradeRequest()">Trade</button><button class="btn" onclick="openLeave()">Leave</button></div></div>';
-
- if(special.length)html+=commandStation('RESERVE / SPECIAL EVENT',special,date,'res',open,'reserve-special');
-
- html+='<div class="cmd-panel dash-widget" data-widget-id="day-requests"><div class="panel-title">Requests Affecting This Day</div><div class="compact-requests">'+
-   ((dayLeave.length||dayTrades.length)?[
-      ...dayLeave.map(x=>'<div class="cmd-check">'+(pById(x.personnel_id)?.name||'Personnel')+' — '+x.leave_type+' <span style="float:right">'+x.status.replaceAll('_',' ')+'</span></div>'),
-      ...dayTrades.map(x=>'<div class="cmd-check">'+(pById(x.requester_id)?.name||'Personnel')+' — Trade <span style="float:right">'+x.status.replaceAll('_',' ')+'</span></div>')
-    ].join(''):'<div class="muted">No requests affecting this day.</div>')+
-   '</div></div>';
-
- html+='<div class="cmd-panel dash-widget" data-widget-id="bc-notes"><div class="panel-title">BC Notes</div><div class="notice compact-note">'+(note?.note||'No notes for this shift day.')+'</div>'+(isAdmin()?'<div class="actions"><button class="btn" onclick="editDayNote(\''+date+'\',\''+shift+'\')">Add / Edit Note</button></div>':'')+'</div>';
-
+ html+='<div class="command-dashboard-main">';
+ html+='<div class="station-board s1"><div class="station-board-title">STATION 1 — HEADQUARTERS</div>'+apparatusSummaryButton(date,'BC')+apparatusSummaryButton(date,'E1')+apparatusSummaryButton(date,'M1')+'</div>';
+ html+='<div class="station-board s2"><div class="station-board-title">STATION 2 — WEST SIDE</div>'+apparatusSummaryButton(date,'E2')+apparatusSummaryButton(date,'M2')+'</div>';
+ html+='<div class="command-summary-rail">'+
+   '<button class="command-tile '+(cycleGreen===cycleDays.length?'good':'bad')+'" onclick="goto(\'staffing\')"><strong>'+cycleGreen+' / '+cycleDays.length+'</strong><span>Cycle duty days green</span></button>'+
+   '<button class="command-tile '+(openCycle.length?'bad':'good')+'" onclick="'+(firstNeed?"openWorkflow('"+firstNeed.id+"')":"goto('staffing')")+'"><strong>'+openCycle.length+'</strong><span>Open staffing needs</span></button>'+
+   '<button class="command-tile '+(forceCycle.length?'bad':'')+'" onclick="goto(\'ot\')"><strong>'+forceCycle.length+'</strong><span>Force needed</span></button>'+
+   '<button class="command-tile" onclick="goto(\'requests\')"><strong>'+pendingRequests+'</strong><span>Pending leave / trades</span></button>'+
+   '<button class="command-tile" onclick="goto(\'events\')"><strong>'+specialCount+'</strong><span>Special events this cycle</span></button>'+
+   '<button class="command-tile" onclick="'+(isAdmin()?"editDayNote('"+date+"','"+shift+"')":"void(0)")+'"><strong>'+(note?'1':'0')+'</strong><span>BC note'+(isAdmin()?' • click to edit':'')+'</span></button>'+
+   '</div>';
  html+='</div>';
- cmdDayDetail.innerHTML=html;
+
+ html+='<div class="command-dashboard-actions">'+
+   (isAdmin()?'<button class="command-action primary" onclick="openNeedCreatorForDate(\''+date+'\',\''+shift+'\')">Fill / Create Need</button><button class="command-action" onclick="goto(\'ot\')">OT / Force</button><button class="command-action" onclick="openMovePersonnel(\''+date+'\')">Move Personnel</button><button class="command-action" onclick="openSpecialAssignment(\'M3\')">Medic 3</button>':'')+
+   '<button class="command-action" onclick="openTradeRequest()">Trade</button><button class="command-action" onclick="openLeave()">Leave</button>'+
+   '</div>';
+ html+='</div>';
+ cmdDayDetail.innerHTML=html
 }
 function dashboardLayoutKey(container){
  return 'gfd-dashboard-layout-'+(me?.id||'guest')+'-'+container
