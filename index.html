@@ -72,7 +72,7 @@ main{padding:14px 16px 18px}
 .cmd-label{padding:10px 12px;font-size:12px;background:#0a1827}
 .cmd-label span{font-size:8px;margin-top:2px}
 .cmd-cell{height:42px;border-left-color:#23425e;border-top-color:#1c364e;font-size:10px}
-.cmd-cell.off{background:linear-gradient(#344b60,#26394c);color:#aab8c6}
+.cmd-cell.off{background:linear-gradient(#344b60,#26394c);color:#aab8c6}.cmd-cell.gap{background:#091522;color:transparent;cursor:default}.cmd-cell.gap:hover{background:#091522}.cmd-date.gap{opacity:.48;background:#08131f}.cmd-date.dutyhead{background:#102942}.cmd-date .shiftmark{font-size:7px;color:#ffcf43;font-weight:900;margin-top:2px}
 .cmd-cell.duty{background:linear-gradient(#14d78a,#0aa66b)}
 .cmd-cell.open{background:linear-gradient(#ff5d68,#d73342)}
 .cmd-cell.warn{background:linear-gradient(#f6bf39,#d79613)}
@@ -144,7 +144,7 @@ main{padding:14px 16px 18px}
     <div class="grow"></div>
     <button class="ctl" onclick="selectDashboardToday()">Today</button>
     <div class="header-range">Sep 30, 2026 – Oct 27, 2026</div>
-    <select id="dashboardShiftFilter" class="ctl shift-picker" onchange="renderCommandDashboard()"><option>A</option><option>B</option><option>C</option></select>
+    <select id="dashboardShiftFilter" class="ctl shift-picker" onchange="dashboardSelectedDate=firstDutyDateForShift(this.value);renderCommandDashboard()"><option>A</option><option>B</option><option>C</option></select>
     <button id="activateM3Btn" class="btn primary hidden" onclick="openSpecialAssignment('M3')">Medic 3</button>
     <button id="activateGatorBtn" class="btn hidden" onclick="openSpecialAssignment('GATOR1')">Special Event</button>
   </div>
@@ -344,6 +344,9 @@ async function boot(){
  authScreen.classList.add('hidden');claimScreen.classList.add('hidden');app.classList.remove('hidden');
  meName.textContent=me.name;meRole.textContent=me.rank+' • '+me.shift+' Shift • '+profile.app_role.toUpperCase();
  if(document.getElementById('dashboardShiftFilter')) dashboardShiftFilter.value=me.shift;
+ const cycleStart='2026-09-30';
+ const firstHomeShiftDay=shiftDays.find(d=>d.duty_date>=cycleStart&&d.shift===me.shift)?.duty_date;
+ if(firstHomeShiftDay)dashboardSelectedDate=firstHomeShiftDay;
  createNeedBtn.classList.toggle('hidden',!isAdmin());
  managePersonnelBtn.classList.toggle('hidden',!isAdmin());
  newPersonnelBtn.classList.toggle('hidden',!isAdmin());
@@ -387,10 +390,19 @@ async function loadAll(){
 }
 function renderAll(){renderDashboard();renderSchedule();renderStaffing();renderOT();renderRequests();renderEvents();renderPersonnel();renderNotifications();renderRules();renderAudit()}
 function renderDashboard(){renderCommandDashboard()}
-function selectDashboardDate(date){dashboardSelectedDate=date;renderCommandDashboard()}
+function firstDutyDateForShift(shift){
+ const d=shiftDays.find(x=>x.shift===shift&&x.duty_date>='2026-09-30'&&x.duty_date<='2026-10-27');
+ return d?.duty_date||'2026-09-30'
+}
+function selectDashboardDate(date){
+ const selectedShift=document.getElementById('dashboardShiftFilter')?.value||me.shift;
+ if(shiftForDate(date)!==selectedShift)return;
+ dashboardSelectedDate=date;renderCommandDashboard()
+}
 function selectDashboardToday(){
  const t=new Date().toISOString().slice(0,10);
- dashboardSelectedDate=(t>='2026-09-30'&&t<='2026-10-27')?t:'2026-09-30';
+ const selectedShift=document.getElementById('dashboardShiftFilter')?.value||me.shift;
+ dashboardSelectedDate=(t>='2026-09-30'&&t<='2026-10-27'&&shiftForDate(t)===selectedShift)?t:firstDutyDateForShift(selectedShift);
  renderCommandDashboard()
 }
 function renderCommandDashboard(){
@@ -412,8 +424,8 @@ function renderCommandDashboard(){
  let html='<div class="cmd-corner">Station / Unit</div>';
  const today=new Date().toISOString().slice(0,10);
  for(const date of days){
-   const dt=new Date(date+'T12:00:00'), sel=date===dashboardSelectedDate;
-   html+='<button class="cmd-date '+(sel?'sel ':'')+(date===today?'today':'')+'" onclick="selectDashboardDate(\''+date+'\')"><b>'+dt.getDate()+'</b><small>'+dt.toLocaleDateString(undefined,{weekday:'short'})+'</small></button>'
+   const dt=new Date(date+'T12:00:00'), sel=date===dashboardSelectedDate, duty=shiftForDate(date)===selectedShift;
+   html+='<button class="cmd-date '+(duty?'dutyhead ':'gap ')+(sel?'sel ':'')+(date===today?'today':'')+'" '+(duty?'onclick="selectDashboardDate(\''+date+'\')"':'disabled')+'><b>'+dt.getDate()+'</b><small>'+dt.toLocaleDateString(undefined,{weekday:'short'})+'</small>'+(duty?'<div class="shiftmark">'+selectedShift+'</div>':'')+'</button>'
  }
  const rows=[['STATION 1','band','s1'],['BC','unit'],['E1','unit'],['M1','unit'],['STATION 2','band','s2'],['E2','unit'],['M2','unit'],['RESERVE / SPECIAL EVENT','band','res'],['SPECIAL','unit']];
  for(const r of rows){
@@ -426,10 +438,15 @@ function renderCommandDashboard(){
      const hasPeople=relevantUnits.some(u=>unitPeople(date,u).length);
      const hasNeed=relevantUnits.some(u=>activeNeeds.some(n=>n.duty_date===date&&n.unit===u));
      const hasFto=relevantUnits.some(u=>unitPeople(date,u).some(x=>x.p.employment_status==='PROBATIONARY_FTO'));
-     let cls='off',symbol='–';
-     if(unit==='SPECIAL'){if(hasPeople){cls=hasFto?'warn':'duty';symbol='●'}else{cls='off';symbol='–'}}
+     if(!isDuty){
+       html+='<button class="cmd-cell gap" disabled></button>';
+       continue;
+     }
+     let cls='off',symbol='';
+     if(unit==='SPECIAL'){if(hasPeople){cls=hasFto?'warn':'duty';symbol='●'}else{cls='off';symbol=''}}
      else if(hasNeed){cls='open';symbol='!'}
-     else if(isDuty||hasPeople){cls=hasFto?'warn':'duty';symbol='●'}
+     else if(hasPeople){cls=hasFto?'warn':'duty';symbol='●'}
+     else{cls='off';symbol=''}
      html+='<button class="cmd-cell '+cls+' '+(selected?'sel':'')+'" onclick="selectDashboardDate(\''+date+'\')">'+symbol+'</button>'
    }
  }
@@ -451,6 +468,8 @@ function dashboardUnitRule(unit){
  return ''
 }
 function renderCommandDayDetail(){
+ const selectedShift=document.getElementById('dashboardShiftFilter')?.value||me.shift;
+ if(shiftForDate(dashboardSelectedDate)!==selectedShift)dashboardSelectedDate=firstDutyDateForShift(selectedShift);
  const date=dashboardSelectedDate, shift=shiftForDate(date), open=needs.filter(n=>n.duty_date===date&&!['FILLED','CANCELLED'].includes(n.status));
  const dt=new Date(date+'T12:00:00');
  let html='<h2>'+dt.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})+'</h2><div class="muted">'+shift+' Shift • Duty Day</div>'+calendarPills(date);
