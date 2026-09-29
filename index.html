@@ -519,7 +519,7 @@ async function loadPersonnelManager(){
    [...pmEMS.options].forEach(o=>o.disabled=false);
  }
 }
-async async function savePersonnelRole(){
+async function savePersonnelRole(){
  const p=pById(pmPerson.value);if(!p)return;
  if(p.ems_level==='Paramedic'&&pmEMS.value==='EMT')return alert('Paramedics cannot be downgraded to EMT.');
  if(pmSingle.checked&&pmEMS.value!=='Paramedic')return alert('Single-role paramedic requires Paramedic EMS level.');
