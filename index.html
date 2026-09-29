@@ -565,6 +565,27 @@ main{overflow-x:hidden}
 .staffing-need-row{display:flex;gap:8px;align-items:center;justify-content:space-between;border-top:1px solid #56323a;padding:7px 0;font-size:10px}
 @media(max-width:900px){.staffing-day-board{grid-template-columns:1fr}.staffing-needs-strip{grid-column:auto}.staffing-unit-button{grid-template-columns:58px 1fr}.staffing-unit-button>span:last-child{grid-column:2}.staffing-seat-line{grid-template-columns:82px 1fr auto}}
 
+
+.ot-shift-handoff{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.ot-shift-card{border:1px solid #294b69;border-radius:10px;background:#081827;overflow:hidden}
+.ot-shift-card.oncoming{border-color:#476d91}
+.ot-shift-head{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px;background:#0c2236;border-bottom:1px solid #294b69}
+.ot-shift-head .eyebrow{font-size:9px;font-weight:1000;color:#9bb0c3;text-transform:uppercase;letter-spacing:.08em}
+.ot-shift-head .title{font-size:17px;font-weight:1000}
+.ot-shift-body{padding:10px}
+.ot-force-up-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+.ot-force-up{border:1px solid #294b69;border-radius:7px;padding:8px;background:#0a1827}
+.ot-force-up .group{font-size:8px;color:#94aabc;font-weight:900;text-transform:uppercase}
+.ot-force-up .name{font-size:12px;font-weight:1000;margin-top:2px}
+.ot-force-up .meta{font-size:8px;color:#8ea4b7;margin-top:2px}
+.ot-shift-needs{margin-top:9px;border-top:1px solid #294b69;padding-top:7px}
+.ot-shift-need{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:6px 0;border-top:1px solid #17344d;font-size:10px}
+.ot-shift-need:first-child{border-top:0}
+.ot-shift-ok{color:#5ee0a7;font-weight:1000}
+.ot-shift-alert{color:#ff7b88;font-weight:1000}
+@media(max-width:900px){.ot-shift-handoff{grid-template-columns:1fr}.ot-force-up-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.ot-force-up-grid{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -651,7 +672,8 @@ main{overflow-x:hidden}
 </section>
 
 <section id="view-ot" class="view">
- <div class="top"><div><h1>OT Command Center</h1><div class="muted">Active need → Regular OT availability → Force only when Regular OT is unavailable</div></div></div>
+ <div class="top"><div><h1>OT / Force Command Center</h1><div class="muted">Shift handoff, Regular OT awards, and Force readiness</div></div></div>
+ <div id="otShiftHandoff" class="ot-shift-handoff"></div>
  <div class="ot-command-grid">
    <section class="ot-command-panel ot-needs-panel">
      <div class="ot-command-title">Active OT Needs</div>
@@ -829,7 +851,7 @@ main{overflow-x:hidden}
 const SUPABASE_URL='https://hnktbvfzrccfrgfrgehr.supabase.co';
 const SUPABASE_KEY='sb_publishable_sdPmMJGLy0H1HSAxa1ngZQ_yYR3miIW';
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-let session=null, profile=null, me=null, personnel=[], otStatus=[], needs=[], responses=[], assignments=[], unitAssignments=[], events=[], eventSlots=[], dayNotes=[], notifications=[], leaves=[], trades=[], audits=[], shiftDays=[], sourceCells=[], rules=[], schedulePeriods=[], selectedPeriodStart='2026-09-30', selectedNeed=null, pendingAward=null, pendingFtoPairing=null, conceptSelectedDate='2026-09-30', dashboardSelectedDate='2026-09-30', staffingSelectedDate='2026-09-30', personnelShiftFilter='ALL';
+let session=null, profile=null, me=null, personnel=[], otStatus=[], needs=[], responses=[], assignments=[], unitAssignments=[], events=[], eventSlots=[], dayNotes=[], notifications=[], leaves=[], trades=[], audits=[], shiftDays=[], sourceCells=[], rules=[], schedulePeriods=[], selectedPeriodStart='2026-09-30', selectedNeed=null, pendingAward=null, pendingFtoPairing=null, conceptSelectedDate='2026-09-30', dashboardSelectedDate='2026-09-30', staffingSelectedDate='2026-09-30', otHandoffDate=null, personnelShiftFilter='ALL';
 const adminRoles=['bc','chief','admin'];
 
 function msg(id,text,bad=false){const el=document.getElementById(id);el.textContent=text;el.className='notice'+(bad?' bad':'')}
@@ -1724,7 +1746,56 @@ function forcePriorityReached(n){
 function forceDeadlineLabel(n){
  return forceDeadlineForNeed(n).toLocaleString([],{weekday:'short',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})
 }
+function nextDutyDateForShift(shift){
+ const today=new Date().toISOString().slice(0,10);
+ const d=shiftDays.find(x=>x.shift===shift&&x.duty_date>=today);
+ if(d)return d.duty_date;
+ let cur=new Date(today+'T12:00:00');
+ for(let i=0;i<10;i++){const s=cur.toISOString().slice(0,10);if(shiftForDate(s)===shift)return s;cur=new Date(cur.getTime()+86400000)}
+ return today
+}
+function addCalendarDays(date,days){const d=new Date(date+'T12:00:00');d.setDate(d.getDate()+days);return d.toISOString().slice(0,10)}
+async function forceNextUpForShift(targetShift,date){
+ const sourceShift=priorShift(targetShift);
+ const year=new Date(date+'T12:00:00').getFullYear();
+ const {data:groups}=await sb.from('force_groups').select('*').eq('shift',sourceShift).eq('calendar_year',year);
+ const out={sourceShift};
+ for(const group of (groups||[])){
+   const {data:members}=await sb.from('force_memberships').select('*').eq('force_group_id',group.id).order('force_position');
+   const eligible=(members||[]).map(m=>({m,p:pById(m.personnel_id)})).filter(x=>x.p&&otEligible(x.p));
+   const next=eligible.find(x=>x.m.force_status==='NEXT TO FORCE')||eligible[0]||null;
+   if(next)out[group.group_name]={...next,group}
+ }
+ return out
+}
+function handoffNeedRows(date,shift){
+ const list=needs.filter(n=>n.duty_date===date&&n.shift===shift&&!['FILLED','CANCELLED'].includes(n.status));
+ if(!list.length)return '<div class="ot-shift-needs"><div class="ot-shift-ok">No open OT needs.</div></div>';
+ return '<div class="ot-shift-needs">'+list.map(n=>'<div class="ot-shift-need"><div><b>'+n.unit+' — '+n.position_label+'</b><div class="meta">'+remaining(n)+'h remaining • '+qLabel(n.qualification_group)+'</div></div><button class="btn primary" onclick="selectNeed(\''+n.id+'\')">View Need</button></div>').join('')+'</div>'
+}
+function nextUpCard(data,group,targetShift){
+ const x=data[group];
+ const label=group==='FF_EMT'?'FF/EMT':group;
+ if(!x)return '<div class="ot-force-up"><div class="group">'+label+'</div><div class="name">—</div><div class="meta">No eligible force member</div></div>';
+ return '<div class="ot-force-up"><div class="group">'+label+' • Force to '+targetShift+'</div><div class="name">#'+x.m.force_position+' '+x.p.name+'</div><div class="meta">'+x.p.rank+' • '+data.sourceShift+' Shift • '+x.m.force_status+'</div></div>'
+}
+async function renderOtShiftHandoff(){
+ if(!otHandoffDate)otHandoffDate=nextDutyDateForShift(me.shift);
+ const offDate=otHandoffDate;
+ const onDate=addCalendarDays(offDate,1);
+ const offShift=shiftForDate(offDate);
+ const onShift=shiftForDate(onDate);
+ const [offForce,onForce]=await Promise.all([forceNextUpForShift(offShift,offDate),forceNextUpForShift(onShift,onDate)]);
+ const offNeeds=needs.filter(n=>n.duty_date===offDate&&n.shift===offShift&&!['FILLED','CANCELLED'].includes(n.status));
+ const onNeeds=needs.filter(n=>n.duty_date===onDate&&n.shift===onShift&&!['FILLED','CANCELLED'].includes(n.status));
+ otShiftHandoff.innerHTML=
+  '<section class="ot-shift-card"><div class="ot-shift-head"><div><div class="eyebrow">My / Off-going Shift</div><div class="title">'+offShift+' Shift</div><div class="meta">'+formatDate(offDate)+'</div></div><span class="tag '+(offNeeds.length?'bad':'good')+'">'+(offNeeds.length?offNeeds.length+' OPEN NEED'+(offNeeds.length>1?'S':''):'NO OPEN NEEDS')+'</span></div>'+
+  '<div class="ot-shift-body"><div class="meta"><b>Who can be forced TO '+offShift+' Shift:</b> '+offForce.sourceShift+' Shift force lists</div><div class="ot-force-up-grid">'+nextUpCard(offForce,'PARAMEDIC',offShift)+nextUpCard(offForce,'FAO',offShift)+nextUpCard(offForce,'FF_EMT',offShift)+'</div>'+handoffNeedRows(offDate,offShift)+'</div></section>'+
+  '<section class="ot-shift-card oncoming"><div class="ot-shift-head"><div><div class="eyebrow">Oncoming Shift</div><div class="title">'+onShift+' Shift</div><div class="meta">'+formatDate(onDate)+'</div></div><span class="tag '+(onNeeds.length?'bad':'good')+'">'+(onNeeds.length?onNeeds.length+' OPEN NEED'+(onNeeds.length>1?'S':''):'NO OPEN NEEDS')+'</span></div>'+
+  '<div class="ot-shift-body"><div class="meta"><b>Who is up to be forced TO '+onShift+' Shift:</b> '+onForce.sourceShift+' Shift force lists</div><div class="ot-force-up-grid">'+nextUpCard(onForce,'PARAMEDIC',onShift)+nextUpCard(onForce,'FAO',onShift)+nextUpCard(onForce,'FF_EMT',onShift)+'</div>'+handoffNeedRows(onDate,onShift)+'</div></section>'
+}
 function renderOT(){
+ renderOtShiftHandoff();
  const active=needs.filter(n=>!['FILLED','CANCELLED'].includes(n.status)).sort((a,b)=>a.duty_date.localeCompare(b.duty_date));
  otNeeds.innerHTML=active.map(n=>{
    const avail=responses.filter(r=>r.staffing_need_id===n.id&&r.available).length;
