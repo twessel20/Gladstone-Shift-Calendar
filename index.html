@@ -1282,7 +1282,7 @@ function openApparatusDetail(date,unit){
    (alsNeeded?'<div class="inspector-requirement"><strong>ALS / Paramedic</strong><span class="'+(alsMet?'met':'missing')+'">'+(alsMet?'Met':'Open')+'</span></div>':'')+
    '</div></div>';
 
- const needBlock=open.length?'<div class="inspector-section"><div class="inspector-section-title">Open Staffing Need</div><div style="padding:10px">'+open.map(n=>'<div class="notice bad" style="margin:0 0 6px"><b>'+n.position_label+'</b><br>'+remaining(n)+'h remaining</div>').join('')+'</div></div>':'';
+ const needBlock=open.length?'<div class="inspector-section"><div class="inspector-section-title">Open Staffing Need</div><div style="padding:10px">'+open.map(n=>'<div class="notice bad" style="margin:0 0 6px"><b>'+n.position_label+'</b><br>'+remaining(n)+'h remaining<div class="actions" style="margin-top:6px"><button class="btn primary" onclick="closeUnitInspector();openWorkflow(\''+n.id+'\')">OT / Force</button></div></div>').join('')+'</div></div>':'';
 
  unitDetailBody.innerHTML=
    '<div class="inspector-section"><div class="inspector-section-title '+stationClass+'">Riding Assignments</div>'+seatMapHtml(date,unit)+'</div>'+
@@ -1290,8 +1290,8 @@ function openApparatusDetail(date,unit){
    needBlock+
    (isAdmin()?manualSeatEditorHtml(date,unit):'')+
    (isAdmin()?'<div class="inspector-section"><div class="inspector-section-title">Quick Actions</div><div style="padding:10px" class="actions">'+
-      (open.length?'<button class="btn primary" onclick="closeUnitInspector();openWorkflow(\''+open[0].id+'\')">Fill Shortage</button>':'')+
-      '<button class="btn good" onclick="closeUnitInspector();goto(\'ot\')">OT / Force</button>'+
+      (open.length?'<button class="btn primary" onclick="closeUnitInspector();openWorkflow(\''+open[0].id+'\')">OT / Force</button>':'')+
+      '<button class="btn good" onclick="goto(\'ot\')">OT Board</button>'+
       '<button class="btn" onclick="closeUnitInspector();openMovePersonnel(\''+date+'\')">Move Personnel</button>'+
       '<button class="btn" onclick="closeUnitInspector();openNeedCreatorForDate(\''+date+'\',\''+dutyShift+'\')">Create Need</button>'+
     '</div></div>':'');
@@ -1655,14 +1655,15 @@ async function loadForce(needId){
 
  const rows=(m||[]).filter(x=>{
    const p=pById(x.personnel_id);
-   return p&&otEligible(p)
+   return p&&qualifies(p,n)
  });
 
  const head='<div class="force-list-head"><div>Pos</div><div>Employee</div><div>Status</div><div>Denials</div><div>Forced YTD</div><div>Last Forced</div><div>Last OT</div><div>OT Hrs</div><div>Action</div></div>';
  const body=rows.map((x,i)=>{
    const p=pById(x.personnel_id);
    const first=x.force_status==='NEXT TO FORCE'||i===0;
-   return '<div class="force-list-row '+(first?'first':'')+'">'+
+   const already=isAlreadyWorkingDate(p,n.duty_date);
+   return '<div class="force-list-row '+(first?'first ':'')+(already?'blocked':'')+'">'+
      '<div class="force-pos">#'+x.force_position+'</div>'+
      '<div><div class="force-name">'+p.name+(first?' <span class="tag bad">FIRST UP</span>':'')+'</div><div class="force-sub">'+p.rank+' • '+p.shift+' Shift • Hire '+(p.hire_date||'—')+'</div></div>'+
      '<div class="'+(first?'force-status-next':'force-status-avail')+'"><span class="force-mobile-label">Status</span>'+x.force_status+'</div>'+
@@ -1671,7 +1672,7 @@ async function loadForce(needId){
      '<div><span class="force-mobile-label">Last Forced</span>'+(x.last_forced_ot_worked||'—')+'</div>'+
      '<div><span class="force-mobile-label">Last OT</span>'+(x.last_ot_worked||'—')+'</div>'+
      '<div><span class="force-mobile-label">OT Hours</span>'+(x.last_ot_hours!=null?Number(x.last_ot_hours)+'h':'—')+'</div>'+
-     '<div><button class="btn danger" onclick="openAward(\''+n.id+'\',\''+x.personnel_id+'\',\'FORCED_OT\')">Force</button></div>'+
+     '<div><button class="btn danger" '+(already?'disabled':'')+' onclick="openAward(\''+n.id+'\',\''+x.personnel_id+'\',\'FORCED_OT\')">'+(already?'Working':'Force')+'</button></div>'+
    '</div>'
  }).join('');
 
@@ -1721,13 +1722,26 @@ async function confirmAward(){
  await performAwardInsert();
 }
 async function performAwardInsert(){
- const n=needs.find(x=>x.id===pendingAward.nid),hours=Number(awardHours.value);
+ const n=needs.find(x=>x.id===pendingAward.nid),p=pById(pendingAward.pid),hours=Number(awardHours.value);
  const row={staffing_need_id:n.id,personnel_id:pendingAward.pid,assignment_type:pendingAward.type,start_time:awardStart.value,end_time:awardEnd.value,hours,awarded_by:session.user.id};
  const {error}=await sb.from('staffing_assignments').insert(row);if(error)return alert(error.message);
- const after=remaining(n)-hours,status=after<=0?'FILLED':'PARTIALLY_FILLED';await sb.from('staffing_needs').update({status}).eq('id',n.id);
+
+ const unitType=pendingAward.type==='FORCED_OT'?'FORCED_OT':'OT';
+ const positionCode=targetPositionForNeed(n,p);
+ const existing=unitAssignments.find(a=>a.duty_date===n.duty_date&&a.unit===n.unit&&a.personnel_id===p.id&&a.start_time===awardStart.value&&Number(a.hours)===hours);
+ if(!existing&&['BC','E1','M1','E2','M2','M3','GATOR1','TRUCK2'].includes(n.unit)){
+   const unitRow={duty_date:n.duty_date,unit:n.unit,position_label:n.position_label||positionLabel(positionCode),personnel_id:p.id,assignment_type:unitType,start_time:awardStart.value,end_time:awardEnd.value,hours,position_code:positionCode,created_by:session.user.id};
+   const {error:unitErr}=await sb.from('unit_assignments').insert(unitRow);
+   if(unitErr)return alert('OT was awarded, but the apparatus assignment could not be created: '+unitErr.message)
+ }
+
+ const after=remaining(n)-hours,status=after<=0?'FILLED':'PARTIALLY_FILLED';
+ await sb.from('staffing_needs').update({status}).eq('id',n.id);
  await sb.from('notifications').insert({recipient_personnel_id:pendingAward.pid,category:'CRITICAL',title:pendingAward.type==='FORCED_OT'?'Forced OT Assignment':'OT Assignment',body:`${formatDate(n.duty_date)} • ${n.position_label} • ${awardStart.value}–${awardEnd.value} • ${hours}h`,action_type:'ACK_ASSIGNMENT',action_id:n.id});
- await logAudit('STAFFING_ASSIGNED','staffing_need',n.id,{personnel_id:pendingAward.pid,type:pendingAward.type,start:awardStart.value,end:awardEnd.value,hours,force_list_rotation:pendingAward.type==='FORCED_OT'?'ON_WORKED_1H_PLUS':'N/A'});
- closeModal('awardModal');closeModal('workflowModal');await loadAll()
+ await logAudit('STAFFING_ASSIGNED','staffing_need',n.id,{personnel_id:pendingAward.pid,type:pendingAward.type,start:awardStart.value,end:awardEnd.value,hours,unit:n.unit,position_code:positionCode,force_list_rotation:pendingAward.type==='FORCED_OT'?'ON_WORKED_1H_PLUS':'N/A'});
+ closeModal('awardModal');closeModal('workflowModal');
+ await loadAll();
+ if(n.unit)openApparatusDetail(n.duty_date,n.unit)
 }
 function syncPersonnelTypeFields(prefix){
  const type=document.getElementById(prefix+'PersonnelType')?.value;
