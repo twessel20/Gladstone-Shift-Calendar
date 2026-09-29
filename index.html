@@ -307,7 +307,7 @@ main{padding:10px 12px 12px;overflow-x:hidden}
  <div class="field"><label>Personnel</label><select id="pmPerson" onchange="loadPersonnelManager()"></select></div>
  <div class="formgrid" style="margin-top:10px">
   <div class="field"><label>Personnel Type</label><select id="pmPersonnelType"><option value="SINGLE_ROLE_PARAMEDIC">Single-Role Paramedic</option><option value="FF_EMT">FF/EMT</option><option value="FF_PARAMEDIC">FF/Paramedic</option></select></div>
-  <div class="field"><label>Administrative Rank</label><input id="pmRank" placeholder="Optional: Captain, Battalion Chief, etc."></div>
+  <div class="field"><label>Rank</label><select id="pmRank"><option value="Firefighter">Firefighter</option><option value="Paramedic">Paramedic</option><option value="Captain">Captain</option><option value="Battalion Chief">Battalion Chief</option></select></div>
   <div class="field"><label>Shift</label><select id="pmShift"><option>A</option><option>B</option><option>C</option></select></div>
   <div class="field"><label>EMS Level</label><select id="pmEMS"><option value="">None</option><option>EMT</option><option>Paramedic</option></select></div>
   <div class="field"><label>App Permission Role</label><select id="pmAppRole"><option value="personnel">Personnel</option><option value="captain">Captain</option><option value="bc">Battalion Chief</option><option value="chief">Chief/Admin View</option><option value="admin">System Admin</option></select></div>
@@ -336,7 +336,7 @@ main{padding:10px 12px 12px;overflow-x:hidden}
   <div class="field"><label>Hire Date</label><input id="npHireDate" type="date"></div>
   <div class="field"><label>Shift</label><select id="npShift"><option>A</option><option>B</option><option>C</option></select></div>
   <div class="field"><label>Personnel Type</label><select id="npPersonnelType"><option value="FF_EMT">FF/EMT</option><option value="FF_PARAMEDIC">FF/Paramedic</option><option value="SINGLE_ROLE_PARAMEDIC">Single-Role Paramedic</option></select></div>
-  <div class="field"><label>Administrative Rank</label><input id="npRank" placeholder="Optional: Captain, Battalion Chief, etc."></div>
+  <div class="field"><label>Rank</label><select id="npRank"><option value="Firefighter">Firefighter</option><option value="Paramedic">Paramedic</option><option value="Captain">Captain</option><option value="Battalion Chief">Battalion Chief</option></select></div>
   <div class="field"><label>EMS Level</label><select id="npEMS"><option value="">None</option><option>EMT</option><option>Paramedic</option></select></div>
   <div class="field"><label>Employment Status</label><select id="npEmployment"><option value="PROBATIONARY_FTO">On FTO / Probationary</option><option value="REGULAR">Regular</option><option value="INACTIVE">Inactive</option></select></div>
  </div>
@@ -535,6 +535,14 @@ function renderCommandDashboard(){
 function personnelTypeLabel(p){
  return p.personnel_type==='SINGLE_ROLE_PARAMEDIC'?'Single-Role Paramedic':p.personnel_type==='FF_PARAMEDIC'?'FF/Paramedic':'FF/EMT'
 }
+function rankLabel(p){
+ const r=String(p.rank||'').toLowerCase();
+ if(r.includes('battalion'))return 'Battalion Chief';
+ if(r.includes('captain')||r==='capt'||r.startsWith('capt'))return 'Captain';
+ if(p.personnel_type==='SINGLE_ROLE_PARAMEDIC')return 'Paramedic';
+ return 'Firefighter'
+}
+function rankAndTypeLabel(p){return rankLabel(p)+' • '+personnelTypeLabel(p)}
 function assignmentClass(a,p,date){
  const dutyShift=shiftForDate(date);
  if(a.assignment_type==='OT'||p.shift!==dutyShift)return 'OT_FILL';
@@ -559,13 +567,14 @@ function openApparatusDetail(date,unit){
          ?'<span class="tag bad">FORCED OT • '+x.p.shift+' SHIFT</span>'
          :'<span class="tag">EVENT / SPECIAL</span>';
    const quals=[
+     rankLabel(x.p),
      personnelTypeLabel(x.p),
      x.p.is_fao?'FAO':null,
      x.p.is_fto?'FTO TRAINER':null,
      x.p.captain_step_up?'CAPT STEP-UP':null,
      x.p.bc_step_up?'BC STEP-UP':null
    ].filter(Boolean);
-   return '<div class="unit-person"><div class="unit-person-head"><div><div class="unit-person-name">'+x.p.name+'</div><div class="unit-person-meta">'+x.p.shift+' Shift • '+(x.p.rank||personnelTypeLabel(x.p))+' • '+(x.a.start_time||'08:00')+'–'+(x.a.end_time||'08:00')+' • '+Number(x.a.hours||24)+'h</div></div><div class="grow"></div>'+assignmentTag+'</div>'+
+   return '<div class="unit-person"><div class="unit-person-head"><div><div class="unit-person-name">'+x.p.name+'</div><div class="unit-person-meta">'+x.p.shift+' Shift • '+rankAndTypeLabel(x.p)+' • '+(x.a.start_time||'08:00')+'–'+(x.a.end_time||'08:00')+' • '+Number(x.a.hours||24)+'h</div></div><div class="grow"></div>'+assignmentTag+'</div>'+
      '<div class="unit-person-tags">'+quals.map(q=>'<span class="tag">'+q+'</span>').join('')+
      (x.p.employment_status==='PROBATIONARY_FTO'?'<span class="tag bad">⚠ ON FTO / PROBATIONARY</span>':'')+
      '</div></div>'
@@ -594,7 +603,7 @@ function openSpecialUnitsDetail(date){
  unitDetailBody.innerHTML=active.map(u=>{
    const ps=unitPeople(date,u);
    return '<div class="cmd-station res"><h3>'+(u==='GATOR1'?'Gator 1':'Medic 3')+'</h3>'+
-     ps.map(x=>'<div class="cmd-row"><b>'+u+'</b><div><div class="person">'+x.p.name+'</div><div class="role">'+personnelTypeLabel(x.p)+' • '+x.p.shift+' Shift</div></div><span class="tag '+(x.a.assignment_type==='EVENT'?'purp':'good')+'">'+x.a.assignment_type.replaceAll('_',' ')+'</span></div>').join('')+
+     ps.map(x=>'<div class="cmd-row"><b>'+u+'</b><div><div class="person">'+x.p.name+'</div><div class="role">'+rankAndTypeLabel(x.p)+' • '+x.p.shift+' Shift</div></div><span class="tag '+(x.a.assignment_type==='EVENT'?'purp':'good')+'">'+x.a.assignment_type.replaceAll('_',' ')+'</span></div>').join('')+
    '</div>'
  }).join('');
  openModal('unitDetailModal')
@@ -863,10 +872,10 @@ async function performAwardInsert(){
  await logAudit('STAFFING_ASSIGNED','staffing_need',n.id,{personnel_id:pendingAward.pid,type:pendingAward.type,start:awardStart.value,end:awardEnd.value,hours});
  closeModal('awardModal');closeModal('workflowModal');await loadAll()
 }
-function renderPersonnel(){personnelRows.innerHTML=personnel.map(p=>`<tr><td><b>${p.name}</b></td><td>${p.shift}</td><td><b>${p.personnel_type==='SINGLE_ROLE_PARAMEDIC'?'Single-Role Paramedic':p.personnel_type==='FF_PARAMEDIC'?'FF/Paramedic':'FF/EMT'}</b>${p.rank?'<br><span class="meta">'+p.rank+'</span>':''}<br>${p.employment_status==='PROBATIONARY_FTO'?'<span class="tag bad" style="font-size:12px;font-weight:900">⚠ ON FTO / PROBATIONARY</span>':p.employment_status==='INACTIVE'?'<span class="tag bad">INACTIVE</span>':'<span class="tag good">REGULAR</span>'}</td><td>${p.single_role_paramedic?'<span class="tag warn">SINGLE-ROLE MEDIC</span>':''}${p.is_firefighter?'<span class="tag">FF</span>':''}${p.ems_level?'<span class="tag">'+p.ems_level+'</span>':''}${p.is_fao?'<span class="tag">FAO</span>':''}${p.is_fto?'<span class="tag">FTO</span>':''}${p.captain_step_up?'<span class="tag purp">CAPT STEP-UP</span>':''}${p.bc_step_up?'<span class="tag purp">BC STEP-UP</span>':''}</td><td>${otFor(p.id).regular_ot_hours_14d}h</td><td>${isAdmin()?'<button class="btn" onclick="openPersonnelManager(\''+p.id+'\')">Edit</button>':''}</td></tr>`).join('')}
+function renderPersonnel(){personnelRows.innerHTML=personnel.map(p=>`<tr><td><b>${p.name}</b></td><td>${p.shift}</td><td><b>${rankLabel(p)}</b><br><span class="meta">${personnelTypeLabel(p)}</span><br>${p.employment_status==='PROBATIONARY_FTO'?'<span class="tag bad" style="font-size:12px;font-weight:900">⚠ ON FTO / PROBATIONARY</span>':p.employment_status==='INACTIVE'?'<span class="tag bad">INACTIVE</span>':'<span class="tag good">REGULAR</span>'}</td><td>${p.single_role_paramedic?'<span class="tag warn">SINGLE-ROLE MEDIC</span>':''}${p.is_firefighter?'<span class="tag">FF</span>':''}${p.ems_level?'<span class="tag">'+p.ems_level+'</span>':''}${p.is_fao?'<span class="tag">FAO</span>':''}${p.is_fto?'<span class="tag">FTO</span>':''}${p.captain_step_up?'<span class="tag purp">CAPT STEP-UP</span>':''}${p.bc_step_up?'<span class="tag purp">BC STEP-UP</span>':''}</td><td>${otFor(p.id).regular_ot_hours_14d}h</td><td>${isAdmin()?'<button class="btn" onclick="openPersonnelManager(\''+p.id+'\')">Edit</button>':''}</td></tr>`).join('')}
 async function openPersonnelManager(id){
  if(!isAdmin())return;
- pmPerson.innerHTML=personnel.map(p=>'<option value="'+p.id+'">'+p.name+' — '+p.shift+' — '+p.rank+'</option>').join('');
+ pmPerson.innerHTML=personnel.map(p=>'<option value="'+p.id+'">'+p.name+' — '+p.shift+' — '+rankAndTypeLabel(p)+'</option>').join('');
  if(id)pmPerson.value=id;
  pmEffective.value=new Date().toISOString().slice(0,10);
  pmReason.value='';
@@ -876,7 +885,9 @@ async function openPersonnelManager(id){
 async function loadPersonnelManager(){
  const p=pById(pmPerson.value);if(!p)return;
  pmPersonnelType.value=p.personnel_type||(p.single_role_paramedic?'SINGLE_ROLE_PARAMEDIC':p.ems_level==='Paramedic'?'FF_PARAMEDIC':'FF_EMT');
- pmRank.value=p.rank||'';
+ const currentRank=rankLabel(p);
+ pmRank.value=currentRank;
+ pmRank.value=rankLabel(p);
  pmShift.value=p.shift;
  pmEMS.value=p.ems_level||'';
  pmFF.checked=!!p.is_firefighter;
@@ -904,7 +915,7 @@ async function savePersonnelRole(){
  pmEMS.value=pt==='FF_EMT'?'EMT':'Paramedic';
  const args={
   p_personnel_id:p.id,
-  p_rank:pmRank.value.trim()||p.rank,
+  p_rank:pmRank.value,
   p_shift:pmShift.value,
   p_is_firefighter:pmFF.checked,
   p_ems_level:pmEMS.value,
@@ -933,7 +944,7 @@ function openNewPersonnel(){
  npHireDate.value=new Date().toISOString().slice(0,10);
  npShift.value='A';
  npPersonnelType.value='FF_EMT';
- npRank.value='';
+ npRank.value='Firefighter';
  npEMS.value='EMT';
  npEmployment.value='PROBATIONARY_FTO';
  npFF.checked=true;npFAO.checked=false;npFTO.checked=false;npCaptainSU.checked=false;npBCSU.checked=false;npSingle.checked=false;
@@ -948,7 +959,7 @@ async function createPersonnel(){
  const {data,error}=await sb.rpc('admin_create_personnel',{
   p_name:npName.value.trim(),
   p_shift:npShift.value,
-  p_rank:npRank.value.trim()||'New Employee',
+  p_rank:npRank.value,
   p_hire_date:npHireDate.value||new Date().toISOString().slice(0,10),
   p_is_firefighter:npFF.checked,
   p_ems_level:npEMS.value,
