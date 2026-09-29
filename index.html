@@ -1649,16 +1649,63 @@ async function selectNeed(id){
  renderOT()
 }
 function needDetail(n){return ''}
+function workInterval(date,start='08:00',end='08:00',hours=24){
+ const s=new Date(date+'T'+String(start).slice(0,5)+':00');
+ let e=new Date(date+'T'+String(end).slice(0,5)+':00');
+ const h=Number(hours||0);
+ if(e<=s)e=new Date(e.getTime()+86400000);
+ if(h>0&&Math.abs((e-s)/3600000-h)>0.01)e=new Date(s.getTime()+h*3600000);
+ return {start:s,end:e}
+}
+function personWorkIntervals(personnelId){
+ const raw=[];
+ unitAssignments.filter(a=>a.personnel_id===personnelId).forEach(a=>raw.push(workInterval(a.duty_date,a.start_time||'08:00',a.end_time||'08:00',a.hours||24)));
+ assignments.filter(a=>a.personnel_id===personnelId).forEach(a=>{
+   const n=needs.find(x=>x.id===a.staffing_need_id);
+   if(n)raw.push(workInterval(n.duty_date,a.start_time||n.start_time||'08:00',a.end_time||n.end_time||'08:00',a.hours||n.required_hours||24))
+ });
+ raw.sort((a,b)=>a.start-b.start);
+ const merged=[];
+ for(const x of raw){
+   const last=merged[merged.length-1];
+   if(last&&x.start<=last.end){if(x.end>last.end)last.end=x.end}
+   else merged.push({start:new Date(x.start),end:new Date(x.end)})
+ }
+ return merged
+}
+function projectedConsecutiveHours(personnelId,date,start,end,hours){
+ const proposed=workInterval(date,start,end,hours);
+ const all=[...personWorkIntervals(personnelId),proposed].sort((a,b)=>a.start-b.start);
+ const merged=[];
+ for(const x of all){
+   const last=merged[merged.length-1];
+   if(last&&x.start<=last.end){if(x.end>last.end)last.end=x.end}
+   else merged.push({start:new Date(x.start),end:new Date(x.end)})
+ }
+ const block=merged.find(x=>proposed.start>=x.start&&proposed.end<=x.end);
+ return block?((block.end-block.start)/3600000):Number(hours||0)
+}
+function exceeds48Consecutive(personnelId,n,start=n.start_time||'08:00',end=n.end_time||'08:00',hours=remaining(n)){
+ return projectedConsecutiveHours(personnelId,n.duty_date,start,end,hours)>48
+}
+function datePriorityValue(v){return v?new Date(v+'T00:00:00').getTime():-8640000000000000}
 function regularOtAvailableForNeed(n){
  const list=responses.filter(r=>r.staffing_need_id===n.id&&r.available)
    .map(r=>({r,p:pById(r.personnel_id)}))
    .filter(x=>x.p&&qualifies(x.p,n))
    .map(x=>({...x,ot:otFor(x.p.id),pos:otRotationPosition(x.p)}))
-   .filter(x=>Number(x.ot.regular_ot_hours_14d)<24&&!isAlreadyWorkingDate(x.p,n.duty_date));
+   .filter(x=>Number(x.ot.regular_ot_hours_14d)<24);
  return list.sort((a,b)=>{
    const ao=(rankLabel(a.p)==='Captain'||rankLabel(a.p)==='Battalion Chief')?1:0;
    const bo=(rankLabel(b.p)==='Captain'||rankLabel(b.p)==='Battalion Chief')?1:0;
-   return ao-bo||a.pos-b.pos||new Date(a.r.responded_at)-new Date(b.r.responded_at)
+   if(ao!==bo)return ao-bo;
+   const ar=new Date(a.r.responded_at).getTime(),br=new Date(b.r.responded_at).getTime();
+   if(ar!==br)return ar-br;
+   const alo=datePriorityValue(a.ot.last_ot_worked),blo=datePriorityValue(b.ot.last_ot_worked);
+   if(alo!==blo)return alo-blo;
+   const alf=datePriorityValue(a.ot.last_forced_ot_date),blf=datePriorityValue(b.ot.last_forced_ot_date);
+   if(alf!==blf)return alf-blf;
+   return a.pos-b.pos
  })
 }
 function renderOtCommandNeed(n){
@@ -1671,13 +1718,15 @@ function renderOtCommandNeed(n){
    const worked=Number(x.ot.regular_ot_hours_14d||0);
    const remain24=Math.max(0,24-worked);
    const officer=rankLabel(x.p)==='Captain'||rankLabel(x.p)==='Battalion Chief';
-   return '<div class="ot-available-row '+(officer?'officer':'')+'">'+
+   const consecutive=projectedConsecutiveHours(x.p.id,n.duty_date,n.start_time||'08:00',n.end_time||'08:00',remaining(n));
+   const over48=consecutive>48;
+   return '<div class="ot-available-row '+(officer?'officer ':'')+(over48?'blocked':'')+'">'+
      '<div class="ot-pos">#'+x.pos+'</div>'+
      '<div><div class="name">'+x.p.name+'</div><div class="sub">'+x.p.rank+' • '+x.p.shift+' Shift '+(officer?'• OFFICER DEFERRED':'• LINE PRIORITY')+'</div></div>'+
      '<div><b>'+worked+'h</b><div class="sub">Worked / 14d</div></div>'+
      '<div><b>'+remain24+'h</b><div class="sub">Remaining</div></div>'+
-     '<div><b>AVAILABLE</b><div class="sub">'+new Date(x.r.responded_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+'</div></div>'+
-     '<button class="btn good" onclick="openAward(\''+n.id+'\',\''+x.p.id+'\',\'REGULAR_OT\')">Award OT</button>'+
+     '<div><b>AVAILABLE</b><div class="sub">Reply '+new Date(x.r.responded_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+' • Last OT '+(x.ot.last_ot_worked||'Never')+' • Last Forced '+(x.ot.last_forced_ot_date||'Never')+'</div></div>'+
+     '<button class="btn good" '+(over48?'disabled':'')+' onclick="openAward(\''+n.id+'\',\''+x.p.id+'\',\'REGULAR_OT\')">'+(over48?'Over 48h':'Award OT')+'</button>'+
    '</div>'
  }).join('');
  const meResp=responses.find(r=>r.staffing_need_id===n.id&&r.personnel_id===me.id);
@@ -1699,7 +1748,7 @@ function renderOtCommandNeed(n){
    adminAction+employeeAction+
    '<div class="force-deadline-banner '+(forcePriority?'active':'')+'"><strong>'+(forcePriority?'FORCE PRIORITY ACTIVE':'Force deadline: '+forceDeadlineLabel(n))+'</strong><br>'+(forcePriority?'The vacancy is still unfilled after 20:00 on the outgoing shift. Force selection now takes priority.':'Regular OT remains primary until 20:00 on the outgoing shift the day before. If coverage is still unfilled then, Force becomes primary automatically.')+'</div>'+
    '<div class="panel-title" style="margin-top:10px">Available Regular OT</div>'+
-   '<div class="notice" style="margin:7px 0">Ordered by department OT rules: line personnel before officers, then Google Sheet OT rotation position. Only Worked Regular OT counts toward the 24h / 14-day threshold.</div>'+
+   '<div class="notice" style="margin:7px 0">Ordered by department OT rules: line personnel before officers, then response time, last Regular OT worked, last Forced OT worked, then Google Sheet OT rotation position. Exactly 48 consecutive hours is allowed; anything over 48 is blocked.</div>'+
    (rows||'<div class="notice warn">No qualified Regular OT personnel have accepted this need yet. Force is now available on the right.</div>');
  renderForceCommandPanel(n,forcePriority)
 }
@@ -1796,7 +1845,9 @@ async function loadForce(needId,targetId='forceCandidates',allowActions=true){
    const p=pById(x.personnel_id);
    const first=x.force_status==='NEXT TO FORCE'||i===0;
    const already=isAlreadyWorkingDate(p,n.duty_date);
-   return '<div class="force-list-row '+(first?'first ':'')+(already?'blocked':'')+'">'+
+   const consecutive=projectedConsecutiveHours(p.id,n.duty_date,n.start_time||'08:00',n.end_time||'08:00',remaining(n));
+   const over48=consecutive>48;
+   return '<div class="force-list-row '+(first?'first ':'')+((already||over48)?'blocked':'')+'">'+
      '<div class="force-pos">#'+x.force_position+'</div>'+
      '<div><div class="force-name">'+p.name+(first?' <span class="tag bad">FIRST UP</span>':'')+'</div><div class="force-sub">'+p.rank+' • '+p.shift+' Shift • Hire '+(p.hire_date||'—')+'</div></div>'+
      '<div class="'+(first?'force-status-next':'force-status-avail')+'"><span class="force-mobile-label">Status</span>'+x.force_status+'</div>'+
@@ -1805,7 +1856,7 @@ async function loadForce(needId,targetId='forceCandidates',allowActions=true){
      '<div><span class="force-mobile-label">Last Forced</span>'+(x.last_forced_ot_worked||'—')+'</div>'+
      '<div><span class="force-mobile-label">Last OT</span>'+(x.last_ot_worked||'—')+'</div>'+
      '<div><span class="force-mobile-label">OT Hours</span>'+(x.last_ot_hours!=null?Number(x.last_ot_hours)+'h':'—')+'</div>'+
-     '<div><button class="btn danger" '+((already||!allowActions)?'disabled':'')+' onclick="openAward(\''+n.id+'\',\''+x.personnel_id+'\',\'FORCED_OT\')">'+(already?'Working':allowActions?'Force':'Locked')+'</button></div>'+
+     '<div><button class="btn danger" '+((already||over48||!allowActions)?'disabled':'')+' onclick="openAward(\''+n.id+'\',\''+x.personnel_id+'\',\'FORCED_OT\')">'+(already?'Working':over48?'Over 48h':allowActions?'Force':'Locked')+'</button></div>'+
    '</div>'
  }).join('');
 
@@ -1851,6 +1902,8 @@ function openAward(nid,pid,type){pendingAward={nid,pid,type};const n=needs.find(
 function awardPreset(x){if(x==='day'){awardStart.value='08:00';awardEnd.value='20:00';awardHours.value=12}else if(x==='night'){awardStart.value='20:00';awardEnd.value='08:00';awardHours.value=12}else if(x==='full'){awardStart.value='08:00';awardEnd.value='08:00';awardHours.value=24}else{awardHours.value=Math.min(remaining(needs.find(n=>n.id===pendingAward.nid)),24)}}
 async function confirmAward(){
  const n=needs.find(x=>x.id===pendingAward.nid),p=pById(pendingAward.pid),hours=Number(awardHours.value);if(hours<=0||hours>remaining(n))return alert('Coverage block must be greater than 0 and cannot exceed '+remaining(n)+' remaining hours.');
+ const projected=projectedConsecutiveHours(p.id,n.duty_date,awardStart.value,awardEnd.value,hours);
+ if(projected>48)return alert(p.name+' cannot be assigned this coverage block because it would create '+projected.toFixed(1)+' consecutive work hours. Maximum allowed is 48 hours.');
  const ok=await requireFtoPairingIfNeeded(n,p,hours,awardStart.value,awardEnd.value);if(!ok)return;
  await performAwardInsert();
 }
