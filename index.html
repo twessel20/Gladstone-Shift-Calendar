@@ -319,6 +319,11 @@ main{overflow-x:hidden}
 .unit-compliance{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
 @media(max-width:700px){.seat-row{grid-template-columns:90px 1fr}.seat-row>.tag{grid-column:2}.seat-editor-grid{grid-template-columns:1fr}}
 
+
+#view-dashboard .cmd-date.daygood{background:linear-gradient(180deg,#0f9f67,#08754d)!important;box-shadow:inset 0 -3px 0 #2ae39c}
+#view-dashboard .cmd-date.daybad{background:linear-gradient(180deg,#c8303f,#851d28)!important;box-shadow:inset 0 -3px 0 #ff6570}
+#view-dashboard .cmd-date.daygood b,#view-dashboard .cmd-date.daygood small,#view-dashboard .cmd-date.daybad b,#view-dashboard .cmd-date.daybad small{color:white!important}
+
 </style>
 </head>
 <body>
@@ -633,6 +638,11 @@ function selectDashboardToday(){
  dashboardSelectedDate=(t>='2026-09-30'&&t<='2026-10-27'&&shiftForDate(t)===selectedShift)?t:firstDutyDateForShift(selectedShift);
  renderCommandDashboard()
 }
+function dayStaffingCompliance(date){
+ const units=['E1','M1','E2','M2'];
+ const details=units.map(unit=>({unit,...unitCompliance(date,unit)}));
+ return {ok:details.every(x=>x.ok),details}
+}
 function renderCommandDashboard(){
  const days=[];let d=new Date('2026-09-30T12:00:00');
  for(let i=0;i<28;i++){days.push(d.toISOString().slice(0,10));d=new Date(d.getTime()+86400000)}
@@ -640,7 +650,7 @@ function renderCommandDashboard(){
  const selectedShift=document.getElementById('dashboardShiftFilter')?.value||me.shift;
  if(document.getElementById('headerShiftText'))headerShiftText.textContent=selectedShift+' Shift';
  const dutyDays=days.filter(x=>shiftForDate(x)===selectedShift);
- const staffedDuty=dutyDays.filter(x=>!activeNeeds.some(n=>n.duty_date===x)).length;
+ const staffedDuty=dutyDays.filter(x=>dayStaffingCompliance(x).ok).length;
  const specialCount=events.filter(e=>days.includes(e.event_date)&&e.status!=='CANCELLED').length;
  cmdKpis.innerHTML=
   '<div class="cmd-kpi"><strong>'+dutyDays.length+'</strong><span class="muted">'+selectedShift+'-Shift Duty Days</span></div>'+
@@ -653,7 +663,9 @@ function renderCommandDashboard(){
  const today=new Date().toISOString().slice(0,10);
  for(const date of days){
    const dt=new Date(date+'T12:00:00'), sel=date===dashboardSelectedDate, duty=shiftForDate(date)===selectedShift;
-   html+='<button class="cmd-date '+(duty?'dutyhead ':'gap ')+(sel?'sel ':'')+(date===today?'today':'')+'" '+(duty?'onclick="selectDashboardDate(\''+date+'\')"':'disabled')+'><b>'+dt.getDate()+'</b><small>'+dt.toLocaleDateString(undefined,{weekday:'short'})+'</small>'+(duty?'<div class="shiftmark">'+selectedShift+'</div>':'')+'</button>'
+   const dayStatus=duty?dayStaffingCompliance(date):null;
+   const statusClass=duty?(dayStatus.ok?'daygood ':'daybad '):'';
+   html+='<button class="cmd-date '+(duty?'dutyhead ':'gap ')+statusClass+(sel?'sel ':'')+(date===today?'today':'')+'" '+(duty?'onclick="selectDashboardDate(\''+date+'\')"':'disabled')+'><b>'+dt.getDate()+'</b><small>'+dt.toLocaleDateString(undefined,{weekday:'short'})+'</small>'+(duty?'<div class="shiftmark">'+selectedShift+' • '+(dayStatus.ok?'✓':'!')+'</div>':'')+'</button>'
  }
  const cycleHasSpecial=days.some(date=>['M3','GATOR1'].some(u=>unitPeople(date,u).length>0));
  const rows=[['STATION 1','band','s1'],['BC','unit'],['E1','unit'],['M1','unit'],['STATION 2','band','s2'],['E2','unit'],['M2','unit']];
@@ -666,17 +678,22 @@ function renderCommandDashboard(){
      const shift=shiftForDate(date), isDuty=shift===selectedShift, selected=date===dashboardSelectedDate;
      let relevantUnits=unit==='SPECIAL'?['M3','GATOR1']:[unit];
      const hasPeople=relevantUnits.some(u=>unitPeople(date,u).length);
-     const hasNeed=relevantUnits.some(u=>activeNeeds.some(n=>n.duty_date===date&&n.unit===u));
-     const hasFto=relevantUnits.some(u=>unitPeople(date,u).some(x=>x.p.employment_status==='PROBATIONARY_FTO'));
      if(!isDuty){
        html+='<button class="cmd-cell gap" disabled></button>';
        continue;
      }
      let cls='off',symbol='';
-     if(unit==='SPECIAL'){if(hasPeople){cls=hasFto?'warn':'duty';symbol='●'}else{cls='off';symbol=''}}
-     else if(hasNeed){cls='open';symbol='!'}
-     else if(hasPeople){cls=hasFto?'warn':'duty';symbol='●'}
-     else{cls='off';symbol=''}
+     if(unit==='SPECIAL'){
+       if(hasPeople){
+         const ok=relevantUnits.filter(u=>unitPeople(date,u).length).every(u=>unitCompliance(date,u).ok);
+         cls=ok?'duty':'open';symbol=ok?'✓':'!'
+       }
+     }else if(unit==='BC'){
+       cls=hasPeople?'duty':'off';symbol=hasPeople?'✓':''
+     }else{
+       const comp=unitCompliance(date,unit);
+       cls=comp.ok?'duty':'open';symbol=comp.ok?'✓':'!'
+     }
      html+='<button class="cmd-cell '+cls+' '+(selected?'sel':'')+'" onclick="'+(unit==='SPECIAL'?"openSpecialUnitsDetail('"+date+"')":"openApparatusDetail('"+date+"','"+unit+"')")+'">'+symbol+'</button>'
    }
  }
@@ -684,7 +701,7 @@ function renderCommandDashboard(){
 
  const totalOpen=activeNeeds.length;
  const forceCount=activeNeeds.filter(n=>n.status==='FORCE_NEEDED').length;
- cmdOverview.innerHTML='<div class="grid4" style="grid-template-columns:repeat(2,1fr);margin:0"><div class="metric"><strong>'+staffedDuty+'</strong><span class="muted">Fully staffed</span></div><div class="metric"><strong>'+totalOpen+'</strong><span class="muted">Open needs</span></div><div class="metric"><strong>'+forceCount+'</strong><span class="muted">Force needed</span></div><div class="metric"><strong>'+personnel.filter(p=>p.employment_status==='PROBATIONARY_FTO').length+'</strong><span class="muted">On FTO</span></div></div>';
+ cmdOverview.innerHTML='<div class="grid4" style="grid-template-columns:repeat(2,1fr);margin:0"><div class="metric"><strong>'+staffedDuty+' / '+dutyDays.length+'</strong><span class="muted">Minimums met</span></div><div class="metric"><strong>'+totalOpen+'</strong><span class="muted">Open needs</span></div><div class="metric"><strong>'+forceCount+'</strong><span class="muted">Force needed</span></div><div class="metric"><strong>'+(dutyDays.length-staffedDuty)+'</strong><span class="muted">Red duty days</span></div></div>';
 
  const upcoming=activeNeeds.filter(n=>n.duty_date>=days[0]).sort((a,b)=>a.duty_date.localeCompare(b.duty_date)).slice(0,5);
  cmdIssues.innerHTML=upcoming.map(n=>'<div class="item"><b>'+formatDate(n.duty_date)+'</b><div class="meta">'+n.unit+' — '+n.position_label+' • '+remaining(n)+'h open</div><div class="actions"><button class="btn" onclick="openWorkflow(\''+n.id+'\')">Fill</button></div></div>').join('')||'<div class="notice">No upcoming staffing issues.</div>';
