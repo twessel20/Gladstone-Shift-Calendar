@@ -25,6 +25,8 @@ main{padding:18px;min-width:0}.view{display:none}.view.on{display:block}.top{dis
 .concept-wrap{display:grid;grid-template-columns:minmax(0,1fr) 385px;gap:12px;margin-top:12px}.concept-calendar{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:auto}.concept-grid{display:grid;grid-template-columns:170px repeat(28,43px);min-width:1374px}.concept-corner,.concept-dayh{background:#0a1726;border-bottom:1px solid var(--line)}.concept-corner{padding:12px;font-weight:800}.concept-dayh{padding:7px 3px;text-align:center;border-left:1px solid #1d2d42}.concept-dayh small{display:block;color:var(--muted);font-size:9px}.concept-dayh b{font-size:12px}.concept-dot{width:8px;height:8px;border-radius:50%;margin:5px auto 0}.concept-dot.g{background:var(--green)}.concept-dot.r{background:var(--red)}.concept-dot.n{background:#66758a}.concept-band{grid-column:1/-1;padding:8px 11px;font-weight:900}.concept-band.s1{background:linear-gradient(90deg,#91212a,#4b171c)}.concept-band.s2{background:linear-gradient(90deg,#1454a3,#0a2c5c)}.concept-band.res{background:linear-gradient(90deg,#5d31b5,#29144f)}.concept-rowlabel{padding:9px 10px;background:#0b1726;border-top:1px solid #1b2c42}.concept-rowlabel b{margin-right:6px}.concept-rowlabel small{color:var(--muted)}.concept-cell{border:0;border-left:1px solid #1d2d42;border-top:1px solid #1d2d42;min-height:41px;color:white;font-weight:900}.concept-cell.off{background:#25374a;color:#8494a8;font-size:9px}.concept-cell.ok{background:linear-gradient(#19ad6b,#0d8350);cursor:pointer}.concept-cell.bad{background:linear-gradient(#e65260,#bd2a36);cursor:pointer}.concept-cell.warn{background:linear-gradient(#d89a23,#966515);cursor:pointer}.concept-detail{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px;position:sticky;top:12px}.concept-banner{padding:10px;border-radius:8px;margin:10px 0;background:#143c2a;color:#9beabb;font-weight:900}.concept-banner.bad{background:#4d1b22;color:#ffc0c5}.concept-unit{border:1px solid var(--line);border-radius:8px;margin:8px 0;overflow:hidden}.concept-unit h3{margin:0;padding:7px 9px;font-size:12px}.concept-unit.s1 h3{background:#5a1b22}.concept-unit.s2 h3{background:#123e76}.concept-assign{display:grid;grid-template-columns:42px 1fr auto;gap:8px;padding:8px 9px;border-top:1px solid #1f3046}.concept-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .cycle-board{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px}.cycle-day{background:#0a1624;border:1px solid #22364f;border-radius:9px;padding:7px;min-height:176px;min-width:0}.cycle-day.today{outline:2px solid var(--blue)}.cycle-day.hasneed{border-color:#8b343d}.cycle-head{display:flex;justify-content:space-between;gap:5px;align-items:flex-start}.cycle-date{font-weight:900;font-size:12px}.cycle-shift{font-size:10px;border-radius:999px;padding:2px 5px;background:#173451;color:#d8e7f8}.cycle-unit{margin-top:4px;padding-top:4px;border-top:1px solid #1d2d42;font-size:9px;line-height:1.25}.cycle-unit b{display:inline-block;width:26px;color:#9fb0c7}.cycle-name{color:#eef5ff}.cycle-fto{color:#ffd980;font-weight:800}.cycle-open{color:#ff9da6;font-weight:800}.cycle-event{margin-top:4px;padding:4px 5px;border-radius:6px;background:#241d36;color:#d8c8ff;font-size:9px}.cycle-board .tag{font-size:8px;padding:2px 4px}.cycle-pills{display:flex;gap:3px;flex-wrap:wrap;margin-top:3px}.cycle-pill{display:inline-block;border-radius:999px;padding:2px 4px;font-size:7px;font-weight:900;line-height:1.1}.cycle-pill.pay{background:#143f62;color:#bfe2ff}.cycle-pill.holiday{background:#5a4215;color:#ffe09a}
 @media(max-width:900px){.cycle-board{grid-template-columns:repeat(7,minmax(92px,1fr));gap:4px}.cycle-day{padding:5px;min-height:158px}.cycle-unit{font-size:8px}.cycle-date{font-size:11px}}
+.cmd-dashboard{display:grid;grid-template-columns:minmax(0,1fr) 390px;gap:10px;align-items:start}.cmd-main{min-width:0}.cmd-right{background:#091725;border:1px solid #29425e;border-radius:10px;padding:12px;position:sticky;top:10px}.cmd-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-bottom:10px}.cmd-kpi{background:#102235;border:1px solid #29425e;border-radius:8px;padding:10px;min-height:72px}.cmd-kpi strong{font-size:24px;display:block}.cmd-kpi.good{background:#0c3b2c;border-color:#176844}.cmd-kpi.bad{background:#421920;border-color:#7d2b36}.cmd-kpi.blue{background:#0c2c50;border-color:#164d82}.cmd-matrix{display:grid;grid-template-columns:150px repeat(28,minmax(18px,1fr));border:1px solid #29425e;border-radius:9px;overflow:hidden;background:#0a1624}.cmd-corner,.cmd-date{background:#081522;border-bottom:1px solid #29425e}.cmd-corner{padding:8px;font-weight:900;font-size:11px}.cmd-date{padding:5px 1px;text-align:center;border-left:1px solid #1c3046;cursor:pointer}.cmd-date b{font-size:10px;display:block}.cmd-date small{font-size:7px;color:#93a9c1;display:block}.cmd-date.sel{background:#17324d}.cmd-date.today{box-shadow:inset 0 -3px 0 var(--blue)}.cmd-band{grid-column:1/-1;padding:6px 10px;font-weight:900;font-size:11px}.cmd-band.s1{background:linear-gradient(90deg,#8c1f29,#4e171c)}.cmd-band.s2{background:linear-gradient(90deg,#0e59ad,#082d61)}.cmd-band.res{background:linear-gradient(90deg,#5428b2,#28134f)}.cmd-label{padding:7px 8px;border-top:1px solid #1b2d42;background:#0a1726;font-weight:900;font-size:11px}.cmd-label span{display:block;font-size:8px;color:#91a5bb;font-weight:500;margin-top:1px}.cmd-cell{height:36px;border:0;border-left:1px solid #1c3046;border-top:1px solid #1c3046;background:#2a3b4d;color:#aab7c6;font-size:9px;font-weight:900;cursor:pointer;padding:0}.cmd-cell.duty{background:linear-gradient(#16bd7a,#07955d);color:white}.cmd-cell.open{background:linear-gradient(#f05c66,#be2c39);color:white}.cmd-cell.warn{background:linear-gradient(#e6ae32,#af7817);color:#111}.cmd-cell.sel{outline:2px solid #e8f2ff;outline-offset:-2px}.cmd-cell.off{background:#26384a;color:#8998aa}.cmd-footer{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px}.cmd-panel{background:#0d1a2a;border:1px solid #29425e;border-radius:9px;padding:10px}.cmd-right h2{margin:0;font-size:20px}.cmd-status{padding:9px;border-radius:7px;margin:10px 0;font-weight:900;background:#153d2c;color:#9be7ba}.cmd-status.bad{background:#a11f2d;color:white}.cmd-station{border:1px solid #29425e;border-radius:8px;overflow:hidden;margin:9px 0}.cmd-station h3{margin:0;padding:7px 9px;font-size:12px}.cmd-station.s1 h3{background:#8a2530}.cmd-station.s2 h3{background:#0c57ad}.cmd-row{display:grid;grid-template-columns:42px 1fr auto;gap:7px;align-items:center;padding:8px;border-top:1px solid #1e344c;font-size:11px}.cmd-row .person{font-weight:800}.cmd-row .role{font-size:9px;color:#93a9c1}.cmd-check{font-size:11px;padding:6px 0;border-bottom:1px solid #1b2f45}.cmd-check:last-child{border-bottom:0}.cmd-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px}.cmd-actions .btn{min-height:43px;font-weight:800}
+@media(max-width:1180px){.cmd-dashboard{grid-template-columns:1fr}.cmd-right{position:static}.cmd-kpis{grid-template-columns:repeat(3,1fr)}}
 .dashboard-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:12px}.quickgrid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin:12px 0}.quick{min-height:82px;text-align:left;display:flex;flex-direction:column;justify-content:space-between}.quick b{font-size:13px}.quick small{color:#b7c7d9}
 .calendar-wrap{overflow-x:auto}.calendar28{display:grid;grid-template-columns:repeat(7,minmax(135px,1fr));gap:7px;min-width:980px}.calday{min-height:138px;background:#0a1624;border:1px solid #22364f;border-radius:10px;padding:9px;position:relative}.calday.today{outline:2px solid #187ff3}.calday .date{font-weight:900;font-size:14px}.calday .shift{font-size:11px;margin-top:2px;color:#9fb0c7}.calday .unitline{font-size:10px;color:#c9d7e7;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.calday .badgeline{position:absolute;bottom:7px;left:7px;right:7px;display:flex;gap:4px;flex-wrap:wrap}.calday.hasneed{border-color:#8b343d}.calday.hasfto{box-shadow:inset 0 0 0 1px #b27a18}.sectiongrid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;margin-top:12px}.stack{display:flex;flex-direction:column;gap:10px}.sectionhead{display:flex;align-items:center;gap:8px;margin-bottom:9px}.sectionhead .grow{flex:1}.dense .item{padding:8px}.kpirow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:12px 0}.kpi{background:#0d1a2a;border:1px solid #22364f;border-radius:10px;padding:10px}.kpi strong{display:block;font-size:22px}.subtle{font-size:10px;color:#8fa3ba}
 @media(max-width:1100px){.quickgrid{grid-template-columns:repeat(3,1fr)}.sectiongrid{grid-template-columns:1fr 1fr}.sectiongrid>.card:first-child{grid-column:1/-1}.kpirow{grid-template-columns:repeat(3,1fr)}}
@@ -59,11 +61,11 @@ main{padding:18px;min-width:0}.view{display:none}.view.on{display:block}.top{dis
 <aside class="sidebar">
   <div class="brand">GLADSTONE<br>FIRE DEPARTMENT<small>STAFFING & SCHEDULING</small></div>
   <div class="nav" id="nav">
-    <button class="on" data-view="dashboard">▣ 28-Day Schedule</button>
+    <button class="on" data-view="dashboard">▣ Schedule</button>
     <button data-view="schedule">▦ Schedule</button>
-    <button data-view="staffing">◉ Staffing</button>
+    <button data-view="staffing">◉ Staffing Board</button>
     <button data-view="ot">♟ OT / Force</button>
-    <button data-view="requests">▤ Leave & Trades</button>
+    <button data-view="requests">▤ Trades & Leave</button>
     <button data-view="personnel">♙ Personnel</button>
     <button data-view="notifications">● Notifications</button>
     <button data-view="rules">⚙ Rules</button>
@@ -74,14 +76,22 @@ main{padding:18px;min-width:0}.view{display:none}.view.on{display:block}.top{dis
 <main>
 <section id="view-dashboard" class="view on">
   <div class="top">
-    <div><h1>28-Day Staffing Board</h1><div class="muted">Full cycle on one page • every calendar day • live assignments by unit and shift</div></div>
+    <div><h1>28-Day Schedule</h1><div class="muted">Live staffing command view • full cycle • select any day for details</div></div>
     <div class="grow"></div>
-    <button id="activateM3Btn" class="btn primary hidden" onclick="openSpecialAssignment('M3')">Place Medic 3 In Service</button>
-    <button id="activateGatorBtn" class="btn hidden" onclick="openSpecialAssignment('GATOR1')">Special / Event Assignment</button>
+    <button class="ctl" onclick="selectDashboardToday()">Today</button>
+    <button id="activateM3Btn" class="btn primary hidden" onclick="openSpecialAssignment('M3')">Medic 3</button>
+    <button id="activateGatorBtn" class="btn hidden" onclick="openSpecialAssignment('GATOR1')">Special Event</button>
   </div>
-  <div id="landingMetrics" class="grid4"></div>
-  <div class="card">
-    <div id="cycleBoard" class="cycle-board"></div>
+  <div id="cmdKpis" class="cmd-kpis"></div>
+  <div class="cmd-dashboard">
+    <div class="cmd-main">
+      <div id="cmdMatrix" class="cmd-matrix"></div>
+      <div class="cmd-footer">
+        <div class="cmd-panel"><div class="panel-title">Cycle Overview</div><div id="cmdOverview"></div></div>
+        <div class="cmd-panel"><div class="panel-title">Upcoming Issues</div><div id="cmdIssues" class="list"></div></div>
+      </div>
+    </div>
+    <aside id="cmdDayDetail" class="cmd-right"></aside>
   </div>
 </section>
 
@@ -233,7 +243,7 @@ main{padding:18px;min-width:0}.view{display:none}.view.on{display:block}.top{dis
 const SUPABASE_URL='https://hnktbvfzrccfrgfrgehr.supabase.co';
 const SUPABASE_KEY='sb_publishable_sdPmMJGLy0H1HSAxa1ngZQ_yYR3miIW';
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-let session=null, profile=null, me=null, personnel=[], otStatus=[], needs=[], responses=[], assignments=[], unitAssignments=[], events=[], eventSlots=[], notifications=[], leaves=[], trades=[], audits=[], shiftDays=[], sourceCells=[], rules=[], selectedNeed=null, pendingAward=null, pendingFtoPairing=null, conceptSelectedDate='2026-09-30';
+let session=null, profile=null, me=null, personnel=[], otStatus=[], needs=[], responses=[], assignments=[], unitAssignments=[], events=[], eventSlots=[], notifications=[], leaves=[], trades=[], audits=[], shiftDays=[], sourceCells=[], rules=[], selectedNeed=null, pendingAward=null, pendingFtoPairing=null, conceptSelectedDate='2026-09-30', dashboardSelectedDate='2026-09-30';
 const adminRoles=['bc','chief','admin'];
 
 function msg(id,text,bad=false){const el=document.getElementById(id);el.textContent=text;el.className='notice'+(bad?' bad':'')}
@@ -291,7 +301,99 @@ async function loadAll(){
  personnel=p.data||[];otStatus=o.data||[];needs=n.data||[];responses=r.data||[];assignments=a.data||[];unitAssignments=ua.data||[];events=ev.data||[];eventSlots=es.data||[];notifications=no.data||[];leaves=l.data||[];trades=t.data||[];audits=au.data||[];shiftDays=sd.data||[];sourceCells=sc.data||[];rules=ru.data||[];renderAll()
 }
 function renderAll(){renderDashboard();renderSchedule();renderStaffing();renderOT();renderPersonnel();renderNotifications();renderRequests();renderRules();renderAudit()}
-function renderDashboard(){renderLandingBoard()}
+function renderDashboard(){renderCommandDashboard()}
+function selectDashboardDate(date){dashboardSelectedDate=date;renderCommandDashboard()}
+function selectDashboardToday(){
+ const t=new Date().toISOString().slice(0,10);
+ dashboardSelectedDate=(t>='2026-09-30'&&t<='2026-10-27')?t:'2026-09-30';
+ renderCommandDashboard()
+}
+function renderCommandDashboard(){
+ const days=[];let d=new Date('2026-09-30T12:00:00');
+ for(let i=0;i<28;i++){days.push(d.toISOString().slice(0,10));d=new Date(d.getTime()+86400000)}
+ const activeNeeds=needs.filter(n=>!['FILLED','CANCELLED'].includes(n.status));
+ const dutyDays=days.filter(x=>shiftForDate(x)===me.shift);
+ const staffedDuty=dutyDays.filter(x=>!activeNeeds.some(n=>n.duty_date===x)).length;
+ const specialCount=events.filter(e=>days.includes(e.event_date)&&e.status!=='CANCELLED').length;
+ cmdKpis.innerHTML=
+  '<div class="cmd-kpi"><strong>'+dutyDays.length+'</strong><span class="muted">'+me.shift+'-Shift Duty Days</span></div>'+
+  '<div class="cmd-kpi good"><strong>'+staffedDuty+' / '+dutyDays.length+'</strong><span>Fully Staffed Duty Days</span></div>'+
+  '<div class="cmd-kpi bad"><strong>'+(dutyDays.length-staffedDuty)+' / '+dutyDays.length+'</strong><span>Duty Days Need Staff</span></div>'+
+  '<div class="cmd-kpi blue"><strong>'+leaves.filter(x=>x.status==='SUBMITTED').length+'</strong><span>Pending Requests</span></div>'+
+  '<div class="cmd-kpi"><strong>'+specialCount+'</strong><span>Special Events</span></div>';
+
+ let html='<div class="cmd-corner">Station / Unit</div>';
+ const today=new Date().toISOString().slice(0,10);
+ for(const date of days){
+   const dt=new Date(date+'T12:00:00'), sel=date===dashboardSelectedDate;
+   html+='<button class="cmd-date '+(sel?'sel ':'')+(date===today?'today':'')+'" onclick="selectDashboardDate(\''+date+'\')"><b>'+dt.getDate()+'</b><small>'+dt.toLocaleDateString(undefined,{weekday:'short'})+'</small></button>'
+ }
+ const rows=[['STATION 1','band','s1'],['BC','unit'],['E1','unit'],['M1','unit'],['STATION 2','band','s2'],['E2','unit'],['M2','unit'],['RESERVE / SPECIAL EVENT','band','res'],['SPECIAL','unit']];
+ for(const r of rows){
+   if(r[1]==='band'){html+='<div class="cmd-band '+r[2]+'">'+r[0]+'</div>';continue}
+   const unit=r[0];
+   html+='<div class="cmd-label">'+(unit==='SPECIAL'?'M3 / Gator 1':unit)+'<span>'+dashboardUnitRule(unit)+'</span></div>';
+   for(const date of days){
+     const shift=shiftForDate(date), isDuty=shift===me.shift, selected=date===dashboardSelectedDate;
+     let relevantUnits=unit==='SPECIAL'?['M3','GATOR1']:[unit];
+     const hasPeople=relevantUnits.some(u=>unitPeople(date,u).length);
+     const hasNeed=relevantUnits.some(u=>activeNeeds.some(n=>n.duty_date===date&&n.unit===u));
+     const hasFto=relevantUnits.some(u=>unitPeople(date,u).some(x=>x.p.employment_status==='PROBATIONARY_FTO'));
+     let cls='off',symbol='–';
+     if(unit==='SPECIAL'){if(hasPeople){cls=hasFto?'warn':'duty';symbol='●'}else{cls='off';symbol='–'}}
+     else if(hasNeed){cls='open';symbol='!'}
+     else if(isDuty||hasPeople){cls=hasFto?'warn':'duty';symbol='●'}
+     html+='<button class="cmd-cell '+cls+' '+(selected?'sel':'')+'" onclick="selectDashboardDate(\''+date+'\')">'+symbol+'</button>'
+   }
+ }
+ cmdMatrix.innerHTML=html;
+
+ const totalOpen=activeNeeds.length;
+ const forceCount=activeNeeds.filter(n=>n.status==='FORCE_NEEDED').length;
+ cmdOverview.innerHTML='<div class="grid4" style="grid-template-columns:repeat(2,1fr);margin:0"><div class="metric"><strong>'+staffedDuty+'</strong><span class="muted">Fully staffed</span></div><div class="metric"><strong>'+totalOpen+'</strong><span class="muted">Open needs</span></div><div class="metric"><strong>'+forceCount+'</strong><span class="muted">Force needed</span></div><div class="metric"><strong>'+personnel.filter(p=>p.employment_status==='PROBATIONARY_FTO').length+'</strong><span class="muted">On FTO</span></div></div>';
+
+ const upcoming=activeNeeds.filter(n=>n.duty_date>=days[0]).sort((a,b)=>a.duty_date.localeCompare(b.duty_date)).slice(0,5);
+ cmdIssues.innerHTML=upcoming.map(n=>'<div class="item"><b>'+formatDate(n.duty_date)+'</b><div class="meta">'+n.unit+' — '+n.position_label+' • '+remaining(n)+'h open</div><div class="actions"><button class="btn" onclick="openWorkflow(\''+n.id+'\')">Fill</button></div></div>').join('')||'<div class="notice">No upcoming staffing issues.</div>';
+ renderCommandDayDetail()
+}
+function dashboardUnitRule(unit){
+ if(unit==='BC')return 'Command';
+ if(unit==='E1'||unit==='E2')return 'Engine • ALS • FAO';
+ if(unit==='M1'||unit==='M2')return 'Medic • ALS';
+ if(unit==='SPECIAL')return 'Visible only when active';
+ return ''
+}
+function renderCommandDayDetail(){
+ const date=dashboardSelectedDate, shift=shiftForDate(date), open=needs.filter(n=>n.duty_date===date&&!['FILLED','CANCELLED'].includes(n.status));
+ const dt=new Date(date+'T12:00:00');
+ let html='<h2>'+dt.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})+'</h2><div class="muted">'+shift+' Shift • Duty Day</div>'+calendarPills(date);
+ html+='<div class="cmd-status '+(open.length?'bad':'')+'">'+(open.length?'Needs Staff — '+open.length+' Open Position'+(open.length>1?'s':''):'Fully Staffed / Compliant')+'</div>';
+ html+=commandStation('STATION 1 — Headquarters',['BC','E1','M1'],date,'s1',open);
+ html+=commandStation('STATION 2 — West Side',['E2','M2'],date,'s2',open);
+ const special=['M3','GATOR1'].filter(u=>unitPeople(date,u).length);
+ if(special.length)html+=commandStation('RESERVE / SPECIAL EVENT',special,date,'res',open);
+ const als=['E1','E2','M1','M2'].every(u=>unitPeople(date,u).some(x=>x.p.ems_level==='Paramedic')||!unitPeople(date,u).length);
+ const fao=['E1','E2'].every(u=>unitPeople(date,u).some(x=>x.p.is_fao)||!unitPeople(date,u).length);
+ const bc=unitPeople(date,'BC').length>0;
+ html+='<div class="cmd-panel" style="margin-top:9px"><div class="panel-title">Shift Compliance</div>'+
+   '<div class="cmd-check">ALS Coverage <span style="float:right">'+(als?'✓ Met':'! Review')+'</span></div>'+
+   '<div class="cmd-check">FAO Coverage <span style="float:right">'+(fao?'✓ Met':'! Review')+'</span></div>'+
+   '<div class="cmd-check">Officer (BC) <span style="float:right">'+(bc?'✓ Met':'! Open')+'</span></div>'+
+   '<div class="cmd-check">Minimum Staffing <span style="float:right">'+(open.length?open.length+' position'+(open.length>1?'s':'')+' short':'✓ Met')+'</span></div></div>';
+ html+='<div class="cmd-panel" style="margin-top:9px"><div class="panel-title">Quick Actions</div><div class="cmd-actions">'+
+   (isAdmin()?'<button class="btn primary" onclick="openNeedCreator()">Fill Shortage</button><button class="btn good" onclick="goto(\'ot\')">Assign OT / Force</button><button class="btn" onclick="openSpecialAssignment(\'M3\')">Medic 3</button><button class="btn" onclick="openSpecialAssignment(\'GATOR1\')">Special Event</button>':'')+
+   '<button class="btn" onclick="goto(\'requests\')">Trades / Leave</button><button class="btn" onclick="goto(\'schedule\')">Full Day Notes</button></div></div>';
+ cmdDayDetail.innerHTML=html
+}
+function commandStation(title,units,date,cls,open){
+ let rows=units.map(unit=>{
+   const ps=unitPeople(date,unit), n=open.filter(x=>x.unit===unit);
+   const people=ps.map(x=>'<div class="person">'+x.p.name+(x.p.employment_status==='PROBATIONARY_FTO'?' <span class="tag warn">FTO</span>':'')+'</div><div class="role">'+(x.p.personnel_type==='SINGLE_ROLE_PARAMEDIC'?'Single-Role Paramedic':x.p.personnel_type==='FF_PARAMEDIC'?'FF/Paramedic':'FF/EMT')+(x.p.is_fao?' • FAO':'')+(x.p.is_fto?' • FTO Trainer':'')+'</div>').join('');
+   return '<div class="cmd-row"><b>'+unit+'</b><div>'+(people||'<span class="muted">No assignment</span>')+'</div><span class="tag '+(n.length?'bad':'good')+'">'+(n.length?'OPEN':'✓')+'</span></div>'
+ }).join('');
+ return '<div class="cmd-station '+cls+'"><h3>'+title+'</h3>'+rows+'</div>'
+}
+
 function shiftForDate(date){
  const known=shiftDays.find(d=>d.duty_date===date); if(known)return known.shift;
  const base=new Date('2026-09-30T12:00:00'),cur=new Date(date+'T12:00:00');
