@@ -139,7 +139,8 @@ main{padding:18px;min-width:0}.view{display:none}.view.on{display:block}.top{dis
 <div id="personnelModal" class="modal"><div class="modalbox"><div class="modalhead"><h2>Manage Personnel</h2><div class="grow"></div><button class="ctl" onclick="closeModal('personnelModal')">Close</button></div>
  <div class="field"><label>Personnel</label><select id="pmPerson" onchange="loadPersonnelManager()"></select></div>
  <div class="formgrid" style="margin-top:10px">
-  <div class="field"><label>Rank / Classification</label><input id="pmRank" placeholder="e.g. FF/Paramedic, Captain, Battalion Chief"></div>
+  <div class="field"><label>Personnel Type</label><select id="pmPersonnelType"><option value="SINGLE_ROLE_PARAMEDIC">Single-Role Paramedic</option><option value="FF_EMT">FF/EMT</option><option value="FF_PARAMEDIC">FF/Paramedic</option></select></div>
+  <div class="field"><label>Administrative Rank</label><input id="pmRank" placeholder="Optional: Captain, Battalion Chief, etc."></div>
   <div class="field"><label>Shift</label><select id="pmShift"><option>A</option><option>B</option><option>C</option></select></div>
   <div class="field"><label>EMS Level</label><select id="pmEMS"><option value="">None</option><option>EMT</option><option>Paramedic</option></select></div>
   <div class="field"><label>App Permission Role</label><select id="pmAppRole"><option value="personnel">Personnel</option><option value="captain">Captain</option><option value="bc">Battalion Chief</option><option value="chief">Chief/Admin View</option><option value="admin">System Admin</option></select></div>
@@ -167,7 +168,8 @@ main{padding:18px;min-width:0}.view{display:none}.view.on{display:block}.top{dis
   <div class="field"><label>Name</label><input id="npName"></div>
   <div class="field"><label>Hire Date</label><input id="npHireDate" type="date"></div>
   <div class="field"><label>Shift</label><select id="npShift"><option>A</option><option>B</option><option>C</option></select></div>
-  <div class="field"><label>Rank / Classification</label><input id="npRank" value="FF/EMT"></div>
+  <div class="field"><label>Personnel Type</label><select id="npPersonnelType"><option value="FF_EMT">FF/EMT</option><option value="FF_PARAMEDIC">FF/Paramedic</option><option value="SINGLE_ROLE_PARAMEDIC">Single-Role Paramedic</option></select></div>
+  <div class="field"><label>Administrative Rank</label><input id="npRank" placeholder="Optional: Captain, Battalion Chief, etc."></div>
   <div class="field"><label>EMS Level</label><select id="npEMS"><option value="">None</option><option>EMT</option><option>Paramedic</option></select></div>
   <div class="field"><label>Employment Status</label><select id="npEmployment"><option value="PROBATIONARY_FTO">On FTO / Probationary</option><option value="REGULAR">Regular</option><option value="INACTIVE">Inactive</option></select></div>
  </div>
@@ -183,6 +185,12 @@ main{padding:18px;min-width:0}.view{display:none}.view.on{display:block}.top{dis
  <div class="actions"><button class="btn good" onclick="createPersonnel()">Create Employee</button></div>
 </div></div>
 
+<div id="ftoPairingModal" class="modal"><div class="modalbox"><div class="modalhead"><h2>Assign FTO Trainer</h2><div class="grow"></div><button class="ctl" onclick="closeModal('ftoPairingModal')">Close</button></div>
+ <div id="ftoPairingSummary" class="notice bad"></div>
+ <div class="field" style="margin-top:10px"><label>Qualified FTO Trainer</label><select id="ftoTrainerSelect"></select></div>
+ <div class="actions"><button class="btn good" onclick="confirmFtoPairing()">Confirm FTO Pairing</button></div>
+</div></div>
+
 <div id="leaveModal" class="modal"><div class="modalbox"><div class="modalhead"><h2>Request Leave</h2><div class="grow"></div><button class="ctl" onclick="closeModal('leaveModal')">Close</button></div>
  <div class="formgrid"><div class="field"><label>Date</label><input id="leaveDate" type="date"></div><div class="field"><label>Leave Type</label><select id="leaveType"><option>Vacation</option><option>Kelly</option><option>Holiday</option><option>Sick</option><option>Family Sick</option><option>Bereavement</option><option>Comp</option><option>Training</option></select></div><div class="field"><label>Start</label><input id="leaveStart" type="time" value="08:00"></div><div class="field"><label>End</label><input id="leaveEnd" type="time" value="08:00"></div><div class="field"><label>Hours</label><input id="leaveHours" type="number" min=".5" max="24" step=".5" value="24"></div><div class="field"><label>Note</label><input id="leaveNote"></div></div>
  <div class="actions"><button class="btn primary" onclick="submitLeave()">Submit</button></div>
@@ -193,7 +201,7 @@ main{padding:18px;min-width:0}.view{display:none}.view.on{display:block}.top{dis
 const SUPABASE_URL='https://hnktbvfzrccfrgfrgehr.supabase.co';
 const SUPABASE_KEY='sb_publishable_sdPmMJGLy0H1HSAxa1ngZQ_yYR3miIW';
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-let session=null, profile=null, me=null, personnel=[], otStatus=[], needs=[], responses=[], assignments=[], notifications=[], leaves=[], trades=[], audits=[], shiftDays=[], sourceCells=[], rules=[], selectedNeed=null, pendingAward=null;
+let session=null, profile=null, me=null, personnel=[], otStatus=[], needs=[], responses=[], assignments=[], notifications=[], leaves=[], trades=[], audits=[], shiftDays=[], sourceCells=[], rules=[], selectedNeed=null, pendingAward=null, pendingFtoPairing=null;
 const adminRoles=['bc','chief','admin'];
 
 function msg(id,text,bad=false){const el=document.getElementById(id);el.textContent=text;el.className='notice'+(bad?' bad':'')}
@@ -263,7 +271,7 @@ function renderSchedule(){
      return '<div class="meta"><b>'+unit+':</b> '+(names.length?names.join(', '):'—')+'</div>'
    }).join('');
    const exceptions=cells.filter(x=>!['BC','E1','M1','E2','M2','M3'].includes(String(x.raw_assignment).replace(/\s+/g,''))).slice(0,12);
-   return '<div class="item"><h3>'+formatDate(d.duty_date)+' — '+d.shift+' Shift</h3>'+unitRows+(exceptions.length?'<div class="decision"><b>Source schedule notes / exceptions</b><br>'+exceptions.map(x=>x.source_name+': '+x.raw_assignment).join(' • ')+'</div>':'')+'</div>'
+   return '<div class="item"><h3>'+formatDate(d.duty_date)+' — '+d.shift+' Shift</h3>'+unitRows+(cells.some(x=>pById(x.personnel_id)?.employment_status==='PROBATIONARY_FTO')?'<div class="notice bad" style="margin-top:8px"><b>⚠ FTO STAFFING PRESENT</b><br>Any On-FTO employee on M1, M2, or M3 must be paired with an appropriate FTO trainer.</div>':'')+(exceptions.length?'<div class="decision"><b>Source schedule notes / exceptions</b><br>'+exceptions.map(x=>x.source_name+': '+x.raw_assignment).join(' • ')+'</div>':'')+'</div>'
  }).join('')||'<div class="notice">No schedule rows match this filter.</div>'
 }
 function renderRules(){
@@ -322,10 +330,48 @@ async function loadForce(needId){
  const {data:m}=await sb.from('force_memberships').select('*').eq('force_group_id',g.id).order('force_position');
  forceCandidates.innerHTML=(m||[]).map((x,i)=>{const p=pById(x.personnel_id);return `<div class="candidate"><div><b>${p?.name||'Unknown'} ${i===0?'<span class="tag bad">FIRST UP</span>':''}</b><div class="meta">${p?.rank||''} • Force #${x.force_position} • ${x.denials_ytd} denials • ${x.force_status}</div></div><button class="btn danger" onclick="openAward('${n.id}','${x.personnel_id}','FORCED_OT')">Force</button></div>`}).join('')||'<div class="notice">No eligible force members.</div>'
 }
+function qualifiedFtoTrainers(prob){
+ return personnel.filter(t=>{
+  if(!t.active||!t.is_fto||t.id===prob.id)return false;
+  if(prob.ems_level==='Paramedic')return t.ems_level==='Paramedic';
+  return t.ems_level==='EMT'||t.ems_level==='Paramedic'||t.rank==='Captain';
+ })
+}
+async function requireFtoPairingIfNeeded(n,p,hours,start,end){
+ if(p.employment_status!=='PROBATIONARY_FTO')return true;
+ if(!['M1','M2','M3'].includes(n.unit))return true;
+ const trainers=qualifiedFtoTrainers(p);
+ if(!trainers.length){alert('This On-FTO employee cannot be scheduled on '+n.unit+' because no qualified FTO trainer is available in the roster.');return false}
+ pendingFtoPairing={need:n,prob:p,hours,start,end};
+ ftoPairingSummary.innerHTML='<b>⚠ ON FTO / PROBATIONARY</b><br>'+p.name+' on '+n.unit+' requires a qualified FTO trainer for the same coverage block.';
+ ftoTrainerSelect.innerHTML=trainers.map(t=>'<option value="'+t.id+'">'+t.name+' — '+(t.personnel_type==='FF_PARAMEDIC'?'FF/Paramedic':t.personnel_type==='SINGLE_ROLE_PARAMEDIC'?'Single-Role Paramedic':'FF/EMT')+(t.is_fto?' • FTO':'')+'</option>').join('');
+ openModal('ftoPairingModal');
+ return false
+}
+async function confirmFtoPairing(){
+ const x=pendingFtoPairing;if(!x)return;
+ const trainerId=ftoTrainerSelect.value;
+ const {data,error}=await sb.rpc('validate_fto_pairing',{p_duty_date:x.need.duty_date,p_unit:x.need.unit,p_probationary_personnel_id:x.prob.id,p_trainer_personnel_id:trainerId});
+ if(error)return alert(error.message);
+ const {error:insErr}=await sb.from('fto_pairings').insert({duty_date:x.need.duty_date,unit:x.need.unit,probationary_personnel_id:x.prob.id,trainer_personnel_id:trainerId,start_time:x.start,end_time:x.end,hours:x.hours,created_by:session.user.id});
+ if(insErr)return alert(insErr.message);
+ closeModal('ftoPairingModal');
+ await finalizeAwardAfterFto();
+}
+async function finalizeAwardAfterFto(){
+ const x=pendingFtoPairing;if(!x)return;
+ pendingFtoPairing=null;
+ await performAwardInsert();
+}
 function openAward(nid,pid,type){pendingAward={nid,pid,type};const n=needs.find(x=>x.id===nid),p=pById(pid);awardWho.innerHTML=`<b>${p.name}</b><br>${formatDate(n.duty_date)} • ${n.position_label}<br>${type.replaceAll('_',' ')} • ${remaining(n)}h still needed`;awardPreset(remaining(n)>=24?'full':remaining(n)>=12?'day':'custom');openModal('awardModal')}
 function awardPreset(x){if(x==='day'){awardStart.value='08:00';awardEnd.value='20:00';awardHours.value=12}else if(x==='night'){awardStart.value='20:00';awardEnd.value='08:00';awardHours.value=12}else if(x==='full'){awardStart.value='08:00';awardEnd.value='08:00';awardHours.value=24}else{awardHours.value=Math.min(remaining(needs.find(n=>n.id===pendingAward.nid)),24)}}
 async function confirmAward(){
- const n=needs.find(x=>x.id===pendingAward.nid),hours=Number(awardHours.value);if(hours<=0||hours>remaining(n))return alert('Coverage block must be greater than 0 and cannot exceed '+remaining(n)+' remaining hours.');
+ const n=needs.find(x=>x.id===pendingAward.nid),p=pById(pendingAward.pid),hours=Number(awardHours.value);if(hours<=0||hours>remaining(n))return alert('Coverage block must be greater than 0 and cannot exceed '+remaining(n)+' remaining hours.');
+ const ok=await requireFtoPairingIfNeeded(n,p,hours,awardStart.value,awardEnd.value);if(!ok)return;
+ await performAwardInsert();
+}
+async function performAwardInsert(){
+ const n=needs.find(x=>x.id===pendingAward.nid),hours=Number(awardHours.value);
  const row={staffing_need_id:n.id,personnel_id:pendingAward.pid,assignment_type:pendingAward.type,start_time:awardStart.value,end_time:awardEnd.value,hours,awarded_by:session.user.id};
  const {error}=await sb.from('staffing_assignments').insert(row);if(error)return alert(error.message);
  const after=remaining(n)-hours,status=after<=0?'FILLED':'PARTIALLY_FILLED';await sb.from('staffing_needs').update({status}).eq('id',n.id);
@@ -333,7 +379,7 @@ async function confirmAward(){
  await logAudit('STAFFING_ASSIGNED','staffing_need',n.id,{personnel_id:pendingAward.pid,type:pendingAward.type,start:awardStart.value,end:awardEnd.value,hours});
  closeModal('awardModal');closeModal('workflowModal');await loadAll()
 }
-function renderPersonnel(){personnelRows.innerHTML=personnel.map(p=>`<tr><td><b>${p.name}</b></td><td>${p.shift}</td><td>${p.rank}<br>${p.employment_status==='PROBATIONARY_FTO'?'<span class="tag warn">ON FTO</span>':p.employment_status==='INACTIVE'?'<span class="tag bad">INACTIVE</span>':'<span class="tag good">REGULAR</span>'}</td><td>${p.single_role_paramedic?'<span class="tag warn">SINGLE-ROLE MEDIC</span>':''}${p.is_firefighter?'<span class="tag">FF</span>':''}${p.ems_level?'<span class="tag">'+p.ems_level+'</span>':''}${p.is_fao?'<span class="tag">FAO</span>':''}${p.is_fto?'<span class="tag">FTO</span>':''}${p.captain_step_up?'<span class="tag purp">CAPT STEP-UP</span>':''}${p.bc_step_up?'<span class="tag purp">BC STEP-UP</span>':''}</td><td>${otFor(p.id).regular_ot_hours_14d}h</td><td>${isAdmin()?'<button class="btn" onclick="openPersonnelManager(\''+p.id+'\')">Edit</button>':''}</td></tr>`).join('')}
+function renderPersonnel(){personnelRows.innerHTML=personnel.map(p=>`<tr><td><b>${p.name}</b></td><td>${p.shift}</td><td><b>${p.personnel_type==='SINGLE_ROLE_PARAMEDIC'?'Single-Role Paramedic':p.personnel_type==='FF_PARAMEDIC'?'FF/Paramedic':'FF/EMT'}</b>${p.rank?'<br><span class="meta">'+p.rank+'</span>':''}<br>${p.employment_status==='PROBATIONARY_FTO'?'<span class="tag bad" style="font-size:12px;font-weight:900">⚠ ON FTO / PROBATIONARY</span>':p.employment_status==='INACTIVE'?'<span class="tag bad">INACTIVE</span>':'<span class="tag good">REGULAR</span>'}</td><td>${p.single_role_paramedic?'<span class="tag warn">SINGLE-ROLE MEDIC</span>':''}${p.is_firefighter?'<span class="tag">FF</span>':''}${p.ems_level?'<span class="tag">'+p.ems_level+'</span>':''}${p.is_fao?'<span class="tag">FAO</span>':''}${p.is_fto?'<span class="tag">FTO</span>':''}${p.captain_step_up?'<span class="tag purp">CAPT STEP-UP</span>':''}${p.bc_step_up?'<span class="tag purp">BC STEP-UP</span>':''}</td><td>${otFor(p.id).regular_ot_hours_14d}h</td><td>${isAdmin()?'<button class="btn" onclick="openPersonnelManager(\''+p.id+'\')">Edit</button>':''}</td></tr>`).join('')}
 async function openPersonnelManager(id){
  if(!isAdmin())return;
  pmPerson.innerHTML=personnel.map(p=>'<option value="'+p.id+'">'+p.name+' — '+p.shift+' — '+p.rank+'</option>').join('');
@@ -345,6 +391,7 @@ async function openPersonnelManager(id){
 }
 async function loadPersonnelManager(){
  const p=pById(pmPerson.value);if(!p)return;
+ pmPersonnelType.value=p.personnel_type||(p.single_role_paramedic?'SINGLE_ROLE_PARAMEDIC':p.ems_level==='Paramedic'?'FF_PARAMEDIC':'FF_EMT');
  pmRank.value=p.rank||'';
  pmShift.value=p.shift;
  pmEMS.value=p.ems_level||'';
@@ -367,6 +414,10 @@ async function savePersonnelRole(){
  const p=pById(pmPerson.value);if(!p)return;
  if(p.ems_level==='Paramedic'&&pmEMS.value==='EMT')return alert('Paramedics cannot be downgraded to EMT.');
  if(pmSingle.checked&&pmEMS.value!=='Paramedic')return alert('Single-role paramedic requires Paramedic EMS level.');
+ const pt=pmPersonnelType.value;
+ pmSingle.checked=pt==='SINGLE_ROLE_PARAMEDIC';
+ pmFF.checked=pt!=='SINGLE_ROLE_PARAMEDIC';
+ pmEMS.value=pt==='FF_EMT'?'EMT':'Paramedic';
  const args={
   p_personnel_id:p.id,
   p_rank:pmRank.value.trim()||p.rank,
@@ -395,7 +446,8 @@ function openNewPersonnel(){
  npName.value='';
  npHireDate.value=new Date().toISOString().slice(0,10);
  npShift.value='A';
- npRank.value='FF/EMT';
+ npPersonnelType.value='FF_EMT';
+ npRank.value='';
  npEMS.value='EMT';
  npEmployment.value='PROBATIONARY_FTO';
  npFF.checked=true;npFAO.checked=false;npFTO.checked=false;npCaptainSU.checked=false;npBCSU.checked=false;npSingle.checked=false;
@@ -403,7 +455,10 @@ function openNewPersonnel(){
 }
 async function createPersonnel(){
  if(!npName.value.trim())return alert('Name is required.');
- if(npSingle.checked&&npEMS.value!=='Paramedic')return alert('Single-role paramedic must have Paramedic EMS level.');
+ const pt=npPersonnelType.value;
+ npSingle.checked=pt==='SINGLE_ROLE_PARAMEDIC';
+ npFF.checked=pt!=='SINGLE_ROLE_PARAMEDIC';
+ npEMS.value=pt==='FF_EMT'?'EMT':'Paramedic';
  const {data,error}=await sb.rpc('admin_create_personnel',{
   p_name:npName.value.trim(),
   p_shift:npShift.value,
