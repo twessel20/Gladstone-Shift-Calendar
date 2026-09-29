@@ -503,6 +503,13 @@ main{overflow-x:hidden}
 .ot-roster-row.blocked{opacity:.58;background:#111a24}.ot-roster-row.responded{box-shadow:inset 3px 0 0 #20c985}.ot-pos{font-size:16px;font-weight:1000;text-align:center}.ot-name{font-size:12px;font-weight:900}.ot-sub{font-size:8px;color:#93a8bc;margin-top:2px}.ot-hours-good{color:#5ee0a7;font-weight:900}.ot-hours-bad{color:#ff6673;font-weight:1000}
 @media(max-width:900px){.ot-roster-head{display:none}.ot-roster-row{grid-template-columns:48px 1fr auto}.ot-roster-row>div:nth-child(n+3):nth-child(-n+6){grid-column:2/span 2}}
 
+
+.seat-row[draggable="true"]{cursor:grab}
+.seat-row[draggable="true"]:active{cursor:grabbing}
+.seat-row.dragging-seat{opacity:.5}
+.seat-row.seat-drop-target{outline:2px dashed #58a6ff;outline-offset:-3px;background:#0d2840}
+.seat-drag-hint{font-size:9px;color:#8fa7bb;margin:0 0 8px}
+
 </style>
 </head>
 <body>
@@ -1096,15 +1103,51 @@ function unitCompliance(date,unit){
 function positionLabel(code){
  return {COMMAND:'Command',OFFICER:'Officer',FAO_DRIVER:'FAO / Driver',SEAT_1:'Seat 1',SEAT_2:'Seat 2',SEAT_3:'Seat 3',MEDIC_1:'Medic 1',MEDIC_2:'Medic 2',EVENT_1:'Position 1',EVENT_2:'Position 2'}[code]||code||'Unassigned'
 }
+let seatDragState=null;
 function seatMapHtml(date,unit){
  const {defs,result}=effectiveUnitPositions(date,unit);
- return '<div class="seat-map">'+defs.map(def=>{
+ return (isAdmin()?'<div class="seat-drag-hint">Drag a staffed position onto another seat to move or swap personnel. Use Scheduling BC Placement below as the fallback.</div>':'')+
+ '<div class="seat-map">'+defs.map(def=>{
    const x=result.get(def.code);
-   return '<div class="seat-row '+(x?'seat-ok':def.required?'seat-missing':'')+'"><div class="seat-position">'+def.label+(def.required?' *':'')+'</div>'+
+   const drag=isAdmin()&&x?' draggable="true" ondragstart="startSeatDrag(event,\''+date+'\',\''+unit+'\',\''+x.a.id+'\',\''+def.code+'\')" ondragend="endSeatDrag(event)"':'';
+   const drop=isAdmin()?' ondragover="seatDragOver(event)" ondragleave="seatDragLeave(event)" ondrop="dropSeatAssignment(event,\''+date+'\',\''+unit+'\',\''+def.code+'\')"':'';
+   return '<div class="seat-row '+(x?'seat-ok':def.required?'seat-missing':'')+'"'+drag+drop+'><div class="seat-position">'+def.label+(def.required?' *':'')+'</div>'+
      (x?'<div><div class="seat-person">'+x.p.name+'</div><div class="seat-meta">'+rankLabel(x.p)+' • '+(x.p.ems_level||'No EMS level')+(x.p.is_fao?' • FAO':'')+' • '+x.p.shift+' Shift</div></div><span class="tag '+(x.p.ems_level==='Paramedic'?'good':'')+'">'+(x.p.ems_level||'—')+'</span>':
-     '<div class="seat-empty">OPEN</div><span class="tag bad">MISSING</span>')+
+     '<div class="seat-empty">OPEN</div><span class="tag bad">'+(def.required?'MISSING':'OPEN')+'</span>')+
    '</div>'
  }).join('')+'</div>'
+}
+function startSeatDrag(event,date,unit,assignmentId,sourceCode){
+ seatDragState={date,unit,assignmentId,sourceCode};
+ event.currentTarget.classList.add('dragging-seat');
+ if(event.dataTransfer){event.dataTransfer.effectAllowed='move';event.dataTransfer.setData('text/plain',assignmentId)}
+}
+function endSeatDrag(event){
+ event.currentTarget.classList.remove('dragging-seat');
+ document.querySelectorAll('.seat-drop-target').forEach(x=>x.classList.remove('seat-drop-target'))
+}
+function seatDragOver(event){event.preventDefault();event.currentTarget.classList.add('seat-drop-target');if(event.dataTransfer)event.dataTransfer.dropEffect='move'}
+function seatDragLeave(event){event.currentTarget.classList.remove('seat-drop-target')}
+async function dropSeatAssignment(event,date,unit,targetCode){
+ event.preventDefault();event.currentTarget.classList.remove('seat-drop-target');
+ const s=seatDragState;if(!s||s.date!==date||s.unit!==unit||s.sourceCode===targetCode)return;
+ const {result,people}=effectiveUnitPositions(date,unit);
+ const dragged=people.find(x=>x.a.id===s.assignmentId);
+ const target=result.get(targetCode);
+ if(!dragged)return;
+ if(!positionCandidateAllowed(targetCode,dragged.p,dragged.a)&&rankLabel(dragged.p)!=='Battalion Chief')return alert(dragged.p.name+' is not qualified for '+positionLabel(targetCode)+'.');
+ if(target&&s.sourceCode&&!positionCandidateAllowed(s.sourceCode,target.p,target.a)&&rankLabel(target.p)!=='Battalion Chief')return alert(target.p.name+' cannot be moved to '+positionLabel(s.sourceCode)+'.');
+ if(target){
+   const {error:e1}=await sb.from('unit_assignments').update({position_code:null}).eq('id',target.a.id);if(e1)return alert(e1.message);
+ }
+ const {error:e2}=await sb.from('unit_assignments').update({position_code:targetCode}).eq('id',dragged.a.id);if(e2)return alert(e2.message);
+ if(target){
+   const {error:e3}=await sb.from('unit_assignments').update({position_code:s.sourceCode}).eq('id',target.a.id);if(e3)return alert(e3.message);
+ }
+ await logAudit('APPARATUS_SEAT_DRAG','unit_assignment',dragged.a.id,{date,unit,from:s.sourceCode,to:targetCode,swapped_with:target?.a.id||null});
+ seatDragState=null;
+ await loadAll();
+ openApparatusDetail(date,unit)
 }
 function manualSeatEditorHtml(date,unit){
  if(!isAdmin())return '';
