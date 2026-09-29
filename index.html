@@ -97,6 +97,72 @@ main{padding:14px 16px 18px}
 .header-cycle{color:#f3c32f;font-weight:900}
 @media(max-width:1400px){.cmd-matrix{grid-template-columns:150px repeat(28,minmax(0,1fr))}}
 
+
+/* One-screen command board */
+main{padding:10px 12px 12px;overflow-x:hidden}
+.top{min-height:58px;margin-bottom:8px;padding-bottom:6px}
+.top h1{font-size:27px}
+.cmd-kpis{gap:6px;margin-bottom:7px}
+.cmd-kpi{min-height:62px;padding:8px 9px}
+.cmd-kpi strong{font-size:22px;margin-bottom:4px}
+.cmd-matrix{grid-template-columns:138px repeat(28,minmax(0,1fr));width:100%;max-width:100%}
+.cmd-corner{padding:7px 8px;font-size:10px}
+.cmd-date{min-height:46px;padding:5px 1px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-left:1px solid #25445e}
+.cmd-date b{font-size:15px;line-height:1;font-weight:1000;color:#f8fbff}
+.cmd-date small{font-size:8px;line-height:1;margin-top:3px;color:#a9bbcc;font-weight:800;text-transform:uppercase}
+.cmd-date .shiftmark{font-size:8px;margin-top:3px;color:#ffe06b;letter-spacing:.06em}
+.cmd-date.dutyhead{background:linear-gradient(180deg,#b51f2d,#72131d);box-shadow:inset 0 -3px 0 #ef4957}
+.cmd-date.dutyhead b,.cmd-date.dutyhead small{color:#fff}
+.cmd-date.gap{background:linear-gradient(180deg,#10243a,#091827);opacity:1}
+.cmd-date.gap b{color:#c4d2df}
+.cmd-date.gap small{color:#6f879d}
+.cmd-date.sel{outline:3px solid #ffd447;outline-offset:-3px;background:linear-gradient(180deg,#ca2736,#841823)}
+.cmd-date.today{box-shadow:inset 0 0 0 2px #4fb6ff,inset 0 -3px 0 #4fb6ff}
+.cmd-band{padding:5px 9px;font-size:10px}
+.cmd-label{padding:6px 8px;font-size:10px}
+.cmd-label span{font-size:7px}
+.cmd-cell{height:31px;font-size:8px}
+.cmd-right{margin-top:7px;padding:0;border:0;background:transparent}
+.day-board{display:grid;grid-template-columns:1.25fr 1.25fr .9fr .9fr;gap:7px;align-items:start}
+.day-board-head{grid-column:1/-1;display:flex;align-items:center;gap:10px;background:linear-gradient(90deg,#0d2237,#0a1828);border:1px solid #294b69;border-radius:8px;padding:8px 10px}
+.day-board-head h2{margin:0;font-size:19px}
+.day-board-head .cmd-status{margin:0 0 0 auto;padding:7px 10px;min-width:190px;text-align:center}
+.day-board .cmd-station,.day-board .cmd-panel{margin:0;min-width:0}
+.day-board .cmd-station h3{padding:7px 9px;font-size:11px}
+.day-board .cmd-row{grid-template-columns:36px 1fr auto;padding:6px 7px;font-size:10px}
+.day-board .cmd-row .person{font-size:10px}
+.day-board .cmd-row .role{font-size:8px}
+.day-board .cmd-panel{padding:8px}
+.day-board .panel-title{font-size:12px;margin-bottom:5px}
+.day-board .cmd-check{font-size:9px;padding:4px 0}
+.day-board .notice{padding:6px;font-size:9px}
+.day-board .actions{margin-top:5px}
+.day-board .cmd-actions{grid-template-columns:1fr 1fr;gap:4px}
+.day-board .cmd-actions .btn{min-height:33px;padding:6px 7px;font-size:9px}
+.cmd-footer{grid-template-columns:1fr 1fr;gap:7px;margin-top:7px}
+.cmd-footer .cmd-panel{padding:8px}
+.cmd-footer .panel-title{font-size:12px}
+.cmd-footer .item{padding:6px}
+.cmd-footer .item h3,.cmd-footer .item b{font-size:10px}
+.cmd-footer .item .meta{font-size:8px}
+.cmd-footer .metric strong{font-size:18px}
+.compact-requests{max-height:115px;overflow:auto}
+.compact-note{min-height:44px}
+@media(max-width:1500px){
+ .cmd-matrix{grid-template-columns:118px repeat(28,minmax(0,1fr))}
+ .cmd-date b{font-size:13px}
+ .cmd-date small{font-size:7px}
+ .cmd-cell{height:29px}
+ .day-board{grid-template-columns:1fr 1fr 1fr}
+ .day-board-head{grid-column:1/-1}
+}
+@media(max-width:1100px){
+ .day-board{grid-template-columns:1fr 1fr}
+ .cmd-matrix{grid-template-columns:105px repeat(28,minmax(0,1fr))}
+ .cmd-date b{font-size:11px}
+ .cmd-date small{font-size:6px}
+}
+
 </style>
 </head>
 <body>
@@ -545,33 +611,42 @@ function renderCommandDayDetail(){
  if(shiftForDate(dashboardSelectedDate)!==selectedShift)dashboardSelectedDate=firstDutyDateForShift(selectedShift);
  const date=dashboardSelectedDate, shift=shiftForDate(date), open=needs.filter(n=>n.duty_date===date&&!['FILLED','CANCELLED'].includes(n.status));
  const dt=new Date(date+'T12:00:00');
- let html='<h2>'+dt.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})+'</h2><div class="muted">'+shift+' Shift • Duty Day</div>'+calendarPills(date);
- html+='<div class="cmd-status '+(open.length?'bad':'')+'">'+(open.length?'Needs Staff — '+open.length+' Open Position'+(open.length>1?'s':''):'Fully Staffed / Compliant')+'</div>';
- html+=commandStation('STATION 1 — Headquarters',['BC','E1','M1'],date,'s1',open);
- html+=commandStation('STATION 2 — West Side',['E2','M2'],date,'s2',open);
  const special=['M3','GATOR1'].filter(u=>unitPeople(date,u).length);
- if(special.length)html+=commandStation('RESERVE / SPECIAL EVENT',special,date,'res',open);
  const als=['E1','E2','M1','M2'].every(u=>unitPeople(date,u).some(x=>x.p.ems_level==='Paramedic')||!unitPeople(date,u).length);
  const fao=['E1','E2'].every(u=>unitPeople(date,u).some(x=>x.p.is_fao)||!unitPeople(date,u).length);
  const bc=unitPeople(date,'BC').length>0;
- html+='<div class="cmd-panel" style="margin-top:9px"><div class="panel-title">Shift Compliance</div>'+
-   '<div class="cmd-check">ALS Coverage <span style="float:right">'+(als?'✓ Met':'! Review')+'</span></div>'+
-   '<div class="cmd-check">FAO Coverage <span style="float:right">'+(fao?'✓ Met':'! Review')+'</span></div>'+
-   '<div class="cmd-check">Officer (BC) <span style="float:right">'+(bc?'✓ Met':'! Open')+'</span></div>'+
-   '<div class="cmd-check">Minimum Staffing <span style="float:right">'+(open.length?open.length+' position'+(open.length>1?'s':'')+' short':'✓ Met')+'</span></div></div>';
  const dayLeave=leaves.filter(x=>x.leave_date===date);
  const dayTrades=trades.filter(x=>x.requester_date===date||x.reciprocal_date===date);
  const note=dayNotes.find(x=>x.duty_date===date&&x.shift===shift);
- html+='<div class="cmd-panel" style="margin-top:9px"><div class="panel-title">Requests Affecting This Day</div>'+
+
+ let html='<div class="day-board">';
+ html+='<div class="day-board-head"><div><h2>'+dt.toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'})+'</h2><div class="muted">'+shift+' Shift • 24-hour duty</div>'+calendarPills(date)+'</div><div class="cmd-status '+(open.length?'bad':'')+'">'+(open.length?'NEEDS STAFF • '+open.length+' OPEN':'FULLY STAFFED / COMPLIANT')+'</div></div>';
+
+ html+=commandStation('STATION 1 — Headquarters',['BC','E1','M1'],date,'s1',open);
+ html+=commandStation('STATION 2 — West Side',['E2','M2'],date,'s2',open);
+
+ html+='<div class="cmd-panel"><div class="panel-title">Shift Compliance</div>'+
+   '<div class="cmd-check">ALS Coverage <span style="float:right">'+(als?'✓ Met':'! Review')+'</span></div>'+
+   '<div class="cmd-check">FAO Coverage <span style="float:right">'+(fao?'✓ Met':'! Review')+'</span></div>'+
+   '<div class="cmd-check">BC / Command <span style="float:right">'+(bc?'✓ Met':'! Open')+'</span></div>'+
+   '<div class="cmd-check">Minimum Staffing <span style="float:right">'+(open.length?open.length+' short':'✓ Met')+'</span></div></div>';
+
+ html+='<div class="cmd-panel"><div class="panel-title">Quick Actions</div><div class="cmd-actions">'+
+   (isAdmin()?'<button class="btn primary" onclick="openNeedCreatorForDate(\''+date+'\',\''+shift+'\')">Fill Day</button><button class="btn good" onclick="goto(\'ot\')">OT / Force</button><button class="btn" onclick="openMovePersonnel(\''+date+'\')">Move Personnel</button><button class="btn" onclick="openSpecialAssignment(\'M3\')">Medic 3</button>':'')+
+   '<button class="btn" onclick="openTradeRequest()">Trade</button><button class="btn" onclick="openLeave()">Leave</button></div></div>';
+
+ if(special.length)html+=commandStation('RESERVE / SPECIAL EVENT',special,date,'res',open);
+
+ html+='<div class="cmd-panel"><div class="panel-title">Requests Affecting This Day</div><div class="compact-requests">'+
    ((dayLeave.length||dayTrades.length)?[
       ...dayLeave.map(x=>'<div class="cmd-check">'+(pById(x.personnel_id)?.name||'Personnel')+' — '+x.leave_type+' <span style="float:right">'+x.status.replaceAll('_',' ')+'</span></div>'),
       ...dayTrades.map(x=>'<div class="cmd-check">'+(pById(x.requester_id)?.name||'Personnel')+' — Trade <span style="float:right">'+x.status.replaceAll('_',' ')+'</span></div>')
     ].join(''):'<div class="muted">No requests affecting this day.</div>')+
-   '</div>';
- html+='<div class="cmd-panel" style="margin-top:9px"><div class="panel-title">BC Notes</div><div class="notice">'+(note?.note||'No notes for this shift day.')+'</div>'+(isAdmin()?'<div class="actions"><button class="btn" onclick="editDayNote(\''+date+'\',\''+shift+'\')">Add / Edit Note</button></div>':'')+'</div>';
- html+='<div class="cmd-panel" style="margin-top:9px"><div class="panel-title">Quick Actions</div><div class="cmd-actions">'+
-   (isAdmin()?'<button class="btn primary" onclick="openNeedCreatorForDate(\''+date+'\',\''+shift+'\')">Fill Day</button><button class="btn good" onclick="goto(\'ot\')">Assign OT / Force</button><button class="btn" onclick="openMovePersonnel(\''+date+'\')">Move Personnel</button><button class="btn" onclick="openSpecialAssignment(\'M3\')">Medic 3</button><button class="btn" onclick="openSpecialAssignment(\'GATOR1\')">Special Event</button>':'')+
-   '<button class="btn" onclick="openTradeRequest()">Trade</button><button class="btn" onclick="openLeave()">Leave</button><button class="btn" onclick="goto(\'events\')">Events</button></div></div>';
+   '</div></div>';
+
+ html+='<div class="cmd-panel"><div class="panel-title">BC Notes</div><div class="notice compact-note">'+(note?.note||'No notes for this shift day.')+'</div>'+(isAdmin()?'<div class="actions"><button class="btn" onclick="editDayNote(\''+date+'\',\''+shift+'\')">Add / Edit Note</button></div>':'')+'</div>';
+
+ html+='</div>';
  cmdDayDetail.innerHTML=html
 }
 function commandStation(title,units,date,cls,open){
