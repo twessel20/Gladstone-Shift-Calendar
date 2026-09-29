@@ -1,342 +1,274 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>GFD Staffing & Scheduling Prototype</title>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#081421">
+<link rel="manifest" href="manifest.json">
+<title>GFD Staffing</title>
 <style>
-:root{--bg:#07111d;--panel:#0d1a2a;--panel2:#0a1624;--line:#22364f;--text:#eef5ff;--muted:#9fb0c7;--green:#18b56f;--red:#e74755;--blue:#187cf3;--amber:#f0b548;--purple:#7145d8}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px Inter,Segoe UI,Arial,sans-serif}
-button,select,input,textarea{font:inherit}.app{display:grid;grid-template-columns:230px 1fr;min-height:100vh}
-.sidebar{background:#081421;border-right:1px solid var(--line);padding:16px 12px;display:flex;flex-direction:column;gap:14px}
-.brand{font-size:20px;font-weight:900;line-height:1.05;padding:4px 8px}.brand small{display:block;color:var(--muted);font-size:10px;letter-spacing:.12em;margin-top:8px}
-.nav button{width:100%;text-align:left;border:0;background:transparent;color:#c9d6e7;padding:11px 12px;border-radius:8px;margin:2px 0;cursor:pointer}.nav button.active{background:linear-gradient(90deg,#9e202a,#5d151b);color:#fff;font-weight:800}
-.usercard{margin-top:auto;border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:10px}.usercard b{font-size:13px}.usercard small{color:var(--muted)}
-.main{padding:18px;min-width:0}.view{display:none}.view.active{display:block}.topbar{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap}.topbar h1{margin:0;font-size:27px}.grow{flex:1}
-.btn,.ctl{border:1px solid #2d4868;background:#14243a;color:white;border-radius:8px;padding:9px 11px;cursor:pointer}.btn.primary{background:var(--blue);border-color:var(--blue)}.btn.good{background:#149b63;border-color:#149b63}.btn.warn{background:#9c6d12;border-color:#9c6d12}.btn.danger{background:#a72c38;border-color:#a72c38}.btn.purple{background:#6037c2;border-color:#6037c2}.btn:disabled{opacity:.35;cursor:not-allowed}
-.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.card{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:12px}.metric strong{display:block;font-size:26px}.muted{color:var(--muted)}
-.schedule-wrap{display:grid;grid-template-columns:minmax(0,1fr) 385px;gap:12px;margin-top:12px}.calendar{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:auto}
-.calgrid{display:grid;grid-template-columns:170px repeat(28,43px);min-width:1374px}.corner,.dayh{background:#0a1726;border-bottom:1px solid var(--line)}.corner{padding:12px;font-weight:800}.dayh{padding:7px 3px;text-align:center;border-left:1px solid #1d2d42}.dayh small{display:block;color:var(--muted);font-size:9px}.dayh b{font-size:12px}.dot{width:8px;height:8px;border-radius:50%;margin:5px auto 0}.dot.g{background:var(--green)}.dot.r{background:var(--red)}.dot.n{background:#66758a}
-.band{grid-column:1/-1;padding:8px 11px;font-weight:900}.band.s1{background:linear-gradient(90deg,#91212a,#4b171c)}.band.s2{background:linear-gradient(90deg,#1454a3,#0a2c5c)}.band.res{background:linear-gradient(90deg,#5d31b5,#29144f)}
-.rowlabel{padding:9px 10px;background:#0b1726;border-top:1px solid #1b2c42}.rowlabel b{margin-right:6px}.rowlabel small{color:var(--muted)}
-.cell{border:0;border-left:1px solid #1d2d42;border-top:1px solid #1d2d42;min-height:41px;color:white;font-weight:900}.cell.off{background:#25374a;color:#8494a8;font-size:9px}.cell.ok{background:linear-gradient(#19ad6b,#0d8350);cursor:pointer}.cell.bad{background:linear-gradient(#e65260,#bd2a36);cursor:pointer}
-.detail{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px;position:sticky;top:12px}.banner{padding:10px;border-radius:8px;margin:10px 0;background:#143c2a;color:#9beabb;font-weight:900}.banner.bad{background:#4d1b22;color:#ffc0c5}.unit{border:1px solid var(--line);border-radius:8px;margin:8px 0;overflow:hidden}.unit h3{margin:0;padding:7px 9px;font-size:12px}.unit.s1 h3{background:#5a1b22}.unit.s2 h3{background:#123e76}.assign{display:grid;grid-template-columns:42px 1fr auto;gap:8px;padding:8px 9px;border-top:1px solid #1f3046}.tag{font-size:10px;border-radius:999px;padding:3px 6px;background:#173451;color:#c9ddf5;white-space:nowrap}.tag.good{background:#123f2c;color:#9be7bb}.tag.bad{background:#571d25;color:#ffb1b8}.tag.warn{background:#5a4215;color:#ffd980}.tag.purp{background:#3b276d;color:#d7c4ff}
-.stack{display:flex;flex-direction:column;gap:8px}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.split{display:grid;grid-template-columns:1fr 1fr;gap:10px}.table{width:100%;border-collapse:collapse}.table th,.table td{text-align:left;padding:9px;border-bottom:1px solid #203149;vertical-align:top}.table th{font-size:11px;color:#aebdd0}.status{font-size:10px;padding:4px 7px;border-radius:999px;display:inline-block;background:#173451}.status.good{background:#123f2c;color:#9be7bb}.status.bad{background:#571d25;color:#ffb1b8}.status.warn{background:#5a4215;color:#ffd980}
-.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}.panel-title{font-weight:900;font-size:16px;margin-bottom:8px}.list{display:flex;flex-direction:column;gap:7px}.item{border:1px solid var(--line);background:var(--panel2);border-radius:9px;padding:10px}.item.active{border-color:#5a8fd1}.item h3{margin:0 0 4px;font-size:14px}.item .meta{font-size:11px;color:var(--muted)}.item .actions{margin-top:8px;display:flex;gap:7px;flex-wrap:wrap}
-.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.76);z-index:100;align-items:center;justify-content:center;padding:18px}.modal.show{display:flex}.modalbox{width:min(1000px,100%);max-height:90vh;overflow:auto;background:#091727;border:1px solid #2a4564;border-radius:14px;padding:15px}.modalhead{display:flex;align-items:center;gap:10px;margin-bottom:10px}.modalhead h2{margin:0}.candidate{display:grid;grid-template-columns:1fr auto;gap:10px;padding:10px;border-top:1px solid #22364f}.candidate:first-child{border-top:0}.candidate.disabled{opacity:.45}.decision{margin-top:6px;border:1px solid #22364f;background:#081421;border-radius:7px;padding:7px;font-size:11px;color:#cbd7e8}
-.notice{padding:9px;border:1px solid #2c4562;background:#102238;border-radius:8px;color:#cbd7e8}.notice.warn{border-color:#7d5b17;background:#2a2110;color:#f3d88c}.notice.bad{border-color:#71313a;background:#2c171b;color:#ffc0c5}
-.audit{font-size:12px}.audit .entry{padding:8px 0;border-bottom:1px solid #1f3046}.audit time{color:#8ca0b7;font-size:10px}.pillcount{display:inline-block;min-width:18px;text-align:center;border-radius:999px;background:#a72c38;color:#fff;font-size:10px;padding:2px 5px;margin-left:5px}
-.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.field label{display:block;font-size:11px;color:#aebdd0;margin-bottom:4px}.field input,.field select,.field textarea{width:100%;padding:9px;border:1px solid #2d4868;border-radius:7px;background:#0c1a2b;color:white}.field textarea{min-height:80px}
-@media(max-width:1050px){.app{grid-template-columns:1fr}.sidebar{display:none}.schedule-wrap{grid-template-columns:1fr}.detail{position:static}.grid4{grid-template-columns:1fr 1fr}}
-@media(max-width:700px){.main{padding:10px}.grid4,.split,.formgrid{grid-template-columns:1fr}.schedule-wrap{display:block}.topbar h1{font-size:22px}}
+:root{--bg:#07111d;--panel:#0d1a2a;--panel2:#0a1624;--line:#22364f;--text:#eef5ff;--muted:#9fb0c7;--green:#18b56f;--red:#e74755;--blue:#187ff3;--amber:#e6a82f;--purple:#7145d8}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px Inter,Segoe UI,Arial,sans-serif}button,input,select,textarea{font:inherit}
+.hidden{display:none!important}.app{display:grid;grid-template-columns:230px 1fr;min-height:100vh}.sidebar{background:#081421;border-right:1px solid var(--line);padding:14px 12px;display:flex;flex-direction:column}.brand{font-size:20px;font-weight:900;line-height:1.05;padding:6px 8px 20px}.brand small{display:block;color:var(--muted);font-size:10px;letter-spacing:.11em;margin-top:7px}
+.nav button{width:100%;border:0;background:transparent;color:#cbd8e8;text-align:left;padding:11px 12px;border-radius:8px;margin:2px 0;cursor:pointer}.nav button.on{background:linear-gradient(90deg,#9b2029,#55151b);font-weight:800;color:#fff}
+.me{margin-top:auto;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px}.me small{color:var(--muted)}
+main{padding:18px;min-width:0}.view{display:none}.view.on{display:block}.top{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}.top h1{margin:0;font-size:27px}.grow{flex:1}
+.hero{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:14px;padding:20px;background:radial-gradient(circle at 80% 10%,rgba(231,71,85,.22),transparent 30%),radial-gradient(circle at 55% 80%,rgba(24,127,243,.16),transparent 35%),linear-gradient(135deg,#0d1b2c,#08121d 64%,#241419);min-height:155px}.hero:after{content:"";position:absolute;right:-60px;bottom:-85px;width:330px;height:200px;border:28px solid rgba(255,255,255,.03);border-radius:50%;transform:rotate(-13deg)}.hero .eyebrow{font-size:11px;letter-spacing:.14em;color:#c6d4e5;font-weight:800}.hero h2{font-size:30px;margin:8px 0 4px;max-width:600px}.hero p{color:#b4c3d4;max-width:650px;margin:0}
+.btn,.ctl{border:1px solid #2d4868;background:#14243a;color:#fff;border-radius:8px;padding:9px 11px;cursor:pointer}.btn.primary{background:var(--blue);border-color:var(--blue)}.btn.good{background:#169c63;border-color:#169c63}.btn.danger{background:#a82d38;border-color:#a82d38}.btn.warn{background:#94670e;border-color:#94670e}.btn:disabled{opacity:.38;cursor:not-allowed}
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin:12px 0}.card{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:12px}.metric strong{font-size:26px;display:block}.muted{color:var(--muted)}.split{display:grid;grid-template-columns:1fr 1fr;gap:11px}.panel-title{font-weight:900;font-size:16px;margin-bottom:9px}.list{display:flex;flex-direction:column;gap:8px}.item{border:1px solid var(--line);background:var(--panel2);border-radius:9px;padding:10px}.item h3{margin:0 0 4px;font-size:14px}.meta{color:var(--muted);font-size:11px}.actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+.tag{display:inline-block;border-radius:999px;background:#173451;color:#c9ddf5;font-size:10px;padding:3px 6px;margin:2px}.tag.good{background:#123f2c;color:#9be7bb}.tag.bad{background:#571d25;color:#ffb1b8}.tag.warn{background:#5a4215;color:#ffd980}.tag.purp{background:#39256b;color:#d7c4ff}
+.notice{padding:9px;border:1px solid #2b4564;background:#102238;border-radius:8px;color:#cbd7e8}.notice.bad{background:#2d171b;border-color:#71313a;color:#ffc0c5}.notice.warn{background:#2a2110;border-color:#7d5b17;color:#f3d88c}
+.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.field label{display:block;color:#afbed1;font-size:11px;margin-bottom:4px}.field input,.field select,.field textarea{width:100%;padding:9px;background:#0c1a2b;color:#fff;border:1px solid #2d4868;border-radius:7px}.field textarea{min-height:72px}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:100;align-items:center;justify-content:center;padding:16px}.modal.show{display:flex}.modalbox{width:min(980px,100%);max-height:92vh;overflow:auto;background:#091727;border:1px solid #2a4564;border-radius:14px;padding:15px}.modalhead{display:flex;align-items:center;gap:8px;margin-bottom:11px}.modalhead h2{margin:0}.candidate{display:grid;grid-template-columns:1fr auto;gap:10px;padding:10px 0;border-top:1px solid #22364f}.candidate:first-child{border-top:0}.candidate.disabled{opacity:.48}.decision{margin-top:6px;background:#081421;border:1px solid #22364f;border-radius:7px;padding:7px;font-size:11px;color:#cbd7e8}
+.authwrap{min-height:100vh;display:grid;place-items:center;padding:20px;background:radial-gradient(circle at 50% 10%,#1a334f 0,transparent 35%),#07111d}.authbox{width:min(450px,100%);background:#0d1a2a;border:1px solid #2b4564;border-radius:15px;padding:18px}.authbox h1{margin:0 0 4px}.authbox .field{margin-top:10px}.authactions{display:flex;gap:8px;margin-top:12px}
+.table{width:100%;border-collapse:collapse}.table th,.table td{padding:8px;border-bottom:1px solid #203149;text-align:left;vertical-align:top}.table th{font-size:11px;color:#aebed0}
+.coverage{height:9px;background:#1d2b3d;border-radius:999px;overflow:hidden;margin:8px 0}.coverage span{display:block;height:100%;background:var(--green)}
+@media(max-width:900px){.app{grid-template-columns:1fr}.sidebar{position:sticky;top:0;z-index:20;padding:8px;display:block}.brand{display:none}.nav{display:flex;overflow:auto;gap:4px}.nav button{white-space:nowrap;width:auto}.me{margin-top:8px}.split,.grid4{grid-template-columns:1fr 1fr}main{padding:10px}}
+@media(max-width:600px){.split,.grid4,.formgrid{grid-template-columns:1fr}.hero h2{font-size:24px}.top h1{font-size:23px}.candidate{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-<div class="app">
-<aside class="sidebar">
-  <div class="brand">GLADSTONE<br>FIRE DEPARTMENT<small>STAFFING & SCHEDULING PROTOTYPE</small></div>
-  <div class="nav" id="nav">
-    <button data-view="schedule" class="active">▣ Schedule</button>
-    <button data-view="staffing">◉ Staffing Board</button>
-    <button data-view="ot">♟ OT / Force</button>
-    <button data-view="requests">▤ Trades & Leave</button>
-    <button data-view="events">☆ Special Events</button>
-    <button data-view="notifications">● Notifications <span id="notifBadge" class="pillcount">0</span></button>
-    <button data-view="audit">☷ Audit Log</button>
+<div id="authScreen" class="authwrap">
+  <div class="authbox">
+    <div class="brand" style="display:block;padding:0 0 12px">GLADSTONE FIRE DEPARTMENT<small>STAFFING & SCHEDULING</small></div>
+    <h1 id="authTitle">Sign in</h1><div class="muted" id="authHint">Use your individual department scheduling account.</div>
+    <div class="field"><label>Email</label><input id="authEmail" type="email" autocomplete="email"></div>
+    <div class="field"><label>Password</label><input id="authPassword" type="password" autocomplete="current-password"></div>
+    <div class="authactions"><button class="btn primary" onclick="signIn()">Sign In</button><button class="btn" onclick="signUp()">Create Account</button></div>
+    <div id="authMsg" class="notice hidden" style="margin-top:12px"></div>
   </div>
-  <div class="usercard">
-    <b id="userName">Alex Carter</b><br><small id="userRole">Battalion Chief • A Shift</small>
-    <button class="ctl" style="width:100%;margin-top:8px" onclick="openUsers()">Switch Demo User</button>
-    <button class="ctl" style="width:100%;margin-top:6px" onclick="resetDemo()">Reset Simulation</button>
-  </div>
-</aside>
+</div>
 
-<main class="main">
-<section id="view-schedule" class="view active">
-  <div class="topbar"><div><h1>28-Day Schedule</h1><div class="muted">Live simulation • all changes immediately update staffing</div></div><div class="grow"></div>
-    <select id="shiftFilter" class="ctl" onchange="renderAll()"><option>A</option><option>B</option><option>C</option><option value="ALL">Whole Schedule</option></select>
-    <button class="ctl" onclick="gotoToday()">Today</button>
+<div id="claimScreen" class="authwrap hidden">
+  <div class="authbox">
+    <h1>Link your personnel record</h1>
+    <p class="muted">Enter the one-time GFD invite code issued for your personnel profile.</p>
+    <div class="field"><label>Invite Code</label><input id="inviteCode" autocomplete="one-time-code" placeholder="GFD-XXXXXXXXXX"></div>
+    <div class="authactions"><button class="btn primary" onclick="claimInvite()">Link Account</button><button class="btn" onclick="signOut()">Sign Out</button></div>
+    <div id="claimMsg" class="notice hidden" style="margin-top:12px"></div>
   </div>
-  <div class="grid4" id="metrics"></div>
-  <div class="schedule-wrap">
-    <div class="calendar"><div class="calgrid" id="calgrid"></div></div>
-    <div class="detail" id="dayDetail"></div>
+</div>
+
+<div id="app" class="app hidden">
+<aside class="sidebar">
+  <div class="brand">GLADSTONE<br>FIRE DEPARTMENT<small>STAFFING & SCHEDULING</small></div>
+  <div class="nav" id="nav">
+    <button class="on" data-view="dashboard">▣ Dashboard</button>
+    <button data-view="staffing">◉ Staffing</button>
+    <button data-view="ot">♟ OT / Force</button>
+    <button data-view="requests">▤ Leave & Trades</button>
+    <button data-view="personnel">♙ Personnel</button>
+    <button data-view="notifications">● Notifications</button>
+    <button data-view="audit">☷ Audit</button>
   </div>
+  <div class="me"><b id="meName"></b><br><small id="meRole"></small><div class="actions"><button class="ctl" onclick="enableNotifications()">Mobile Alerts</button><button class="ctl" onclick="signOut()">Sign Out</button></div></div>
+</aside>
+<main>
+<section id="view-dashboard" class="view on">
+  <div class="hero"><div class="eyebrow">GLADSTONE FIRE DEPARTMENT</div><h2>People. Apparatus. Readiness.</h2><p>Live staffing, overtime, force rotation, leave, trades and personnel notifications.</p></div>
+  <div id="dashboardMetrics" class="grid4"></div>
+  <div class="split"><div class="card"><div class="panel-title">Open Staffing Needs</div><div id="dashNeeds" class="list"></div></div><div class="card"><div class="panel-title">Recent Notifications</div><div id="dashNotifs" class="list"></div></div></div>
 </section>
 
 <section id="view-staffing" class="view">
-  <div class="topbar"><div><h1>Staffing Board</h1><div class="muted">Shortages, compliance, and current fill status</div></div><div class="grow"></div><button class="btn primary" onclick="openCreateShortage()">Create Demo Shortage</button></div>
-  <div class="split"><div class="card"><div class="panel-title">Open Staffing Needs</div><div id="staffingNeeds" class="list"></div></div><div class="card"><div class="panel-title">Recently Filled</div><div id="filledNeeds" class="list"></div></div></div>
+ <div class="top"><div><h1>Staffing Board</h1><div class="muted">Live shared shortages and coverage blocks</div></div><div class="grow"></div><button id="createNeedBtn" class="btn primary" onclick="openNeedCreator()">Create Staffing Need</button></div>
+ <div class="card"><div id="staffingList" class="list"></div></div>
 </section>
 
 <section id="view-ot" class="view">
-  <div class="topbar"><div><h1>OT / Force</h1><div class="muted">Notification → response → award → force escalation</div></div></div>
-  <div class="split"><div class="card"><div class="panel-title">Active OT Needs</div><div id="otNeeds" class="list"></div></div><div class="card"><div class="panel-title">Award / Force Detail</div><div id="otDetail" class="notice">Select an active need.</div></div></div>
+ <div class="top"><div><h1>OT / Force</h1><div class="muted">Regular OT first; Force from the previous shift when needed</div></div></div>
+ <div class="split"><div class="card"><div class="panel-title">Active Needs</div><div id="otNeeds" class="list"></div></div><div class="card"><div class="panel-title">Need Detail</div><div id="otDetail" class="notice">Select an active staffing need.</div></div></div>
 </section>
 
 <section id="view-requests" class="view">
-  <div class="topbar"><div><h1>Trades & Leave</h1><div class="muted">Simulated employee requests and approval workflow</div></div><div class="grow"></div><button class="btn primary" onclick="openLeaveRequest()">New Leave Request</button><button class="btn" onclick="openTradeRequest()">New Trade Request</button></div>
-  <div class="split"><div class="card"><div class="panel-title">Pending Requests</div><div id="pendingRequests" class="list"></div></div><div class="card"><div class="panel-title">Completed</div><div id="completedRequests" class="list"></div></div></div>
+ <div class="top"><div><h1>Leave & Trades</h1><div class="muted">Personal requests with supervisory review</div></div><div class="grow"></div><button class="btn primary" onclick="openLeave()">Request Leave</button></div>
+ <div class="split"><div class="card"><div class="panel-title">Leave Requests</div><div id="leaveList" class="list"></div></div><div class="card"><div class="panel-title">Trades</div><div id="tradeList" class="list"></div></div></div>
 </section>
 
-<section id="view-events" class="view">
-  <div class="topbar"><div><h1>Special Events</h1><div class="muted">Event staffing can create Regular OT needs using the same award logic</div></div><div class="grow"></div><button class="btn primary" onclick="createEventNeed()">Create Demo Event Need</button></div>
-  <div class="card"><div id="eventsList" class="list"></div></div>
+<section id="view-personnel" class="view">
+ <div class="top"><div><h1>Personnel</h1><div class="muted">Roster and qualification overview</div></div></div>
+ <div class="card"><div style="overflow:auto"><table class="table"><thead><tr><th>Name</th><th>Shift</th><th>Rank</th><th>Qualifications</th><th>OT 14d</th></tr></thead><tbody id="personnelRows"></tbody></table></div></div>
 </section>
 
 <section id="view-notifications" class="view">
-  <div class="topbar"><div><h1>Notifications</h1><div class="muted">Simulated push/dashboard notifications by current demo user</div></div><div class="grow"></div><button class="btn" onclick="markAllRead()">Mark All Read</button></div>
-  <div class="card"><div id="notificationsList" class="list"></div></div>
+ <div class="top"><div><h1>Notifications</h1><div class="muted">Your scheduling alerts and action items</div></div><div class="grow"></div><button class="btn" onclick="markAllRead()">Mark All Read</button></div>
+ <div class="card"><div id="notificationList" class="list"></div></div>
 </section>
 
 <section id="view-audit" class="view">
-  <div class="topbar"><div><h1>Audit Log</h1><div class="muted">Every simulated scheduling action is recorded</div></div></div>
-  <div class="card audit" id="auditLog"></div>
+ <div class="top"><div><h1>Audit Log</h1><div class="muted">BC/admin scheduling activity</div></div></div>
+ <div class="card"><div id="auditList" class="list"></div></div>
 </section>
-</main>
-</div>
+</main></div>
 
-<div id="usersModal" class="modal"><div class="modalbox"><div class="modalhead"><h2>Switch Demo User</h2><div class="grow"></div><button class="ctl" onclick="closeModal('usersModal')">Close</button></div><div class="notice warn">All personnel and credentials are fictional prototype data.</div><div id="usersList" class="list" style="margin-top:10px"></div></div></div>
+<div id="needModal" class="modal"><div class="modalbox"><div class="modalhead"><h2>Create Staffing Need</h2><div class="grow"></div><button class="ctl" onclick="closeModal('needModal')">Close</button></div>
+ <div class="formgrid">
+  <div class="field"><label>Date</label><input id="needDate" type="date"></div>
+  <div class="field"><label>Shift</label><select id="needShift"><option>A</option><option>B</option><option>C</option></select></div>
+  <div class="field"><label>Unit</label><select id="needUnit"><option>BC</option><option>E1</option><option>M1</option><option>E2</option><option>M2</option><option>M3</option></select></div>
+  <div class="field"><label>Position</label><input id="needPosition" placeholder="e.g. E1 Driver / FAO"></div>
+  <div class="field"><label>Force / Qualification Group</label><select id="needGroup"><option value="PARAMEDIC">PARAMEDIC</option><option value="FAO">FAO</option><option value="FF_EMT">FF/EMT</option><option value="">None / Officer</option></select></div>
+  <div class="field"><label>Coverage Preset</label><select id="needPreset" onchange="applyNeedPreset()"><option value="24">08:00–08:00 • 24h</option><option value="day">08:00–20:00 • 12h</option><option value="night">20:00–08:00 • 12h</option><option value="custom">Custom</option></select></div>
+  <div class="field"><label>Start</label><input id="needStart" type="time" value="08:00"></div>
+  <div class="field"><label>End</label><input id="needEnd" type="time" value="08:00"></div>
+  <div class="field"><label>Required Hours</label><input id="needHours" type="number" min=".5" max="24" step=".5" value="24"></div>
+  <div class="field"><label>Source</label><select id="needSource"><option>manual</option><option>leave</option><option>trade</option><option>event</option><option>sick call</option></select></div>
+ </div><div class="actions"><button class="btn primary" onclick="createNeed()">Create Need</button></div>
+</div></div>
 
-<div id="shortageModal" class="modal"><div class="modalbox"><div class="modalhead"><h2>Create Demo Shortage</h2><div class="grow"></div><button class="ctl" onclick="closeModal('shortageModal')">Close</button></div>
-<div class="formgrid"><div class="field"><label>Date</label><input id="shortDate" type="date" value="2026-10-06"></div><div class="field"><label>Position</label><select id="shortPos"><option>E1 Driver / FAO</option><option>E2 Firefighter</option><option>M1 Medic</option><option>M2 Partner</option><option>BC Coverage</option></select></div></div>
-<div class="actions" style="margin-top:10px"><button class="btn primary" onclick="createShortage()">Create Shortage</button></div></div></div>
+<div id="workflowModal" class="modal"><div class="modalbox"><div class="modalhead"><h2 id="workflowTitle">Staffing Workflow</h2><div class="grow"></div><button class="ctl" onclick="closeModal('workflowModal')">Close</button></div><div id="workflowBody"></div></div></div>
 
-<div id="leaveModal" class="modal"><div class="modalbox"><div class="modalhead"><h2>New Leave Request</h2><div class="grow"></div><button class="ctl" onclick="closeModal('leaveModal')">Close</button></div>
-<div class="formgrid"><div class="field"><label>Employee</label><select id="leavePerson"></select></div><div class="field"><label>Date</label><input id="leaveDate" type="date" value="2026-10-09"></div><div class="field"><label>Type</label><select id="leaveType"><option>Vacation</option><option>Kelly</option><option>Holiday</option><option>Sick</option><option>Family Sick</option><option>Comp</option><option>Training</option></select></div><div class="field"><label>Hours</label><input id="leaveHours" type="number" value="24"></div></div>
-<div class="field" style="margin-top:9px"><label>Note</label><textarea id="leaveNote">Demo request</textarea></div><div style="margin-top:10px"><button class="btn primary" onclick="submitLeave()">Submit Request</button></div></div></div>
+<div id="awardModal" class="modal"><div class="modalbox"><div class="modalhead"><h2>Schedule Coverage Block</h2><div class="grow"></div><button class="ctl" onclick="closeModal('awardModal')">Close</button></div>
+ <div id="awardWho" class="notice"></div>
+ <div class="actions"><button class="btn primary" onclick="awardPreset('day')">08:00–20:00 • 12h</button><button class="btn primary" onclick="awardPreset('night')">20:00–08:00 • 12h</button><button class="btn good" onclick="awardPreset('full')">08:00–08:00 • 24h</button></div>
+ <div class="formgrid" style="margin-top:10px"><div class="field"><label>Start</label><input id="awardStart" type="time" value="08:00"></div><div class="field"><label>End</label><input id="awardEnd" type="time" value="20:00"></div><div class="field"><label>Hours</label><input id="awardHours" type="number" min=".5" max="24" step=".5" value="12"></div></div>
+ <div class="actions"><button class="btn good" onclick="confirmAward()">Assign Coverage</button></div>
+</div></div>
 
-<div id="tradeModal" class="modal"><div class="modalbox"><div class="modalhead"><h2>New Trade Request</h2><div class="grow"></div><button class="ctl" onclick="closeModal('tradeModal')">Close</button></div>
-<div class="formgrid"><div class="field"><label>Requester</label><select id="tradeA"></select></div><div class="field"><label>Replacement</label><select id="tradeB"></select></div><div class="field"><label>Work Date</label><input id="tradeDateA" type="date" value="2026-10-12"></div><div class="field"><label>Reciprocal Date</label><input id="tradeDateB" type="date" value="2026-10-18"></div></div><div style="margin-top:10px"><button class="btn primary" onclick="submitTrade()">Submit Trade</button></div></div></div>
+<div id="leaveModal" class="modal"><div class="modalbox"><div class="modalhead"><h2>Request Leave</h2><div class="grow"></div><button class="ctl" onclick="closeModal('leaveModal')">Close</button></div>
+ <div class="formgrid"><div class="field"><label>Date</label><input id="leaveDate" type="date"></div><div class="field"><label>Leave Type</label><select id="leaveType"><option>Vacation</option><option>Kelly</option><option>Holiday</option><option>Sick</option><option>Family Sick</option><option>Bereavement</option><option>Comp</option><option>Training</option></select></div><div class="field"><label>Start</label><input id="leaveStart" type="time" value="08:00"></div><div class="field"><label>End</label><input id="leaveEnd" type="time" value="08:00"></div><div class="field"><label>Hours</label><input id="leaveHours" type="number" min=".5" max="24" step=".5" value="24"></div><div class="field"><label>Note</label><input id="leaveNote"></div></div>
+ <div class="actions"><button class="btn primary" onclick="submitLeave()">Submit</button></div>
+</div></div>
 
-<div id="otModal" class="modal"><div class="modalbox"><div class="modalhead"><h2 id="otModalTitle">OT Workflow</h2><div class="grow"></div><button class="ctl" onclick="closeModal('otModal')">Close</button></div><div id="otModalBody"></div></div></div>
-
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.min.js"></script>
 <script>
-const START='2026-09-30';
-const POSITIONS={
- 'E1 Driver / FAO':{unit:'E1',needs:{firefighter:true,fao:true}},
- 'E2 Firefighter':{unit:'E2',needs:{firefighter:true}},
- 'M1 Medic':{unit:'M1',needs:{medic:true}},
- 'M2 Partner':{unit:'M2',needs:{ems:true}},
- 'BC Coverage':{unit:'BC',needs:{bc:true}}
-};
-const UNIT_ROWS=[['STATION 1','band s1'],['BC','row'],['E1','row'],['M1','row'],['STATION 2','band s2'],['E2','row'],['M2','row'],['RESERVE / EVENTS','band res'],['M3','row']];
-const BASE_PERSONNEL=[
-{id:'p1',name:'Alex Carter',shift:'A',rank:'Battalion Chief',ems:'Paramedic',firefighter:true,fao:true,fto:false,csu:false,bsu:false,single:false,ot14:0,force:8,denials:0},
-{id:'p2',name:'Jordan Blake',shift:'A',rank:'Captain',ems:'Paramedic',firefighter:true,fao:true,fto:true,csu:false,bsu:false,single:false,ot14:12,force:7,denials:0},
-{id:'p3',name:'Casey Morgan',shift:'A',rank:'Firefighter',ems:'Paramedic',firefighter:true,fao:true,fto:true,csu:true,bsu:false,single:false,ot14:24,force:6,denials:1},
-{id:'p4',name:'Taylor Reed',shift:'A',rank:'Firefighter',ems:'EMT',firefighter:true,fao:true,fto:false,csu:false,bsu:false,single:false,ot14:0,force:2,denials:0},
-{id:'p5',name:'Riley Bennett',shift:'A',rank:'Firefighter',ems:'Paramedic',firefighter:true,fao:false,fto:false,csu:false,bsu:false,single:false,ot14:12,force:4,denials:0},
-{id:'p6',name:'Morgan Ellis',shift:'A',rank:'Paramedic',ems:'Paramedic',firefighter:false,fao:false,fto:true,csu:false,bsu:false,single:true,ot14:0,force:1,denials:1},
-{id:'p7',name:'Jamie Foster',shift:'A',rank:'Firefighter',ems:'EMT',firefighter:true,fao:false,fto:false,csu:false,bsu:false,single:false,ot14:0,force:5,denials:0,newHire:true},
-{id:'p8',name:'Avery Collins',shift:'A',rank:'Firefighter',ems:'Paramedic',firefighter:true,fao:true,fto:false,csu:false,bsu:true,single:false,ot14:36,force:3,denials:2},
-{id:'p9',name:'Parker Hayes',shift:'B',rank:'Battalion Chief',ems:'Paramedic',firefighter:true,fao:true,fto:false,csu:false,bsu:false,single:false,ot14:0,force:8,denials:0},
-{id:'p10',name:'Drew Simmons',shift:'B',rank:'Captain',ems:'Paramedic',firefighter:true,fao:true,fto:true,csu:false,bsu:false,single:false,ot14:0,force:7,denials:0},
-{id:'p11',name:'Cameron Price',shift:'B',rank:'Firefighter',ems:'EMT',firefighter:true,fao:true,fto:false,csu:false,bsu:false,single:false,ot14:0,force:2,denials:0},
-{id:'p12',name:'Skyler Brooks',shift:'B',rank:'Paramedic',ems:'Paramedic',firefighter:false,fao:false,fto:false,csu:false,bsu:false,single:true,ot14:0,force:1,denials:0},
-{id:'p13',name:'Quinn Parker',shift:'C',rank:'Battalion Chief',ems:'Paramedic',firefighter:true,fao:true,fto:false,csu:false,bsu:false,single:false,ot14:0,force:8,denials:0},
-{id:'p14',name:'Reese Ward',shift:'C',rank:'Captain',ems:'Paramedic',firefighter:true,fao:true,fto:true,csu:false,bsu:false,single:false,ot14:0,force:7,denials:0},
-{id:'p15',name:'Emerson Lane',shift:'C',rank:'Firefighter',ems:'Paramedic',firefighter:true,fao:true,fto:false,csu:true,bsu:false,single:false,ot14:12,force:3,denials:0},
-{id:'p16',name:'Rowan Kelly',shift:'C',rank:'Firefighter',ems:'EMT',firefighter:true,fao:false,fto:false,csu:false,bsu:false,single:false,ot14:0,force:4,denials:0,newHire:true}
-];
-function freshState(){
- const shortages=[
-  makeNeed('2026-10-06','E1 Driver / FAO','routine'),
-  makeNeed('2026-10-15','M1 Medic','leave'),
-  makeNeed('2026-10-24','E2 Firefighter','leave'),
-  makeNeed('2026-10-24','M2 Partner','leave')
- ];
- return {version:1,user:'p1',personnel:structuredClone(BASE_PERSONNEL),shortages,requests:[],events:[],notifications:[],audit:[],selectedDate:'2026-10-06',selectedNeed:null};
-}
-function makeNeed(date,position,source){return {id:'n'+Math.random().toString(36).slice(2,9),date,position,source,status:'Not paged',responses:[],award:null,created:Date.now()}}
-let state=loadState();
-function loadState(){try{const s=JSON.parse(localStorage.getItem('gfdPrototypeState'));return s&&s.version===1?s:freshState()}catch{return freshState()}}
-function save(){localStorage.setItem('gfdPrototypeState',JSON.stringify(state))}
-function resetDemo(){state=freshState();seedWelcome();save();renderAll();gotoView('schedule')}
-function person(id){return state.personnel.find(p=>p.id===id)}
-function currentUser(){return person(state.user)}
-function dayShift(date){const a=new Date(START+'T12:00:00'),b=new Date(date+'T12:00:00');const d=Math.round((b-a)/86400000);return ['A','B','C'][((d%3)+3)%3]}
-function previousShift(s){return s==='A'?'C':s==='B'?'A':'B'}
-function rankPriority(p){return p.rank==='Battalion Chief'?40:p.rank==='Captain'?30:p.rank==='Paramedic'?20:10}
-function isOfficer(p){return p.rank==='Captain'||p.rank==='Battalion Chief'}
-function qualifies(p,pos){
- const r=POSITIONS[pos]; if(!r)return false;
- if(r.needs.firefighter&&!p.firefighter)return false;
- if(r.needs.fao&&!p.fao)return false;
- if(r.needs.medic&&p.ems!=='Paramedic')return false;
- if(r.needs.ems&&!['EMT','Paramedic'].includes(p.ems))return false;
- if(r.needs.bc&&!(p.rank==='Battalion Chief'||p.bsu))return false;
- if((r.unit==='E1'||r.unit==='E2')&&p.single)return false;
- return true;
-}
-function roleTags(p){const x=[p.ems];if(p.fao)x.push('FAO');if(p.fto)x.push('FTO');if(p.csu)x.push('Captain Step-Up');if(p.bsu)x.push('BC Step-Up');if(p.single)x.push('Single-role');if(p.newHire)x.push('New Hire');return x}
-function canBC(){const u=currentUser();return u.rank==='Battalion Chief'||u.bsu}
-function log(action,detail){state.audit.unshift({id:crypto.randomUUID(),at:Date.now(),actor:currentUser()?.name||'System',action,detail});save()}
-function notify(userId,title,body,level='info',action=null){state.notifications.unshift({id:crypto.randomUUID(),userId,title,body,level,action,read:false,at:Date.now()});save()}
-function seedWelcome(){notify('p1','Prototype ready','Use any module to simulate the complete staffing workflow.','info');log('Simulation reset','Prototype state reset to baseline')}
-function dateLabel(d){return new Date(d+'T12:00:00').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}
-function gotoView(v){document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));document.getElementById('view-'+v).classList.add('active');document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===v));renderAll()}
-document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>gotoView(b.dataset.view));
+const SUPABASE_URL='https://hnktbvfzrccfrgfrgehr.supabase.co';
+const SUPABASE_KEY='sb_publishable_sdPmMJGLy0H1HSAxa1ngZQ_yYR3miIW';
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+let session=null, profile=null, me=null, personnel=[], otStatus=[], needs=[], responses=[], assignments=[], notifications=[], leaves=[], trades=[], audits=[], selectedNeed=null, pendingAward=null;
+const adminRoles=['bc','chief','admin'];
 
-function renderAll(){renderHeader();renderSchedule();renderStaffing();renderOt();renderRequests();renderEvents();renderNotifications();renderAudit();save()}
-function renderHeader(){const u=currentUser();document.getElementById('userName').textContent=u.name;document.getElementById('userRole').textContent=u.rank+' • '+u.shift+' Shift';const unread=state.notifications.filter(n=>n.userId===u.id&&!n.read).length;document.getElementById('notifBadge').textContent=unread;document.getElementById('notifBadge').style.display=unread?'inline-block':'none'}
+function msg(id,text,bad=false){const el=document.getElementById(id);el.textContent=text;el.className='notice'+(bad?' bad':'')}
+async function signIn(){const email=authEmail.value.trim(),password=authPassword.value;const {error}=await sb.auth.signInWithPassword({email,password});if(error)return msg('authMsg',error.message,true);await boot()}
+async function signUp(){const email=authEmail.value.trim(),password=authPassword.value;if(password.length<8)return msg('authMsg','Use a password of at least 8 characters.',true);const {data,error}=await sb.auth.signUp({email,password});if(error)return msg('authMsg',error.message,true);msg('authMsg',data.session?'Account created. Link your personnel record next.':'Account created. Check your email to confirm, then sign in.');if(data.session)await boot()}
+async function signOut(){await sb.auth.signOut();location.reload()}
+async function claimInvite(){const code=inviteCode.value.trim();const {data,error}=await sb.rpc('claim_invite',{p_code:code});if(error)return msg('claimMsg',error.message,true);msg('claimMsg','Account linked to '+data.name+'.');await boot()}
+async function boot(){
+ const s=await sb.auth.getSession();session=s.data.session;
+ if(!session){authScreen.classList.remove('hidden');claimScreen.classList.add('hidden');app.classList.add('hidden');return}
+ const {data:p}=await sb.from('profiles').select('user_id,personnel_id,app_role,active').eq('user_id',session.user.id).maybeSingle();
+ if(!p){authScreen.classList.add('hidden');claimScreen.classList.remove('hidden');app.classList.add('hidden');return}
+ profile=p;
+ const {data:m}=await sb.from('personnel').select('*').eq('id',p.personnel_id).single();me=m;
+ authScreen.classList.add('hidden');claimScreen.classList.add('hidden');app.classList.remove('hidden');
+ meName.textContent=me.name;meRole.textContent=me.rank+' • '+me.shift+' Shift • '+profile.app_role.toUpperCase();
+ createNeedBtn.classList.toggle('hidden',!isAdmin());
+ await loadAll();subscribeRealtime();registerSW();
+}
+function isAdmin(){return adminRoles.includes(profile?.app_role)}
+function rankPriority(p){if(p.rank.includes('Battalion'))return 40;if(p.rank==='Captain')return 30;if(p.single_role_paramedic)return 20;return 10}
+function priorShift(s){return s==='A'?'C':s==='B'?'A':'B'}
+function qLabel(g){return g==='FF_EMT'?'FF/EMT':g||'Officer / Special'}
+function qualifies(p,n){if(n.qualification_group==='PARAMEDIC')return p.ems_level==='Paramedic';if(n.qualification_group==='FAO')return p.is_fao;if(n.qualification_group==='FF_EMT')return p.is_firefighter;return p.rank.includes('Battalion')||p.bc_step_up}
+function formatDate(d){return new Date(d+'T12:00:00').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}
+function coverageSum(nid){return assignments.filter(a=>a.staffing_need_id===nid).reduce((s,a)=>s+Number(a.hours),0)}
+function remaining(n){return Math.max(0,Number(n.required_hours)-coverageSum(n.id))}
+function coverageText(a){return a.start_time.slice(0,5)+'–'+a.end_time.slice(0,5)+' • '+Number(a.hours)+'h'}
+function pById(id){return personnel.find(p=>p.id===id)}
+function otFor(id){return otStatus.find(x=>x.personnel_id===id)||{regular_ot_hours_14d:0,hours_remaining_to_24:24}}
 
-function renderSchedule(){
- const filter=document.getElementById('shiftFilter').value||'A';const days=[];const start=new Date(START+'T12:00:00');
- for(let i=0;i<28;i++){const d=new Date(start);d.setDate(d.getDate()+i);days.push(d.toISOString().slice(0,10))}
- const needs=state.shortages.filter(n=>!n.award);
- const dutyDays=filter==='ALL'?28:days.filter(d=>dayShift(d)===filter).length;
- const open=needs.filter(n=>filter==='ALL'||dayShift(n.date)===filter).length;
- document.getElementById('metrics').innerHTML=`
-  <div class="card metric"><strong>${dutyDays}</strong><span class="muted">Displayed duty days</span></div>
-  <div class="card metric"><strong>${Math.max(0,dutyDays-open)}</strong><span class="muted">Compliant / filled</span></div>
-  <div class="card metric"><strong>${open}</strong><span class="muted">Open staffing needs</span></div>
-  <div class="card metric"><strong>${state.requests.filter(r=>!['Approved','Denied','Completed'].includes(r.status)).length}</strong><span class="muted">Pending requests</span></div>`;
- const g=document.getElementById('calgrid');g.innerHTML='<div class="corner">Station / Unit</div>';
- for(const d of days){const shift=dayShift(d),date=new Date(d+'T12:00:00'),visible=filter==='ALL'||shift===filter,has=needs.some(n=>n.date===d);g.innerHTML+=`<div class="dayh"><small>${date.toLocaleDateString(undefined,{weekday:'short'})}</small><b>${date.getDate()}</b><small>${shift}</small><div class="dot ${!visible?'n':has?'r':'g'}"></div></div>`}
- for(const [name,type] of UNIT_ROWS){
-  if(type.startsWith('band')){g.innerHTML+=`<div class="${type}">${name}</div>`;continue}
-  g.innerHTML+=`<div class="rowlabel"><b>${name}</b><small>${name==='BC'?'Command':name.startsWith('E')?'Engine':name==='M3'?'Reserve/Event':'Medic'}</small></div>`;
-  for(const d of days){const shift=dayShift(d),visible=filter==='ALL'||shift===filter;if(!visible){g.innerHTML+='<button class="cell off">OFF</button>';continue}const bad=needs.some(n=>n.date===d&&POSITIONS[n.position]?.unit===name);g.innerHTML+=`<button class="cell ${bad?'bad':'ok'}" onclick="selectDay('${d}')">${bad?'!':'✓'}</button>`}
+async function loadAll(){
+ const [p,o,n,r,a,no,l,t,au]=await Promise.all([
+  sb.from('personnel').select('*').eq('active',true).order('shift').order('hire_date',{ascending:false}),
+  sb.from('personnel_ot_status').select('*'),
+  sb.from('staffing_needs').select('*').neq('status','CANCELLED').order('duty_date'),
+  sb.from('ot_responses').select('*').order('responded_at'),
+  sb.from('staffing_assignments').select('*').order('awarded_at'),
+  sb.from('notifications').select('*').eq('recipient_personnel_id',me.id).order('created_at',{ascending:false}).limit(100),
+  sb.from('leave_requests').select('*').order('created_at',{ascending:false}).limit(100),
+  sb.from('trade_requests').select('*').order('created_at',{ascending:false}).limit(100),
+  isAdmin()?sb.from('audit_events').select('*').order('created_at',{ascending:false}).limit(100):Promise.resolve({data:[]})
+ ]);
+ personnel=p.data||[];otStatus=o.data||[];needs=n.data||[];responses=r.data||[];assignments=a.data||[];notifications=no.data||[];leaves=l.data||[];trades=t.data||[];audits=au.data||[];renderAll()
+}
+function renderAll(){renderDashboard();renderStaffing();renderOT();renderPersonnel();renderNotifications();renderRequests();renderAudit()}
+function renderDashboard(){
+ const active=needs.filter(n=>n.status!=='FILLED'), unread=notifications.filter(n=>!n.read_at).length, mine=assignments.filter(a=>a.personnel_id===me.id).length;
+ dashboardMetrics.innerHTML=`<div class="card metric"><strong>${active.length}</strong><span class="muted">Open staffing needs</span></div><div class="card metric"><strong>${unread}</strong><span class="muted">Unread notifications</span></div><div class="card metric"><strong>${mine}</strong><span class="muted">My staffing assignments</span></div><div class="card metric"><strong>${otFor(me.id).regular_ot_hours_14d}</strong><span class="muted">My Regular OT hours / 14d</span></div>`;
+ dashNeeds.innerHTML=active.slice(0,6).map(needCard).join('')||'<div class="notice">No open staffing needs.</div>';
+ dashNotifs.innerHTML=notifications.slice(0,6).map(notifCard).join('')||'<div class="notice">No notifications.</div>'
+}
+function needCard(n){const covered=coverageSum(n.id),pct=Math.min(100,(covered/Number(n.required_hours))*100);return `<div class="item"><h3>${formatDate(n.duty_date)} — ${n.position_label}</h3><div class="meta">${n.shift} Shift • ${n.unit} • ${qLabel(n.qualification_group)} • ${n.status.replaceAll('_',' ')}</div><div class="coverage"><span style="width:${pct}%"></span></div><div class="meta">${covered}/${Number(n.required_hours)}h covered • ${remaining(n)}h remaining</div><div class="actions"><button class="btn primary" onclick="openWorkflow('${n.id}')">Open</button></div></div>`}
+function renderStaffing(){staffingList.innerHTML=needs.length?needs.map(needCard).join(''):'<div class="notice">No staffing needs.</div>'}
+function renderOT(){
+ const active=needs.filter(n=>n.status!=='FILLED');
+ otNeeds.innerHTML=active.map(n=>`<div class="item"><h3>${formatDate(n.duty_date)} — ${n.position_label}</h3><div class="meta">${n.shift} Shift • ${remaining(n)}h remaining • ${responses.filter(r=>r.staffing_need_id===n.id&&r.available).length} available</div><div class="actions"><button class="btn primary" onclick="selectNeed('${n.id}')">View</button></div></div>`).join('')||'<div class="notice">No active staffing needs.</div>';
+ if(selectedNeed){const n=needs.find(x=>x.id===selectedNeed);if(n)otDetail.innerHTML=needDetail(n)}
+}
+function selectNeed(id){selectedNeed=id;const n=needs.find(x=>x.id===id);otDetail.className='';otDetail.innerHTML=needDetail(n)}
+function needDetail(n){
+ const mineResp=responses.find(r=>r.staffing_need_id===n.id&&r.personnel_id===me.id);
+ let action='';
+ if(qualifies(me,n)&&!mineResp)action=`<div class="actions"><button class="btn good" onclick="respondOT('${n.id}',true)">Available</button><button class="btn danger" onclick="respondOT('${n.id}',false)">Not Available</button></div>`;
+ if(isAdmin())action+=`<div class="actions"><button class="btn primary" onclick="notifyQualified('${n.id}')">Notify Qualified</button><button class="btn" onclick="openWorkflow('${n.id}')">Award / Force</button></div>`;
+ return `<div class="panel-title">${formatDate(n.duty_date)} — ${n.position_label}</div><div class="notice">${n.shift} Shift • ${n.unit}<br>Coverage: <b>${coverageSum(n.id)}/${Number(n.required_hours)}h</b> • ${remaining(n)}h remaining<br>Required: ${qLabel(n.qualification_group)}<br>Status: ${n.status.replaceAll('_',' ')}</div>${action}`
+}
+async function respondOT(id,available){
+ const row={staffing_need_id:id,personnel_id:me.id,available,available_hours:available?remaining(needs.find(n=>n.id===id)):0};
+ const {error}=await sb.from('ot_responses').upsert(row,{onConflict:'staffing_need_id,personnel_id'});if(error)return alert(error.message);
+ await sb.from('staffing_needs').update({status:'RESPONSES_RECEIVED'}).eq('id',id);await logAudit('OT_RESPONSE','staffing_need',id,{available});await loadAll()
+}
+async function notifyQualified(id){
+ const n=needs.find(x=>x.id===id),eligible=personnel.filter(p=>qualifies(p,n));
+ const rows=eligible.map(p=>({recipient_personnel_id:p.id,category:'ACTION_REQUIRED',title:'OT Availability Requested',body:`${formatDate(n.duty_date)} • ${n.position_label} • ${Number(n.required_hours)}h need`,action_type:'OT_RESPONSE',action_id:n.id}));
+ const {error}=await sb.from('notifications').insert(rows);if(error)return alert(error.message);
+ await sb.from('staffing_needs').update({status:'AVAILABILITY_REQUESTED'}).eq('id',id);await logAudit('OT_NOTIFICATION_SENT','staffing_need',id,{count:eligible.length});await loadAll()
+}
+async function openWorkflow(id){
+ if(!isAdmin()){selectNeed(id);goto('ot');return}
+ selectedNeed=id;const n=needs.find(x=>x.id===id);workflowTitle.textContent='Staffing Workflow — '+n.position_label;
+ const rs=responses.filter(r=>r.staffing_need_id===id&&r.available).map(r=>({r,p:pById(r.personnel_id)})).filter(x=>x.p&&qualifies(x.p,n)).sort((a,b)=>rankPriority(a.p)-rankPriority(b.p)||new Date(a.r.responded_at)-new Date(b.r.responded_at));
+ const awardable=rs.filter(x=>Number(otFor(x.p.id).regular_ot_hours_14d)<24);
+ const reg=rs.map((x,i)=>{const o=otFor(x.p.id),blocked=Number(o.regular_ot_hours_14d)>=24;return `<div class="candidate ${blocked?'disabled':''}"><div><b>#${i+1} ${x.p.name}</b> ${x.p.rank==='Captain'||x.p.rank.includes('Battalion')?'<span class="tag warn">OFFICER DEFERRED</span>':'<span class="tag good">LINE PRIORITY</span>'}<div class="meta">${x.p.rank} • ${x.p.shift} Shift</div><div class="decision">Responded ${new Date(x.r.responded_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})} • ${o.regular_ot_hours_14d}h Regular OT / 14d<br>${blocked?'24-hour regular OT threshold reached':'Awardable now'}</div></div><button class="btn good" ${blocked?'disabled':''} onclick="openAward('${n.id}','${x.p.id}','REGULAR_OT')">Schedule</button></div>`}).join('');
+ let force='';
+ if(!awardable.length){
+  force=`<div class="notice warn" style="margin-top:12px">No awardable Regular OT responder. Force comes from <b>${priorShift(n.shift)} Shift</b> using the ${qLabel(n.qualification_group)} force group.</div><div id="forceCandidates" class="list" style="margin-top:8px">Loading force list…</div>`;
+  setTimeout(()=>loadForce(id),0)
  }
- renderDayDetail();
+ const segs=assignments.filter(a=>a.staffing_need_id===id).map(a=>`<div class="item"><b>${pById(a.personnel_id)?.name||'Personnel'}</b><div class="meta">${coverageText(a)} • ${a.assignment_type.replaceAll('_',' ')}</div></div>`).join('');
+ workflowBody.innerHTML=`<div class="notice">Required coverage: ${Number(n.required_hours)}h • Covered: ${coverageSum(n.id)}h • Remaining: ${remaining(n)}h</div>${segs?'<div class="panel-title" style="margin-top:12px">Coverage Blocks</div>'+segs:''}<div class="panel-title" style="margin-top:14px">Regular OT Responses</div>${reg||'<div class="notice bad">No available qualified responses.</div>'}${force}`;openModal('workflowModal')
 }
-function selectDay(d){state.selectedDate=d;renderDayDetail();save()}
-function renderDayDetail(){
- const d=state.selectedDate||START,shift=dayShift(d),open=state.shortages.filter(n=>n.date===d&&!n.award),filled=state.shortages.filter(n=>n.date===d&&n.award);
- document.getElementById('dayDetail').innerHTML=`
- <h2 style="margin:0">${dateLabel(d)}, ${new Date(d+'T12:00:00').getFullYear()}</h2><div class="muted">${shift} Shift • 24-hour duty</div>
- <div class="banner ${open.length?'bad':''}">${open.length?open.length+' OPEN POSITION'+(open.length>1?'S':''):'COMPLIANT / FILLED'}</div>
- <div class="unit s1"><h3>STATION 1</h3>${detailRow('BC',d)}${detailRow('E1',d)}${detailRow('M1',d)}</div>
- <div class="unit s2"><h3>STATION 2</h3>${detailRow('E2',d)}${detailRow('M2',d)}</div>
- ${filled.length?'<div class="notice" style="margin-top:8px"><b>Filled:</b><br>'+filled.map(n=>n.position+' — '+person(n.award.personId).name+' ('+n.award.type+')').join('<br>')+'</div>':''}
- <div class="row" style="margin-top:10px"><button class="btn primary" onclick="gotoView('staffing')">Manage Staffing</button><button class="btn good" onclick="gotoView('ot')">OT / Force</button></div>`;
+async function loadForce(needId){
+ const n=needs.find(x=>x.id===needId);if(!n.qualification_group){forceCandidates.innerHTML='<div class="notice">No force group is assigned to this need.</div>';return}
+ const {data:g}=await sb.from('force_groups').select('id').eq('shift',priorShift(n.shift)).eq('group_name',n.qualification_group).eq('calendar_year',new Date(n.duty_date+'T12:00:00').getFullYear()).maybeSingle();
+ if(!g){forceCandidates.innerHTML='<div class="notice bad">No matching force group found.</div>';return}
+ const {data:m}=await sb.from('force_memberships').select('*').eq('force_group_id',g.id).order('force_position');
+ forceCandidates.innerHTML=(m||[]).map((x,i)=>{const p=pById(x.personnel_id);return `<div class="candidate"><div><b>${p?.name||'Unknown'} ${i===0?'<span class="tag bad">FIRST UP</span>':''}</b><div class="meta">${p?.rank||''} • Force #${x.force_position} • ${x.denials_ytd} denials • ${x.force_status}</div></div><button class="btn danger" onclick="openAward('${n.id}','${x.personnel_id}','FORCED_OT')">Force</button></div>`}).join('')||'<div class="notice">No eligible force members.</div>'
 }
-function detailRow(unit,d){const open=state.shortages.filter(n=>n.date===d&&!n.award&&POSITIONS[n.position]?.unit===unit);return `<div class="assign"><b>${unit}</b><span>${open.length?open.map(n=>n.position).join(', '):unit==='BC'?'BC / BC Step-Up':unit.startsWith('E')?'Minimum 3 • ALS • FAO':'Minimum 2 • ALS'}</span><span class="tag ${open.length?'bad':'good'}">${open.length?'OPEN':'GOOD'}</span></div>`}
+function openAward(nid,pid,type){pendingAward={nid,pid,type};const n=needs.find(x=>x.id===nid),p=pById(pid);awardWho.innerHTML=`<b>${p.name}</b><br>${formatDate(n.duty_date)} • ${n.position_label}<br>${type.replaceAll('_',' ')} • ${remaining(n)}h still needed`;awardPreset(remaining(n)>=24?'full':remaining(n)>=12?'day':'custom');openModal('awardModal')}
+function awardPreset(x){if(x==='day'){awardStart.value='08:00';awardEnd.value='20:00';awardHours.value=12}else if(x==='night'){awardStart.value='20:00';awardEnd.value='08:00';awardHours.value=12}else if(x==='full'){awardStart.value='08:00';awardEnd.value='08:00';awardHours.value=24}else{awardHours.value=Math.min(remaining(needs.find(n=>n.id===pendingAward.nid)),24)}}
+async function confirmAward(){
+ const n=needs.find(x=>x.id===pendingAward.nid),hours=Number(awardHours.value);if(hours<=0||hours>remaining(n))return alert('Coverage block must be greater than 0 and cannot exceed '+remaining(n)+' remaining hours.');
+ const row={staffing_need_id:n.id,personnel_id:pendingAward.pid,assignment_type:pendingAward.type,start_time:awardStart.value,end_time:awardEnd.value,hours,awarded_by:session.user.id};
+ const {error}=await sb.from('staffing_assignments').insert(row);if(error)return alert(error.message);
+ const after=remaining(n)-hours,status=after<=0?'FILLED':'PARTIALLY_FILLED';await sb.from('staffing_needs').update({status}).eq('id',n.id);
+ await sb.from('notifications').insert({recipient_personnel_id:pendingAward.pid,category:'CRITICAL',title:pendingAward.type==='FORCED_OT'?'Forced OT Assignment':'OT Assignment',body:`${formatDate(n.duty_date)} • ${n.position_label} • ${awardStart.value}–${awardEnd.value} • ${hours}h`,action_type:'ACK_ASSIGNMENT',action_id:n.id});
+ await logAudit('STAFFING_ASSIGNED','staffing_need',n.id,{personnel_id:pendingAward.pid,type:pendingAward.type,start:awardStart.value,end:awardEnd.value,hours});
+ closeModal('awardModal');closeModal('workflowModal');await loadAll()
+}
+function renderPersonnel(){personnelRows.innerHTML=personnel.map(p=>`<tr><td><b>${p.name}</b></td><td>${p.shift}</td><td>${p.rank}</td><td>${p.single_role_paramedic?'<span class="tag warn">SINGLE-ROLE MEDIC</span>':''}${p.is_firefighter?'<span class="tag">FF</span>':''}${p.ems_level?'<span class="tag">'+p.ems_level+'</span>':''}${p.is_fao?'<span class="tag">FAO</span>':''}${p.is_fto?'<span class="tag">FTO</span>':''}</td><td>${otFor(p.id).regular_ot_hours_14d}h</td></tr>`).join('')}
+function notifCard(n){return `<div class="item"><h3>${n.title} ${!n.read_at?'<span class="tag bad">UNREAD</span>':''}</h3><div class="meta">${new Date(n.created_at).toLocaleString()} • ${n.body}</div><div class="actions">${!n.read_at?'<button class="btn" onclick="readNotif(\''+n.id+'\')">Mark Read</button>':''}${n.action_type==='OT_RESPONSE'?'<button class="btn primary" onclick="selectNeed(\''+n.action_id+'\');goto(\'ot\')">Open OT Request</button>':''}${n.action_type==='ACK_ASSIGNMENT'&&!n.acknowledged_at?'<button class="btn good" onclick="ackNotif(\''+n.id+'\')">Acknowledge</button>':''}</div></div>`}
+function renderNotifications(){notificationList.innerHTML=notifications.map(notifCard).join('')||'<div class="notice">No notifications.</div>'}
+async function readNotif(id){await sb.from('notifications').update({read_at:new Date().toISOString()}).eq('id',id);await loadAll()}
+async function ackNotif(id){await sb.from('notifications').update({read_at:new Date().toISOString(),acknowledged_at:new Date().toISOString()}).eq('id',id);await loadAll()}
+async function markAllRead(){for(const n of notifications.filter(x=>!x.read_at))await sb.from('notifications').update({read_at:new Date().toISOString()}).eq('id',n.id);await loadAll()}
+function renderRequests(){leaveList.innerHTML=leaves.map(r=>`<div class="item"><h3>${pById(r.personnel_id)?.name||'Personnel'} — ${r.leave_type}</h3><div class="meta">${formatDate(r.leave_date)} • ${Number(r.hours)}h • ${r.status}</div></div>`).join('')||'<div class="notice">No leave requests.</div>';tradeList.innerHTML=trades.map(r=>`<div class="item"><h3>${pById(r.requester_id)?.name||'Personnel'} trade</h3><div class="meta">${formatDate(r.requester_date)} • ${r.status}</div></div>`).join('')||'<div class="notice">No trade requests.</div>'}
+function openLeave(){leaveDate.value=new Date().toISOString().slice(0,10);openModal('leaveModal')}
+async function submitLeave(){const row={personnel_id:me.id,leave_type:leaveType.value,leave_date:leaveDate.value,start_time:leaveStart.value,end_time:leaveEnd.value,hours:Number(leaveHours.value),note:leaveNote.value};const {data,error}=await sb.from('leave_requests').insert(row).select().single();if(error)return alert(error.message);await logAudit('LEAVE_REQUESTED','leave_request',data.id,{type:leaveType.value,hours:Number(leaveHours.value)});closeModal('leaveModal');await loadAll()}
+function renderAudit(){auditList.innerHTML=isAdmin()?(audits.map(a=>`<div class="item"><b>${a.action}</b><div class="meta">${new Date(a.created_at).toLocaleString()} • ${a.entity_type||''}</div><div class="decision">${JSON.stringify(a.detail)}</div></div>`).join('')||'<div class="notice">No audit activity.</div>'):'<div class="notice">Audit log is restricted to BC/admin roles.</div>'}
+async function logAudit(action,entity_type,entity_id,detail){if(!isAdmin()&&action!=='OT_RESPONSE'&&action!=='LEAVE_REQUESTED')return;await sb.from('audit_events').insert({actor_user_id:session.user.id,actor_personnel_id:me.id,action,entity_type,entity_id,detail})}
 
-function renderStaffing(){
- const open=state.shortages.filter(n=>!n.award),filled=state.shortages.filter(n=>n.award).slice().reverse();
- document.getElementById('staffingNeeds').innerHTML=open.length?open.map(n=>needCard(n,true)).join(''):'<div class="notice">No open shortages.</div>';
- document.getElementById('filledNeeds').innerHTML=filled.length?filled.map(n=>needCard(n,false)).join(''):'<div class="notice">Nothing filled yet in this simulation.</div>';
-}
-function needCard(n,active){const shift=dayShift(n.date),responses=n.responses.filter(r=>r.available).length;return `<div class="item"><h3>${dateLabel(n.date)} — ${n.position}</h3><div class="meta">${shift} Shift • ${n.source} • ${n.status}${active?' • '+responses+' available response'+(responses===1?'':'s'):''}</div><div class="actions">${active?'<button class="btn primary" onclick="openNeed(\''+n.id+'\')">Open Workflow</button>':''}${n.award?'<span class="status good">'+n.award.type+' — '+person(n.award.personId).name+'</span>':''}</div></div>`}
+function openNeedCreator(){if(!isAdmin())return;needDate.value=new Date().toISOString().slice(0,10);openModal('needModal')}
+function applyNeedPreset(){const p=needPreset.value;if(p==='24'){needStart.value='08:00';needEnd.value='08:00';needHours.value=24}else if(p==='day'){needStart.value='08:00';needEnd.value='20:00';needHours.value=12}else if(p==='night'){needStart.value='20:00';needEnd.value='08:00';needHours.value=12}}
+async function createNeed(){const row={duty_date:needDate.value,shift:needShift.value,unit:needUnit.value,position_label:needPosition.value.trim(),qualification_group:needGroup.value||null,source:needSource.value,status:'NOT_PAGED',start_time:needStart.value,end_time:needEnd.value,required_hours:Number(needHours.value),created_by:session.user.id};if(!row.position_label)return alert('Position is required.');const {data,error}=await sb.from('staffing_needs').insert(row).select().single();if(error)return alert(error.message);await logAudit('STAFFING_NEED_CREATED','staffing_need',data.id,row);closeModal('needModal');await loadAll()}
+function openModal(id){document.getElementById(id).classList.add('show')}function closeModal(id){document.getElementById(id).classList.remove('show')}
+function goto(v){document.querySelectorAll('.view').forEach(x=>x.classList.remove('on'));document.getElementById('view-'+v).classList.add('on');document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.view===v));if(v==='ot'&&selectedNeed)selectNeed(selectedNeed)}
+document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>goto(b.dataset.view));
 
-function renderOt(){
- const active=state.shortages.filter(n=>!n.award);
- document.getElementById('otNeeds').innerHTML=active.length?active.map(n=>`<div class="item ${state.selectedNeed===n.id?'active':''}" onclick="selectNeed('${n.id}')"><h3>${dateLabel(n.date)} — ${n.position}</h3><div class="meta">${dayShift(n.date)} Shift • ${n.status} • ${n.responses.length} responses</div></div>`).join(''):'<div class="notice">No active OT needs.</div>';
- const n=active.find(x=>x.id===state.selectedNeed)||active[0];if(n){state.selectedNeed=n.id;document.getElementById('otDetail').className='';document.getElementById('otDetail').innerHTML=otDetail(n)}else{document.getElementById('otDetail').className='notice';document.getElementById('otDetail').innerHTML='No active needs.'}
-}
-function selectNeed(id){state.selectedNeed=id;renderOt();save()}
-function otDetail(n){
- const avail=n.responses.filter(r=>r.available&&qualifies(person(r.personId),n.position)).length;
- const actions=n.status==='Not paged'?'<button class="btn primary" onclick="notifyQualified(\''+n.id+'\')">Notify Qualified Personnel</button>':
- n.status==='Availability requested'?'<button class="btn primary" onclick="simulateResponses(\''+n.id+'\')">Simulate Responses</button>':
- '<button class="btn good" onclick="openNeed(\''+n.id+'\')">Review '+avail+' Responses / Award</button>';
- return `<div class="panel-title">${dateLabel(n.date)} — ${n.position}</div><div class="notice">Need shift: <b>${dayShift(n.date)}</b><br>Status: <b>${n.status}</b><br>Source: ${n.source}<br>Available qualified responses: ${avail}</div><div class="row" style="margin-top:10px">${actions}</div>${n.responses.length?'<div style="margin-top:10px">'+responseSummary(n)+'</div>':''}`;
-}
-function responseSummary(n){return n.responses.slice().sort((a,b)=>a.minutes-b.minutes).map(r=>{const p=person(r.personId);return `<div class="item"><b>${p.name}</b> — ${r.available?'AVAILABLE':'NOT AVAILABLE'} <span class="tag">${r.minutes} min</span><div class="meta">${p.rank} • ${p.ot14}h OT/14d • Force #${p.force}</div></div>`}).join('')}
-
-function notifyQualified(id){
- const n=state.shortages.find(x=>x.id===id);if(!n)return;
- const eligible=state.personnel.filter(p=>qualifies(p,n.position));
- n.status='Availability requested';n.notifiedAt=Date.now();
- eligible.forEach(p=>notify(p.id,'OT Availability Requested',dateLabel(n.date)+' • '+n.position+' • Respond Available / Not Available','action',{type:'ot-response',needId:n.id}));
- log('OT availability requested',n.position+' on '+n.date+' sent to '+eligible.length+' qualified personnel');renderAll()
-}
-function simulateResponses(id){
- const n=state.shortages.find(x=>x.id===id);if(!n)return;
- const eligible=state.personnel.filter(p=>qualifies(p,n.position));
- const pattern=[true,true,false,true,false,true,true,false];
- n.responses=eligible.map((p,i)=>({personId:p.id,available:pattern[i%pattern.length],minutes:2+i*3,at:Date.now()+i*180000}));
- n.status='Responses received';
- n.responses.forEach(r=>{const p=person(r.personId);log('OT response',p.name+' responded '+(r.available?'AVAILABLE':'NOT AVAILABLE')+' for '+n.position)});
- notifyBCs('OT Responses Received',dateLabel(n.date)+' • '+n.position+' • '+n.responses.filter(r=>r.available).length+' available','action');
- renderAll()
-}
-function notifyBCs(title,body,level){state.personnel.filter(p=>p.rank==='Battalion Chief').forEach(p=>notify(p.id,title,body,level))}
-function openNeed(id){
- const n=state.shortages.find(x=>x.id===id);if(!n)return;state.selectedNeed=id;document.getElementById('otModalTitle').textContent='Staffing Workflow — '+n.position;document.getElementById('otModalBody').innerHTML=workflowBody(n);openModal('otModal')
-}
-function workflowBody(n){
- if(n.status==='Not paged')return `<div class="notice">No availability request has been sent yet.</div><div style="margin-top:10px"><button class="btn primary" onclick="notifyQualified('${n.id}');openNeed('${n.id}')">Notify Qualified Personnel</button></div>`;
- if(n.status==='Availability requested')return `<div class="notice">Qualified personnel have been notified. Simulate incoming responses.</div><div style="margin-top:10px"><button class="btn primary" onclick="simulateResponses('${n.id}');openNeed('${n.id}')">Simulate Responses</button></div>`;
- const responders=n.responses.filter(r=>r.available).map(r=>({r,p:person(r.personId)})).filter(x=>qualifies(x.p,n.position));
- const awardable=responders.filter(x=>x.p.ot14<24).sort((a,b)=>rankPriority(a.p)-rankPriority(b.p)||a.r.minutes-b.r.minutes||a.p.ot14-b.p.ot14);
- const needShift=dayShift(n.date),sourceShift=previousShift(needShift);
- const force=state.personnel.filter(p=>p.shift===sourceShift&&qualifies(p,n.position)).sort((a,b)=>a.force-b.force);
- const regular=`<div class="notice"><b>Regular OT award view</b><br>Lower rank first. Response time breaks ties. Officers are deferred priority.</div>`+
- (responders.length?responders.sort((a,b)=>rankPriority(a.p)-rankPriority(b.p)||a.r.minutes-b.r.minutes).map((x,i)=>candidateHtml(n,x.p,x.r,i,awardable.includes(x))).join(''):'<div class="notice bad" style="margin-top:8px">No qualified personnel responded available.</div>');
- const forceBlock=!awardable.length?`<div class="notice warn" style="margin-top:12px"><b>No awardable Regular OT takers.</b> Force must come from previous shift: <b>${sourceShift} Shift</b>.</div>`+
- force.map((p,i)=>forceHtml(n,p,i)).join(''):'';
- return regular+forceBlock;
-}
-function candidateHtml(n,p,r,i,canAward){
- const deferred=isOfficer(p),threshold=p.ot14>=24;
- return `<div class="candidate ${canAward?'':'disabled'}"><div><b>#${i+1} ${p.name}</b> ${deferred?'<span class="tag warn">OFFICER DEFERRED</span>':'<span class="tag good">LINE PRIORITY</span>'}<div class="meta">${p.rank} • ${roleTags(p).join(' • ')}</div><div class="decision"><b>${r.minutes} min response</b> • ${p.ot14}h Regular OT / 14d • Force #${p.force} • ${p.denials} denials<br>${threshold?'Not awardable: 24h Regular OT threshold reached':'Awardable under demo rules'}</div></div><div><button class="btn good" ${canAward?'':'disabled'} onclick="awardNeed('${n.id}','${p.id}','Regular OT')">Award OT</button></div></div>`
-}
-function forceHtml(n,p,i){return `<div class="candidate"><div><b>${p.name} ${i===0?'<span class="tag bad">FIRST UP</span>':''}</b><div class="meta">${p.shift} Shift • ${p.rank} • Force #${p.force} • ${p.denials} denials</div><div class="decision">${i===0?'Current first-up qualified member from previous shift.':'Qualified next-up member.'}</div></div><div><button class="btn danger" onclick="forcePerson('${n.id}','${p.id}')">Force</button></div></div>`}
-function forcePerson(needId,pid){
- const n=state.shortages.find(x=>x.id===needId),p=person(pid);if(!n||!p)return;
- const deny=p.denials<2&&Math.random()<.35;
- if(deny){p.denials++;p.force+=10;log('Forced OT denial',p.name+' denied forced OT for '+n.position+'; denial count '+p.denials);notify(p.id,'Forced OT Denial Recorded',dateLabel(n.date)+' • '+n.position+' • denial '+p.denials+'/2','critical');openNeed(needId);renderAll();return}
- awardNeed(needId,pid,'Forced OT')
-}
-function awardNeed(id,pid,type){
- const n=state.shortages.find(x=>x.id===id),p=person(pid);if(!n||!p)return;
- n.award={personId:pid,type,at:Date.now()};n.status='Filled';
- notify(p.id,type+' Assignment',dateLabel(n.date)+' • '+n.position+' • assignment requires acknowledgement','critical',{type:'ack-assignment',needId:id});
- notifyBCs('Staffing Filled',dateLabel(n.date)+' • '+n.position+' • '+p.name+' • '+type,'info');
- log(type+' awarded',p.name+' assigned to '+n.position+' on '+n.date);
- closeModal('otModal');renderAll()
-}
-
-function renderRequests(){
- const pend=state.requests.filter(r=>!['Approved','Denied','Completed'].includes(r.status)),done=state.requests.filter(r=>['Approved','Denied','Completed'].includes(r.status));
- document.getElementById('pendingRequests').innerHTML=pend.length?pend.map(requestCard).join(''):'<div class="notice">No pending requests.</div>';
- document.getElementById('completedRequests').innerHTML=done.length?done.map(requestCard).join(''):'<div class="notice">No completed requests.</div>'
-}
-function requestCard(r){
- const p=person(r.personId);let acts='';
- if(r.kind==='Leave'&&r.status==='Submitted'&&canBC())acts=`<button class="btn good" onclick="approveLeave('${r.id}')">Approve</button><button class="btn danger" onclick="denyRequest('${r.id}')">Deny</button>`;
- if(r.kind==='Trade'&&r.status==='Submitted'){acts=`<button class="btn primary" onclick="acceptTrade('${r.id}')">Simulate Replacement Accept</button>`}
- if(r.kind==='Trade'&&r.status==='Accepted'&&canBC()){acts=`<button class="btn good" onclick="approveTrade('${r.id}')">BC Approve</button><button class="btn danger" onclick="denyRequest('${r.id}')">Deny</button>`}
- return `<div class="item"><h3>${r.kind} — ${p.name}</h3><div class="meta">${r.kind==='Leave'?r.leaveType+' • '+dateLabel(r.date)+' • '+r.hours+'h':'Work '+dateLabel(r.date)+' ↔ '+dateLabel(r.reciprocalDate)+' with '+person(r.replacementId).name} • ${r.status}</div><div class="actions">${acts}</div></div>`
-}
-function openLeaveRequest(){fillPersonnelSelects();openModal('leaveModal')}
-function submitLeave(){const p=document.getElementById('leavePerson').value,date=document.getElementById('leaveDate').value,type=document.getElementById('leaveType').value,hours=+document.getElementById('leaveHours').value;const r={id:crypto.randomUUID(),kind:'Leave',personId:p,date,leaveType:type,hours,status:'Submitted',at:Date.now()};state.requests.unshift(r);notifyBCs('Leave Approval Required',person(p).name+' • '+type+' • '+dateLabel(date),'action');log('Leave request submitted',person(p).name+' requested '+type+' on '+date);closeModal('leaveModal');renderAll()}
-function approveLeave(id){const r=state.requests.find(x=>x.id===id);if(!r)return;r.status='Approved';notify(r.personId,'Leave Approved',r.leaveType+' • '+dateLabel(r.date),'info');log('Leave approved',person(r.personId).name+' • '+r.leaveType+' • '+r.date);const pos=person(r.personId).ems==='Paramedic'?'M1 Medic':'E2 Firefighter';const n=makeNeed(r.date,pos,'approved leave');state.shortages.push(n);log('Staffing shortage created',pos+' created from approved leave');closeModal('leaveModal');renderAll()}
-function denyRequest(id){const r=state.requests.find(x=>x.id===id);if(!r)return;r.status='Denied';notify(r.personId,r.kind+' Denied',dateLabel(r.date),'info');log(r.kind+' denied',person(r.personId).name+' • '+r.date);renderAll()}
-function openTradeRequest(){fillPersonnelSelects();openModal('tradeModal')}
-function submitTrade(){const r={id:crypto.randomUUID(),kind:'Trade',personId:document.getElementById('tradeA').value,replacementId:document.getElementById('tradeB').value,date:document.getElementById('tradeDateA').value,reciprocalDate:document.getElementById('tradeDateB').value,status:'Submitted',at:Date.now()};state.requests.unshift(r);notify(r.replacementId,'Trade Request',person(r.personId).name+' requests trade '+dateLabel(r.date)+' ↔ '+dateLabel(r.reciprocalDate),'action',{type:'trade',requestId:r.id});log('Trade submitted',person(r.personId).name+' requested trade with '+person(r.replacementId).name);closeModal('tradeModal');renderAll()}
-function acceptTrade(id){const r=state.requests.find(x=>x.id===id);r.status='Accepted';notifyBCs('Trade Ready for BC Review',person(r.personId).name+' ↔ '+person(r.replacementId).name,'action');log('Trade accepted',person(r.replacementId).name+' accepted trade');renderAll()}
-function approveTrade(id){const r=state.requests.find(x=>x.id===id);r.status='Approved';notify(r.personId,'Trade Approved',dateLabel(r.date)+' ↔ '+dateLabel(r.reciprocalDate),'info');notify(r.replacementId,'Trade Approved',dateLabel(r.date)+' ↔ '+dateLabel(r.reciprocalDate),'info');log('Trade approved',person(r.personId).name+' ↔ '+person(r.replacementId).name);renderAll()}
-
-function renderEvents(){document.getElementById('eventsList').innerHTML=state.events.length?state.events.map(e=>`<div class="item"><h3>${e.name}</h3><div class="meta">${dateLabel(e.date)} • ${e.asset} • ${e.position} • ${e.status}</div><div class="actions">${e.needId?'<button class="btn primary" onclick="gotoView(\'ot\');selectNeed(\''+e.needId+'\')">Open OT Need</button>':''}</div></div>`).join(''):'<div class="notice">No demo events yet.</div>'}
-function createEventNeed(){const e={id:crypto.randomUUID(),name:'Demo Community Event',date:'2026-10-10',asset:'M3',position:'M1 Medic',status:'Needs staffing'};const n=makeNeed(e.date,e.position,'special event');state.shortages.push(n);e.needId=n.id;state.events.unshift(e);log('Event staffing need created',e.name+' • '+e.position);renderAll()}
-
-function renderNotifications(){const u=currentUser(),list=state.notifications.filter(n=>n.userId===u.id);document.getElementById('notificationsList').innerHTML=list.length?list.map(n=>`<div class="item"><h3>${n.title} ${n.read?'':'<span class="status bad">UNREAD</span>'}</h3><div class="meta">${new Date(n.at).toLocaleString()} • ${n.body}</div><div class="actions">${n.action?notificationAction(n):''}${!n.read?'<button class="btn" onclick="readNotif(\''+n.id+'\')">Mark Read</button>':''}</div></div>`).join(''):'<div class="notice">No notifications for this user.</div>'}
-function notificationAction(n){
- if(n.action.type==='ot-response'){return `<button class="btn good" onclick="respondFromNotif('${n.id}',true)">Available</button><button class="btn danger" onclick="respondFromNotif('${n.id}',false)">Not Available</button>`}
- if(n.action.type==='ack-assignment'){return `<button class="btn primary" onclick="ackAssignment('${n.id}')">Acknowledge Assignment</button>`}
- if(n.action.type==='trade'){return `<button class="btn primary" onclick="acceptTrade('${n.action.requestId}');readNotif('${n.id}')">Accept Trade</button>`}
- return ''
-}
-function respondFromNotif(notifId,available){const n=state.notifications.find(x=>x.id===notifId),need=state.shortages.find(x=>x.id===n.action.needId);const existing=need.responses.find(r=>r.personId===state.user);if(existing){existing.available=available}else need.responses.push({personId:state.user,available,minutes:Math.max(1,Math.round((Date.now()-(need.notifiedAt||Date.now()))/60000)),at:Date.now()});need.status='Responses received';n.read=true;n.action=null;log('OT response',currentUser().name+' responded '+(available?'AVAILABLE':'NOT AVAILABLE')+' for '+need.position);renderAll()}
-function ackAssignment(notifId){const n=state.notifications.find(x=>x.id===notifId);n.read=true;n.action=null;log('Assignment acknowledged',currentUser().name+' acknowledged staffing assignment');renderAll()}
-function readNotif(id){const n=state.notifications.find(x=>x.id===id);if(n)n.read=true;renderAll()}
-function markAllRead(){state.notifications.filter(n=>n.userId===state.user).forEach(n=>n.read=true);renderAll()}
-
-function renderAudit(){document.getElementById('auditLog').innerHTML=state.audit.length?state.audit.map(a=>`<div class="entry"><b>${a.action}</b><br><span>${a.detail}</span><br><time>${new Date(a.at).toLocaleString()} • ${a.actor}</time></div>`).join(''):'<div class="notice">No actions recorded yet.</div>'}
-
-function fillPersonnelSelects(){for(const id of ['leavePerson','tradeA','tradeB']){const el=document.getElementById(id);if(el)el.innerHTML=state.personnel.map(p=>`<option value="${p.id}">${p.name} — ${p.shift} — ${p.rank}</option>`).join('')}}
-function openUsers(){document.getElementById('usersList').innerHTML=state.personnel.map(p=>`<div class="item"><h3>${p.name}</h3><div class="meta">${p.shift} Shift • ${p.rank} • ${roleTags(p).join(' • ')}</div><div class="actions"><button class="btn primary" onclick="switchUser('${p.id}')">Use This User</button></div></div>`).join('');openModal('usersModal')}
-function switchUser(id){state.user=id;closeModal('usersModal');renderAll();gotoView('schedule')}
-function openCreateShortage(){openModal('shortageModal')}
-function createShortage(){const n=makeNeed(document.getElementById('shortDate').value,document.getElementById('shortPos').value,'manual');state.shortages.push(n);log('Manual shortage created',n.position+' • '+n.date);closeModal('shortageModal');renderAll()}
-function openModal(id){document.getElementById(id).classList.add('show')}
-function closeModal(id){document.getElementById(id).classList.remove('show')}
-function gotoToday(){state.selectedDate='2026-09-27';renderAll()}
-
-if(!state.audit.length)seedWelcome();
-fillPersonnelSelects();renderAll();
+let subscribed=false;
+function subscribeRealtime(){if(subscribed)return;subscribed=true;sb.channel('gfd-live').on('postgres_changes',{event:'*',schema:'public',table:'staffing_needs'},loadAll).on('postgres_changes',{event:'*',schema:'public',table:'ot_responses'},loadAll).on('postgres_changes',{event:'*',schema:'public',table:'staffing_assignments'},loadAll).on('postgres_changes',{event:'INSERT',schema:'public',table:'notifications',filter:'recipient_personnel_id=eq.'+me.id},payload=>{showDeviceNotification(payload.new);loadAll()}).subscribe()}
+async function enableNotifications(){if(!('Notification'in window))return alert('This browser does not support notifications.');const p=await Notification.requestPermission();if(p==='granted'){alert('Mobile/browser alerts are enabled while this installed web app is active. Background Web Push registration is the next notification layer.')}else alert('Notification permission was not granted.')}
+function showDeviceNotification(n){if(Notification.permission==='granted'){navigator.serviceWorker?.ready.then(reg=>reg.showNotification(n.title,{body:n.body,tag:n.id}))}}
+async function registerSW(){if('serviceWorker'in navigator){try{await navigator.serviceWorker.register('./sw.js')}catch(e){console.warn(e)}}}
+sb.auth.onAuthStateChange(()=>setTimeout(boot,0));boot();
 </script>
 </body></html>
