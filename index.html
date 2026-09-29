@@ -486,7 +486,7 @@ async function loadPersonnelManager(){
    [...pmEMS.options].forEach(o=>o.disabled=false);
  }
 }
-async function savePersonnelRole(){
+async async function savePersonnelRole(){
  const p=pById(pmPerson.value);if(!p)return;
  if(p.ems_level==='Paramedic'&&pmEMS.value==='EMT')return alert('Paramedics cannot be downgraded to EMT.');
  if(pmSingle.checked&&pmEMS.value!=='Paramedic')return alert('Single-role paramedic requires Paramedic EMS level.');
@@ -511,6 +511,8 @@ async function savePersonnelRole(){
  };
  const {error}=await sb.rpc('admin_update_personnel_role',args);
  if(error)return alert(error.message);
+ const {error:typeErr}=await sb.from('personnel').update({personnel_type:pt}).eq('id',p.id);
+ if(typeErr)return alert(typeErr.message);
  const {error:empErr}=await sb.rpc('admin_set_employment_status',{p_personnel_id:p.id,p_new_status:pmEmployment.value,p_effective_date:pmEffective.value||new Date().toISOString().slice(0,10),p_reason:pmReason.value.trim()||'Personnel status update'});
  if(empErr)return alert(empErr.message);
  closeModal('personnelModal');
