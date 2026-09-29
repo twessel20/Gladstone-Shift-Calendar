@@ -623,8 +623,9 @@ main{overflow-x:hidden}
 
 .cmd-date.kelly{box-shadow:inset 0 -3px 0 #f0b323}
 .cmd-kelly-pill{display:block;width:max-content;max-width:100%;margin:3px auto 0;padding:1px 4px;border-radius:999px;background:#6a4c0b;color:#ffe49a;font-size:6px;font-weight:1000;line-height:1.2}
-.kelly-day-strip{display:flex;justify-content:center;align-items:center;gap:5px;flex-wrap:wrap;width:max-content;max-width:100%;margin:4px auto 6px;padding:3px 8px;border:1px solid #5f4a1d;border-radius:999px;background:#17150e;color:#d8c98d;text-align:center;font-size:8px;font-weight:700;line-height:1.1}
-.kelly-day-strip strong{font-size:8px;letter-spacing:.05em;color:#e6d58f}
+.header-kelly{font-size:9px;font-weight:900;letter-spacing:.08em;color:#d9c27b}
+.kelly-note{grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:5px;min-height:26px;padding:4px 7px;border:1px solid #4f4324;border-radius:7px;background:#12140f;color:#cfc39a;font-size:8px;line-height:1.1;text-align:center}
+.kelly-note strong{font-size:8px;letter-spacing:.05em;color:#e2d18f}
 
 
 .cycle-progress-tile{display:flex!important;align-items:center;justify-content:center;gap:9px;text-align:left!important}
@@ -681,7 +682,7 @@ main{overflow-x:hidden}
 <main>
 <section id="view-dashboard" class="view on">
   <div class="top">
-    <div><h1>28-Day Schedule</h1><div class="muted"><span id="headerShiftText" style="color:#ff4251;font-weight:900">A Shift</span> &nbsp;•&nbsp; <span id="headerPeriodText">Sep 30, 2026 – Oct 27, 2026</span> &nbsp;•&nbsp; <span id="headerCycleStatus" class="header-cycle">Current Cycle</span></div></div>
+    <div><h1>28-Day Schedule</h1><div class="muted"><span id="headerShiftText" style="color:#ff4251;font-weight:900">A Shift</span> &nbsp;•&nbsp; <span id="headerPeriodText">Sep 30, 2026 – Oct 27, 2026</span> &nbsp;•&nbsp; <span id="headerCycleStatus" class="header-cycle">Current Cycle</span> <span id="headerKellySchedule" class="header-kelly hidden">• KELLY SCHEDULE</span></div></div>
     <div class="grow"></div>
     <button class="ctl" onclick="stepSchedulePeriod(-1)" title="Previous 28-day cycle">‹</button>
     <select id="schedulePeriodFilter" class="ctl period-picker" onchange="changeSchedulePeriod(this.value)"></select>
@@ -1065,6 +1066,8 @@ function renderCommandDashboard(){
  const selectedShift=document.getElementById('dashboardShiftFilter')?.value||me.shift;
  if(document.getElementById('headerShiftText'))headerShiftText.textContent=selectedShift+' Shift';
  const dutyDays=days.filter(x=>shiftForDate(x)===selectedShift);
+ const cycleKelly=dutyDays.some(x=>kellyNamesForDate(x,selectedShift).length>0);
+ const hk=document.getElementById('headerKellySchedule');if(hk)hk.classList.toggle('hidden',!cycleKelly);
  const staffedDuty=dutyDays.filter(x=>dayStaffingCompliance(x).ok).length;
  const specialCount=events.filter(e=>days.includes(e.event_date)&&e.status!=='CANCELLED').length;
  cmdKpis.innerHTML='';
@@ -1533,12 +1536,11 @@ function renderCommandDayDetail(){
 
  let html='<div class="command-dashboard">';
  html+='<div class="command-dashboard-head"><div><div class="command-dashboard-date">'+dt.toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'})+' • '+shift+' Shift</div><div class="command-dashboard-sub">'+period.label+' • '+(note?.note?'BC note on file':'No BC note')+' • '+dayReqs+' request'+(dayReqs===1?'':'s')+' affecting this day</div></div><div class="command-dashboard-status '+(dayStatus.ok?'good':'bad')+'">'+(dayStatus.ok?'GREEN • MINIMUMS MET':'RED • STAFFING ACTION NEEDED')+'</div></div>';
- if(kellyNames.length)html+='<div class="kelly-day-strip"><strong>KELLY DAY</strong><span>'+kellyNames.join(' • ')+'</span></div>';
-
  html+='<div class="command-dashboard-main">';
  html+='<div class="station-board s1"><div class="station-board-title">STATION 1</div>'+apparatusSummaryButton(date,'BC')+apparatusSummaryButton(date,'E1')+apparatusSummaryButton(date,'M1')+'</div>';
  html+='<div class="station-board s2"><div class="station-board-title">STATION 2</div>'+apparatusSummaryButton(date,'E2')+apparatusSummaryButton(date,'M2')+'</div>';
  html+='<div class="command-summary-rail">'+
+   (kellyNames.length?'<div class="kelly-note"><strong>KELLY:</strong><span>'+kellyNames.join(' • ')+'</span></div>':'')+
    '<button class="command-tile cycle-progress-tile '+(cycleGreen===cycleDays.length?'good':'bad')+'" onclick="goto(\'staffing\')"><div class="cycle-progress-ring" style="--pct:'+cyclePct+';--ring:'+(cycleGreen===cycleDays.length?'#0ccf86':'#ed3343')+'"><div class="inside"><b>'+cyclePct+'%</b><small>'+cycleGreen+'/'+cycleDays.length+'</small></div></div><div class="cycle-progress-copy"><strong>Duty Days Green</strong><span>Cycle staffing progress</span></div></button>'+
    '<button class="command-tile '+(openCycle.length?'bad':'good')+'" onclick="'+(firstNeed?"openWorkflow('"+firstNeed.id+"')":"goto('staffing')")+'"><strong>'+openCycle.length+'</strong><span>Open staffing needs</span></button>'+
    '<button class="command-tile '+(forceCycle.length?'bad':'')+'" onclick="goto(\'ot\')"><strong>'+forceCycle.length+'</strong><span>Force needed</span></button>'+
