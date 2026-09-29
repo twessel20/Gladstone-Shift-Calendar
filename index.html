@@ -640,6 +640,34 @@ main{overflow-x:hidden}
 .cycle-progress-copy strong{font-size:12px!important;margin:0!important}
 .cycle-progress-copy span{font-size:8px!important;margin-top:3px!important}
 @media(max-width:1300px) and (min-width:901px){.cycle-progress-ring{width:46px;height:46px}.cycle-progress-ring .inside b{font-size:11px!important}}
+
+.ot-workflow-modal .ot-workflow-box{width:min(1400px,calc(100vw - 24px));max-width:1400px;padding:18px}
+.ot-workflow-modal .panel-title{font-size:18px}
+.ot-workflow-modal .notice{font-size:12px}
+.ot-workflow-modal .ot-roster-head{
+  grid-template-columns:64px minmax(230px,1.6fr) 90px 110px 110px minmax(180px,1fr) 110px;
+  gap:10px;padding:10px 12px;font-size:11px
+}
+.ot-workflow-modal .ot-roster-row{
+  grid-template-columns:64px minmax(230px,1.6fr) 90px 110px 110px minmax(180px,1fr) 110px;
+  gap:10px;padding:12px;font-size:12px;min-height:58px
+}
+.ot-workflow-modal .ot-pos{font-size:20px}
+.ot-workflow-modal .ot-name{font-size:15px}
+.ot-workflow-modal .ot-sub{font-size:10px;line-height:1.25}
+.ot-workflow-modal .ot-roster-row .btn{min-width:90px;padding:9px 12px;font-size:12px}
+@media(max-width:1100px){
+ .ot-workflow-modal .ot-workflow-box{width:min(1180px,calc(100vw - 16px))}
+ .ot-workflow-modal .ot-roster-head{grid-template-columns:56px minmax(190px,1.5fr) 72px 90px 90px minmax(150px,1fr) 96px;gap:7px;font-size:9px}
+ .ot-workflow-modal .ot-roster-row{grid-template-columns:56px minmax(190px,1.5fr) 72px 90px 90px minmax(150px,1fr) 96px;gap:7px;font-size:10px;padding:9px}
+}
+@media(max-width:800px){
+ .ot-workflow-modal .ot-workflow-box{width:calc(100vw - 8px);max-width:none}
+ .ot-workflow-modal .ot-roster-head{display:none}
+ .ot-workflow-modal .ot-roster-row{grid-template-columns:54px 1fr auto;gap:8px;padding:10px}
+ .ot-workflow-modal .ot-roster-row>div:nth-child(n+3):nth-child(-n+6){grid-column:2/span 2}
+ .ot-workflow-modal .ot-name{font-size:13px}
+}
 </style>
 </head>
 <body>
@@ -791,7 +819,7 @@ main{overflow-x:hidden}
  </div><div class="actions"><button class="btn primary" onclick="createNeed()">Create Need</button></div>
 </div></div>
 
-<div id="workflowModal" class="modal"><div class="modalbox"><div class="modalhead"><h2 id="workflowTitle">Staffing Workflow</h2><div class="grow"></div><button class="ctl" onclick="closeModal('workflowModal')">Close</button></div><div id="workflowBody"></div></div></div>
+<div id="workflowModal" class="modal ot-workflow-modal"><div class="modalbox ot-workflow-box"><div class="modalhead"><h2 id="workflowTitle">Staffing Workflow</h2><div class="grow"></div><button class="ctl" onclick="closeModal('workflowModal')">Close</button></div><div id="workflowBody"></div></div></div>
 
 <div id="unitInspectorBackdrop" class="unit-inspector-backdrop" onclick="closeUnitInspector()"></div>
 <aside id="unitInspector" class="unit-inspector" aria-hidden="true">
