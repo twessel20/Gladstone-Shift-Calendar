@@ -497,6 +497,12 @@ main{overflow-x:hidden}
  .force-mobile-label{display:inline;color:#7f94a9;font-size:8px;text-transform:uppercase;margin-right:5px}
 }
 
+
+.ot-roster-head{display:grid;grid-template-columns:48px minmax(150px,1.2fr) 70px 82px 82px 98px auto;gap:6px;padding:7px 8px;background:#0d2236;border:1px solid #294b69;border-radius:7px 7px 0 0;font-size:9px;font-weight:900;color:#aebed0;text-transform:uppercase}
+.ot-roster-row{display:grid;grid-template-columns:48px minmax(150px,1.2fr) 70px 82px 82px 98px auto;gap:6px;align-items:center;padding:8px;border:1px solid #294b69;border-top:0;background:#0a1827;font-size:10px}
+.ot-roster-row.blocked{opacity:.58;background:#111a24}.ot-roster-row.responded{box-shadow:inset 3px 0 0 #20c985}.ot-pos{font-size:16px;font-weight:1000;text-align:center}.ot-name{font-size:12px;font-weight:900}.ot-sub{font-size:8px;color:#93a8bc;margin-top:2px}.ot-hours-good{color:#5ee0a7;font-weight:900}.ot-hours-bad{color:#ff6673;font-weight:1000}
+@media(max-width:900px){.ot-roster-head{display:none}.ot-roster-row{grid-template-columns:48px 1fr auto}.ot-roster-row>div:nth-child(n+3):nth-child(-n+6){grid-column:2/span 2}}
+
 </style>
 </head>
 <body>
@@ -1489,7 +1495,7 @@ function needDetail(n){
  const mineResp=responses.find(r=>r.staffing_need_id===n.id&&r.personnel_id===me.id);
  let action='';
  if(qualifies(me,n)&&!mineResp)action=`<div class="actions"><button class="btn good" onclick="respondOT('${n.id}',true)">Available</button><button class="btn danger" onclick="respondOT('${n.id}',false)">Not Available</button></div>`;
- if(isAdmin())action+=`<div class="actions"><button class="btn primary" onclick="notifyQualified('${n.id}')">Notify Qualified</button><button class="btn" onclick="openWorkflow('${n.id}')">Award / Force</button></div>`;
+ if(isAdmin())action+=`<div class="actions"><button class="btn primary" onclick="notifyQualified('${n.id}')">Notify Qualified</button><button class="btn" onclick="openWorkflow('${n.id}')">Select Personnel / Force</button></div>`;
  return `<div class="panel-title">${formatDate(n.duty_date)} — ${n.position_label}</div><div class="notice">${n.shift} Shift • ${n.unit}<br>Coverage: <b>${coverageSum(n.id)}/${Number(n.required_hours)}h</b> • ${remaining(n)}h remaining<br>Required: ${qLabel(n.qualification_group)}<br>Status: ${n.status.replaceAll('_',' ')}</div>${action}`
 }
 async function respondOT(id,available){
@@ -1505,17 +1511,42 @@ async function notifyQualified(id){
 }
 async function openWorkflow(id){
  if(!isAdmin()){selectNeed(id);goto('ot');return}
- selectedNeed=id;const n=needs.find(x=>x.id===id);workflowTitle.textContent='Staffing Workflow — '+n.position_label;
- const rs=responses.filter(r=>r.staffing_need_id===id&&r.available).map(r=>({r,p:pById(r.personnel_id)})).filter(x=>x.p&&qualifies(x.p,n)).sort((a,b)=>rankPriority(a.p)-rankPriority(b.p)||new Date(a.r.responded_at)-new Date(b.r.responded_at));
- const awardable=rs.filter(x=>Number(otFor(x.p.id).regular_ot_hours_14d)<24);
- const reg=rs.map((x,i)=>{const o=otFor(x.p.id),blocked=Number(o.regular_ot_hours_14d)>=24;return `<div class="candidate ${blocked?'disabled':''}"><div><b>#${i+1} ${x.p.name}</b> ${x.p.rank==='Captain'||x.p.rank.includes('Battalion')?'<span class="tag warn">OFFICER DEFERRED</span>':'<span class="tag good">LINE PRIORITY</span>'}<div class="meta">${x.p.rank} • ${x.p.shift} Shift</div><div class="decision">Responded ${new Date(x.r.responded_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})} • ${o.regular_ot_hours_14d}h Regular OT / 14d<br>${blocked?'24-hour regular OT threshold reached':'Awardable now'}</div></div><button class="btn good" ${blocked?'disabled':''} onclick="openAward('${n.id}','${x.p.id}','REGULAR_OT')">Schedule</button></div>`}).join('');
- let force='';
- if(!awardable.length){
-  force=`<div class="notice warn" style="margin-top:12px">No awardable Regular OT responder. Force comes from <b>${priorShift(n.shift)} Shift</b> using the <b>${qLabel(n.qualification_group)}</b> force list from the department OT tracker.</div><div id="forceCandidates" style="margin-top:8px">Loading force list…</div>`;
-  setTimeout(()=>loadForce(id),0)
- }
- const segs=assignments.filter(a=>a.staffing_need_id===id).map(a=>`<div class="item"><b>${pById(a.personnel_id)?.name||'Personnel'}</b><div class="meta">${coverageText(a)} • ${a.assignment_type.replaceAll('_',' ')}</div></div>`).join('');
- workflowBody.innerHTML=`<div class="notice">Required coverage: ${Number(n.required_hours)}h • Covered: ${coverageSum(n.id)}h • Remaining: ${remaining(n)}h</div>${segs?'<div class="panel-title" style="margin-top:12px">Coverage Blocks</div>'+segs:''}<div class="panel-title" style="margin-top:14px">Regular OT Responses</div>${reg||'<div class="notice bad">No available qualified responses.</div>'}${force}`;openModal('workflowModal')
+ selectedNeed=id;
+ const n=needs.find(x=>x.id===id);
+ workflowTitle.textContent='Fill Open Position — '+n.position_label;
+ const roster=regularOtRosterForNeed(n);
+ const awardable=roster.filter(x=>Number(x.ot.regular_ot_hours_14d)<24&&!isAlreadyWorkingDate(x.p,n.duty_date));
+ const head='<div class="ot-roster-head"><div>OT Pos</div><div>Personnel</div><div>Shift</div><div>Worked 14d</div><div>Remain</div><div>Response</div><div>Action</div></div>';
+ const rows=roster.map(x=>{
+   const worked=Number(x.ot.regular_ot_hours_14d||0), remain=Math.max(0,24-worked), already=isAlreadyWorkingDate(x.p,n.duty_date), blocked=worked>=24||already;
+   const response=x.resp?(x.resp.available?'AVAILABLE':'NOT AVAILABLE'):'NO RESPONSE';
+   const reason=worked>=24?'24h / 14d limit':already?'Already working':'Eligible';
+   return '<div class="ot-roster-row '+(blocked?'blocked ':'')+(x.resp?.available?'responded':'')+'">'+
+     '<div class="ot-pos">#'+x.pos+'</div>'+
+     '<div><div class="ot-name">'+x.p.name+'</div><div class="ot-sub">'+x.p.rank+' • '+personnelTypeLabel(x.p)+'</div></div>'+
+     '<div><b>'+x.p.shift+'</b></div>'+
+     '<div class="'+(worked>=24?'ot-hours-bad':'ot-hours-good')+'">'+worked+'h</div>'+
+     '<div class="'+(remain>0?'ot-hours-good':'ot-hours-bad')+'">'+remain+'h</div>'+
+     '<div><b>'+response+'</b><div class="ot-sub">'+reason+'</div></div>'+
+     '<div><button class="btn good" '+(blocked?'disabled':'')+' onclick="openAward(\''+n.id+'\',\''+x.p.id+'\',\'REGULAR_OT\')">Select</button></div>'+
+   '</div>'
+ }).join('');
+ const segs=assignments.filter(a=>a.staffing_need_id===id).map(a=>'<div class="item"><b>'+(pById(a.personnel_id)?.name||'Personnel')+'</b><div class="meta">'+coverageText(a)+' • '+a.assignment_type.replaceAll('_',' ')+'</div></div>').join('');
+ workflowBody.innerHTML=
+  '<div class="notice"><b>'+formatDate(n.duty_date)+' • '+n.unit+' • '+n.position_label+'</b><br>Coverage: '+coverageSum(n.id)+' / '+Number(n.required_hours)+'h • '+remaining(n)+'h remaining<br>Required: '+qLabel(n.qualification_group)+'</div>'+
+  (segs?'<div class="panel-title" style="margin-top:12px">Coverage Already Assigned</div>'+segs:'')+
+  '<div class="panel-title" style="margin-top:14px">Regular OT Personnel List</div>'+
+  '<div class="notice" style="margin:8px 0"><b>Google Sheet OT rotation order</b><br>Only Worked Regular OT counts toward the 24-hour rolling 14-day threshold. Future Accepted OT does not count until worked.</div>'+
+  (rows?head+rows:'<div class="notice bad">No qualified personnel found.</div>')+
+  '<div class="notice '+(awardable.length?'':'warn')+'" style="margin-top:10px">'+awardable.length+' personnel currently selectable.</div>'+
+  '<div class="actions"><button class="btn danger" onclick="showForceForNeed(\''+n.id+'\')">Open Force List</button></div>'+
+  '<div id="forceCandidates" style="margin-top:8px"></div>';
+ openModal('workflowModal')
+}
+async function showForceForNeed(needId){
+ const n=needs.find(x=>x.id===needId), el=document.getElementById('forceCandidates');
+ if(el)el.innerHTML='<div class="notice warn">Loading '+priorShift(n.shift)+' Shift '+qLabel(n.qualification_group)+' force list…</div>';
+ await loadForce(needId)
 }
 async function loadForce(needId){
  const n=needs.find(x=>x.id===needId);
