@@ -22,9 +22,11 @@ main{padding:18px;min-width:0}.view{display:none}.view.on{display:block}.top{dis
 .authwrap{min-height:100vh;display:grid;place-items:center;padding:20px;background:radial-gradient(circle at 50% 10%,#1a334f 0,transparent 35%),#07111d}.authbox{width:min(450px,100%);background:#0d1a2a;border:1px solid #2b4564;border-radius:15px;padding:18px}.authbox h1{margin:0 0 4px}.authbox .field{margin-top:10px}.authactions{display:flex;gap:8px;margin-top:12px}
 .table{width:100%;border-collapse:collapse}.table th,.table td{padding:8px;border-bottom:1px solid #203149;text-align:left;vertical-align:top}.table th{font-size:11px;color:#aebed0}
 .coverage{height:9px;background:#1d2b3d;border-radius:999px;overflow:hidden;margin:8px 0}.coverage span{display:block;height:100%;background:var(--green)}
+.concept-wrap{display:grid;grid-template-columns:minmax(0,1fr) 385px;gap:12px;margin-top:12px}.concept-calendar{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:auto}.concept-grid{display:grid;grid-template-columns:170px repeat(28,43px);min-width:1374px}.concept-corner,.concept-dayh{background:#0a1726;border-bottom:1px solid var(--line)}.concept-corner{padding:12px;font-weight:800}.concept-dayh{padding:7px 3px;text-align:center;border-left:1px solid #1d2d42}.concept-dayh small{display:block;color:var(--muted);font-size:9px}.concept-dayh b{font-size:12px}.concept-dot{width:8px;height:8px;border-radius:50%;margin:5px auto 0}.concept-dot.g{background:var(--green)}.concept-dot.r{background:var(--red)}.concept-dot.n{background:#66758a}.concept-band{grid-column:1/-1;padding:8px 11px;font-weight:900}.concept-band.s1{background:linear-gradient(90deg,#91212a,#4b171c)}.concept-band.s2{background:linear-gradient(90deg,#1454a3,#0a2c5c)}.concept-band.res{background:linear-gradient(90deg,#5d31b5,#29144f)}.concept-rowlabel{padding:9px 10px;background:#0b1726;border-top:1px solid #1b2c42}.concept-rowlabel b{margin-right:6px}.concept-rowlabel small{color:var(--muted)}.concept-cell{border:0;border-left:1px solid #1d2d42;border-top:1px solid #1d2d42;min-height:41px;color:white;font-weight:900}.concept-cell.off{background:#25374a;color:#8494a8;font-size:9px}.concept-cell.ok{background:linear-gradient(#19ad6b,#0d8350);cursor:pointer}.concept-cell.bad{background:linear-gradient(#e65260,#bd2a36);cursor:pointer}.concept-cell.warn{background:linear-gradient(#d89a23,#966515);cursor:pointer}.concept-detail{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px;position:sticky;top:12px}.concept-banner{padding:10px;border-radius:8px;margin:10px 0;background:#143c2a;color:#9beabb;font-weight:900}.concept-banner.bad{background:#4d1b22;color:#ffc0c5}.concept-unit{border:1px solid var(--line);border-radius:8px;margin:8px 0;overflow:hidden}.concept-unit h3{margin:0;padding:7px 9px;font-size:12px}.concept-unit.s1 h3{background:#5a1b22}.concept-unit.s2 h3{background:#123e76}.concept-assign{display:grid;grid-template-columns:42px 1fr auto;gap:8px;padding:8px 9px;border-top:1px solid #1f3046}.concept-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .dashboard-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:12px}.quickgrid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin:12px 0}.quick{min-height:82px;text-align:left;display:flex;flex-direction:column;justify-content:space-between}.quick b{font-size:13px}.quick small{color:#b7c7d9}
 .calendar-wrap{overflow-x:auto}.calendar28{display:grid;grid-template-columns:repeat(7,minmax(135px,1fr));gap:7px;min-width:980px}.calday{min-height:138px;background:#0a1624;border:1px solid #22364f;border-radius:10px;padding:9px;position:relative}.calday.today{outline:2px solid #187ff3}.calday .date{font-weight:900;font-size:14px}.calday .shift{font-size:11px;margin-top:2px;color:#9fb0c7}.calday .unitline{font-size:10px;color:#c9d7e7;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.calday .badgeline{position:absolute;bottom:7px;left:7px;right:7px;display:flex;gap:4px;flex-wrap:wrap}.calday.hasneed{border-color:#8b343d}.calday.hasfto{box-shadow:inset 0 0 0 1px #b27a18}.sectiongrid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;margin-top:12px}.stack{display:flex;flex-direction:column;gap:10px}.sectionhead{display:flex;align-items:center;gap:8px;margin-bottom:9px}.sectionhead .grow{flex:1}.dense .item{padding:8px}.kpirow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:12px 0}.kpi{background:#0d1a2a;border:1px solid #22364f;border-radius:10px;padding:10px}.kpi strong{display:block;font-size:22px}.subtle{font-size:10px;color:#8fa3ba}
 @media(max-width:1100px){.quickgrid{grid-template-columns:repeat(3,1fr)}.sectiongrid{grid-template-columns:1fr 1fr}.sectiongrid>.card:first-child{grid-column:1/-1}.kpirow{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:1050px){.concept-wrap{grid-template-columns:1fr}.concept-detail{position:static}}
 @media(max-width:900px){.app{grid-template-columns:1fr}.sidebar{position:sticky;top:0;z-index:20;padding:8px;display:block}.brand{display:none}.nav{display:flex;overflow:auto;gap:4px}.nav button{white-space:nowrap;width:auto}.me{margin-top:8px}.split,.grid4{grid-template-columns:1fr 1fr}main{padding:10px}}
 @media(max-width:600px){.split,.grid4,.formgrid,.sectiongrid{grid-template-columns:1fr}.quickgrid{grid-template-columns:repeat(2,1fr)}.kpirow{grid-template-columns:repeat(2,1fr)}.hero h2{font-size:24px}.top h1{font-size:23px}.candidate{grid-template-columns:1fr}.calendar28{grid-template-columns:repeat(7,minmax(118px,1fr));min-width:860px}}
 </style>
@@ -55,7 +57,7 @@ main{padding:18px;min-width:0}.view{display:none}.view.on{display:block}.top{dis
 <aside class="sidebar">
   <div class="brand">GLADSTONE<br>FIRE DEPARTMENT<small>STAFFING & SCHEDULING</small></div>
   <div class="nav" id="nav">
-    <button class="on" data-view="dashboard">▣ Dashboard</button>
+    <button class="on" data-view="dashboard">▣ 28-Day Schedule</button>
     <button data-view="schedule">▦ Schedule</button>
     <button data-view="staffing">◉ Staffing</button>
     <button data-view="ot">♟ OT / Force</button>
@@ -69,27 +71,16 @@ main{padding:18px;min-width:0}.view{display:none}.view.on{display:block}.top{dis
 </aside>
 <main>
 <section id="view-dashboard" class="view on">
-  <div class="hero"><div class="eyebrow">GLADSTONE FIRE DEPARTMENT</div><h2>28-Day Staffing Command Dashboard</h2><p>Full-cycle staffing visibility with shortages, overtime, FTO status, requests, and quick actions in one operational view.</p></div>
-
-  <div id="dashboardKpis" class="kpirow"></div>
-
-  <div class="card">
-    <div class="sectionhead"><div><div class="panel-title">Current 28-Day Cycle</div><div class="muted">All 28 days visible at once • B → C → A rotation</div></div><div class="grow"></div><button class="btn" onclick="goto('schedule')">Open Detailed Schedule</button></div>
-    <div class="calendar-wrap"><div id="dashboardCalendar" class="calendar28"></div></div>
+  <div class="top">
+    <div><h1>28-Day Schedule</h1><div class="muted">Live working model • column view • all changes update staffing immediately</div></div>
+    <div class="grow"></div>
+    <select id="conceptShiftFilter" class="ctl" onchange="renderConceptDashboard()"><option value="ALL">Whole Schedule</option><option>A</option><option>B</option><option>C</option></select>
+    <button class="ctl" onclick="conceptToday()">Today</button>
   </div>
-
-  <div class="quickgrid" id="quickActions"></div>
-
-  <div class="sectiongrid">
-    <div class="card dense"><div class="sectionhead"><div class="panel-title">Open Staffing Needs</div><div class="grow"></div><button class="btn" onclick="goto('staffing')">View All</button></div><div id="dashNeeds" class="list"></div></div>
-    <div class="card dense"><div class="sectionhead"><div class="panel-title">FTO / Probationary</div><div class="grow"></div><button class="btn" onclick="goto('personnel')">Personnel</button></div><div id="dashFto" class="list"></div></div>
-    <div class="card dense"><div class="sectionhead"><div class="panel-title">OT / Force Attention</div><div class="grow"></div><button class="btn" onclick="goto('ot')">Open OT / Force</button></div><div id="dashOt" class="list"></div></div>
-  </div>
-
-  <div class="sectiongrid">
-    <div class="card dense"><div class="sectionhead"><div class="panel-title">Upcoming Duty / Staffing</div><div class="grow"></div></div><div id="dashUpcoming" class="list"></div></div>
-    <div class="card dense"><div class="sectionhead"><div class="panel-title">Leave & Trades</div><div class="grow"></div><button class="btn" onclick="goto('requests')">Requests</button></div><div id="dashRequests" class="list"></div></div>
-    <div class="card dense"><div class="sectionhead"><div class="panel-title">Notifications</div><div class="grow"></div><button class="btn" onclick="goto('notifications')">View All</button></div><div id="dashNotifs" class="list"></div></div>
+  <div id="conceptMetrics" class="grid4"></div>
+  <div class="concept-wrap">
+    <div class="concept-calendar"><div class="concept-grid" id="conceptGrid"></div></div>
+    <div class="concept-detail" id="conceptDetail"></div>
   </div>
 </section>
 
@@ -223,7 +214,7 @@ main{padding:18px;min-width:0}.view{display:none}.view.on{display:block}.top{dis
 const SUPABASE_URL='https://hnktbvfzrccfrgfrgehr.supabase.co';
 const SUPABASE_KEY='sb_publishable_sdPmMJGLy0H1HSAxa1ngZQ_yYR3miIW';
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-let session=null, profile=null, me=null, personnel=[], otStatus=[], needs=[], responses=[], assignments=[], notifications=[], leaves=[], trades=[], audits=[], shiftDays=[], sourceCells=[], rules=[], selectedNeed=null, pendingAward=null, pendingFtoPairing=null;
+let session=null, profile=null, me=null, personnel=[], otStatus=[], needs=[], responses=[], assignments=[], notifications=[], leaves=[], trades=[], audits=[], shiftDays=[], sourceCells=[], rules=[], selectedNeed=null, pendingAward=null, pendingFtoPairing=null, conceptSelectedDate='2026-09-30';
 const adminRoles=['bc','chief','admin'];
 
 function msg(id,text,bad=false){const el=document.getElementById(id);el.textContent=text;el.className='notice'+(bad?' bad':'')}
@@ -276,64 +267,94 @@ async function loadAll(){
  personnel=p.data||[];otStatus=o.data||[];needs=n.data||[];responses=r.data||[];assignments=a.data||[];notifications=no.data||[];leaves=l.data||[];trades=t.data||[];audits=au.data||[];shiftDays=sd.data||[];sourceCells=sc.data||[];rules=ru.data||[];renderAll()
 }
 function renderAll(){renderDashboard();renderSchedule();renderStaffing();renderOT();renderPersonnel();renderNotifications();renderRequests();renderRules();renderAudit()}
-function renderDashboard(){
- const active=needs.filter(n=>n.status!=='FILLED'&&n.status!=='CANCELLED');
- const unread=notifications.filter(n=>!n.read_at).length;
- const probationary=personnel.filter(p=>p.active&&p.employment_status==='PROBATIONARY_FTO');
- const forceNeeded=active.filter(n=>n.status==='FORCE_NEEDED').length;
- const partial=active.filter(n=>coverageSum(n.id)>0&&remaining(n)>0).length;
- const today=new Date().toISOString().slice(0,10);
- const todayShift=shiftDays.find(d=>d.duty_date===today)?.shift||'—';
- dashboardKpis.innerHTML=
-  '<div class="kpi"><strong>'+active.length+'</strong><span class="muted">Open needs</span><div class="subtle">'+partial+' partially filled</div></div>'+
-  '<div class="kpi"><strong>'+forceNeeded+'</strong><span class="muted">Force needed</span><div class="subtle">Immediate attention</div></div>'+
-  '<div class="kpi"><strong>'+probationary.length+'</strong><span class="muted">On FTO</span><div class="subtle">Probationary personnel</div></div>'+
-  '<div class="kpi"><strong>'+unread+'</strong><span class="muted">Unread alerts</span><div class="subtle">Your notifications</div></div>'+
-  '<div class="kpi"><strong>'+todayShift+'</strong><span class="muted">Today\'s shift</span><div class="subtle">'+formatDate(today)+'</div></div>';
-
- dashboardCalendar.innerHTML=shiftDays.map(d=>{
-   const dayNeeds=active.filter(n=>n.duty_date===d.duty_date);
-   const dayAssignments=assignments.filter(a=>a.duty_date===d.duty_date);
-   const ftoPresent=dayAssignments.some(a=>pById(a.personnel_id)?.employment_status==='PROBATIONARY_FTO')||
-     sourceCells.some(x=>x.duty_date===d.duty_date&&pById(x.personnel_id)?.employment_status==='PROBATIONARY_FTO');
-   const units=['BC','E1','M1','E2','M2'].map(u=>{
-     const names=dayAssignments.filter(a=>a.unit===u).map(a=>pById(a.personnel_id)?.name?.split(' ').pop()).filter(Boolean);
-     return '<div class="unitline"><b>'+u+':</b> '+(names.length?names.join(', '):'—')+'</div>'
-   }).join('');
-   const cls='calday'+(d.duty_date===today?' today':'')+(dayNeeds.length?' hasneed':'')+(ftoPresent?' hasfto':'');
-   return '<div class="'+cls+'" onclick="goto(\'schedule\')" style="cursor:pointer"><div class="date">'+new Date(d.duty_date+'T12:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric'})+'</div><div class="shift">'+d.shift+' Shift</div>'+units+'<div class="badgeline">'+
-    (dayNeeds.length?'<span class="tag bad">'+dayNeeds.length+' NEED'+(dayNeeds.length>1?'S':'')+'</span>':'')+
-    (ftoPresent?'<span class="tag warn">FTO</span>':'')+
-    '</div></div>'
- }).join('');
-
- quickActions.innerHTML=[
-   isAdmin()?['Create Staffing Need',"openNeedCreator()",'Open a shortage and begin OT/Force workflow','primary']:null,
-   ['OT / Force',"goto('ot')",'Review responses, awards, and force order','danger'],
-   ['Leave / Trade',"goto('requests')",'Submit or review personnel requests',''],
-   isAdmin()?['New Employee',"openNewPersonnel()",'Add regular or probationary personnel','good']:null,
-   isAdmin()?['Manage Personnel',"openPersonnelManager()",'Promotions, shifts, roles, FTO status','']:null,
-   ['Detailed Schedule',"goto('schedule')",'Open the full day-by-day staffing view','']
- ].filter(Boolean).map(x=>'<button class="btn quick '+x[3]+'" onclick="'+x[1]+'"><b>'+x[0]+'</b><small>'+x[2]+'</small></button>').join('');
-
- dashNeeds.innerHTML=active.slice(0,8).map(needCard).join('')||'<div class="notice">No open staffing needs.</div>';
-
- dashFto.innerHTML=probationary.slice(0,8).map(p=>'<div class="item"><b>'+p.name+'</b><div class="meta">'+p.shift+' Shift • '+(p.personnel_type==='FF_PARAMEDIC'?'FF/Paramedic':p.personnel_type==='SINGLE_ROLE_PARAMEDIC'?'Single-Role Paramedic':'FF/EMT')+'</div><div class="actions"><span class="tag bad">⚠ ON FTO</span>'+ (p.is_fto?'<span class="tag">FTO QUALIFIED</span>':'') +'</div></div>').join('')||'<div class="notice">No probationary personnel currently on FTO.</div>';
-
- dashOt.innerHTML=active.filter(n=>['AVAILABILITY_REQUESTED','RESPONSES_RECEIVED','PARTIALLY_FILLED','FORCE_NEEDED'].includes(n.status)).slice(0,8).map(n=>'<div class="item"><b>'+formatDate(n.duty_date)+' — '+n.position_label+'</b><div class="meta">'+n.status.replaceAll('_',' ')+' • '+remaining(n)+'h remaining</div><div class="actions"><button class="btn" onclick="selectNeed(\''+n.id+'\');goto(\'ot\')">Open</button></div></div>').join('')||'<div class="notice">No OT/Force items requiring attention.</div>';
-
- const upcoming=shiftDays.filter(d=>d.duty_date>=today).slice(0,5);
- dashUpcoming.innerHTML=upcoming.map(d=>{
-   const mine=assignments.filter(a=>a.duty_date===d.duty_date&&a.personnel_id===me.id);
-   const cnt=assignments.filter(a=>a.duty_date===d.duty_date).length;
-   return '<div class="item"><b>'+formatDate(d.duty_date)+' — '+d.shift+' Shift</b><div class="meta">'+cnt+' unit assignments'+(mine.length?' • You: '+mine.map(a=>a.unit).join(', '):'')+'</div></div>'
- }).join('')||'<div class="notice">No upcoming schedule data.</div>';
-
- const req=[...leaves.map(x=>({type:'Leave',date:x.leave_date,status:x.status,name:pById(x.personnel_id)?.name||'Personnel'})),...trades.map(x=>({type:'Trade',date:x.requester_date,status:x.status,name:pById(x.requester_id)?.name||'Personnel'}))].sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,6);
- dashRequests.innerHTML=req.map(x=>'<div class="item"><b>'+x.name+' — '+x.type+'</b><div class="meta">'+formatDate(x.date)+' • '+x.status.replaceAll('_',' ')+'</div></div>').join('')||'<div class="notice">No leave or trade activity.</div>';
-
- dashNotifs.innerHTML=notifications.slice(0,6).map(notifCard).join('')||'<div class="notice">No notifications.</div>'
+function renderDashboard(){renderConceptDashboard()}
+const CONCEPT_ROWS=[
+ ['STATION 1','band','s1'],['BC','unit'],['E1','unit'],['M1','unit'],
+ ['STATION 2','band','s2'],['E2','unit'],['M2','unit'],
+ ['RESERVE / EVENTS','band','res'],['M3','unit']
+];
+function conceptToday(){
+ const t=new Date().toISOString().slice(0,10);
+ if(shiftDays.some(d=>d.duty_date===t))conceptSelectedDate=t;
+ renderConceptDashboard()
 }
+function conceptSelectDate(d){conceptSelectedDate=d;renderConceptDetail()}
+function renderConceptDashboard(){
+ const filter=document.getElementById('conceptShiftFilter')?.value||'ALL';
+ const active=needs.filter(n=>!['FILLED','CANCELLED'].includes(n.status));
+ const ftoCount=personnel.filter(p=>p.active&&p.employment_status==='PROBATIONARY_FTO').length;
+ const unread=notifications.filter(n=>!n.read_at).length;
+ const myOt=otFor(me.id).regular_ot_hours_14d||0;
+ conceptMetrics.innerHTML=
+  '<div class="card metric"><strong>'+active.length+'</strong><span class="muted">Open staffing needs</span></div>'+
+  '<div class="card metric"><strong>'+ftoCount+'</strong><span class="muted">On FTO / probationary</span></div>'+
+  '<div class="card metric"><strong>'+unread+'</strong><span class="muted">Unread notifications</span></div>'+
+  '<div class="card metric"><strong>'+myOt+'</strong><span class="muted">My Regular OT / 14d</span></div>';
+
+ const dates=shiftDays.slice(0,28);
+ let html='<div class="concept-corner">Unit / Position</div>';
+ for(const d of dates){
+   const open=active.some(n=>n.duty_date===d.duty_date);
+   const fto=sourceCells.some(x=>x.duty_date===d.duty_date&&pById(x.personnel_id)?.employment_status==='PROBATIONARY_FTO');
+   const dt=new Date(d.duty_date+'T12:00:00');
+   html+='<div class="concept-dayh"><small>'+dt.toLocaleDateString(undefined,{weekday:'short'})+'</small><b>'+dt.getDate()+'</b><div class="concept-dot '+(open?'r':fto?'n':'g')+'"></div></div>'
+ }
+ for(const row of CONCEPT_ROWS){
+   if(row[1]==='band'){html+='<div class="concept-band '+row[2]+'">'+row[0]+'</div>';continue}
+   html+='<div class="concept-rowlabel"><b>'+row[0]+'</b><small>'+conceptUnitRule(row[0])+'</small></div>';
+   for(const d of dates){
+     const visible=filter==='ALL'||d.shift===filter;
+     if(!visible){html+='<button class="concept-cell off">OFF</button>';continue}
+     const unitNeeds=active.filter(n=>n.duty_date===d.duty_date&&n.unit===row[0]);
+     const unitAssignments=assignments.filter(a=>a.duty_date===d.duty_date&&a.unit===row[0]);
+     const hasFto=unitAssignments.some(a=>pById(a.personnel_id)?.employment_status==='PROBATIONARY_FTO');
+     const cls=unitNeeds.length?'bad':hasFto?'warn':'ok';
+     const symbol=unitNeeds.length?'!':hasFto?'F':'✓';
+     html+='<button class="concept-cell '+cls+'" onclick="conceptSelectDate(\''+d.duty_date+'\')">'+symbol+'</button>'
+   }
+ }
+ conceptGrid.innerHTML=html;
+ if(!dates.some(d=>d.duty_date===conceptSelectedDate))conceptSelectedDate=dates[0]?.duty_date||conceptSelectedDate;
+ renderConceptDetail()
+}
+function conceptUnitRule(unit){
+ if(unit==='BC')return 'Command';
+ if(unit==='E1'||unit==='E2')return 'Min 3 • ALS • FAO';
+ if(unit==='M1'||unit==='M2')return 'Min 2 • ALS';
+ if(unit==='M3')return 'Reserve / Event';
+ return ''
+}
+function renderConceptDetail(){
+ const d=conceptSelectedDate;
+ const day=shiftDays.find(x=>x.duty_date===d);
+ if(!day){conceptDetail.innerHTML='<div class="notice">Select a date.</div>';return}
+ const open=needs.filter(n=>n.duty_date===d&&!['FILLED','CANCELLED'].includes(n.status));
+ const fto=sourceCells.filter(x=>x.duty_date===d&&pById(x.personnel_id)?.employment_status==='PROBATIONARY_FTO');
+ conceptDetail.innerHTML=
+  '<h2 style="margin:0">'+formatDate(d)+', '+new Date(d+'T12:00:00').getFullYear()+'</h2>'+
+  '<div class="muted">'+day.shift+' Shift • 24-hour duty</div>'+
+  '<div class="concept-banner '+(open.length?'bad':'')+'">'+(open.length?open.length+' OPEN POSITION'+(open.length>1?'S':''):'COMPLIANT / FILLED')+'</div>'+
+  (fto.length?'<div class="notice warn"><b>⚠ FTO STAFFING</b><br>'+[...new Set(fto.map(x=>pById(x.personnel_id)?.name).filter(Boolean))].join(', ')+'</div>':'')+
+  '<div class="concept-unit s1"><h3>STATION 1</h3>'+conceptDetailRow('BC',d)+conceptDetailRow('E1',d)+conceptDetailRow('M1',d)+'</div>'+
+  '<div class="concept-unit s2"><h3>STATION 2</h3>'+conceptDetailRow('E2',d)+conceptDetailRow('M2',d)+'</div>'+
+  '<div class="concept-actions">'+
+    (isAdmin()?'<button class="btn primary" onclick="openNeedCreator()">Create Staffing Need</button>':'')+
+    '<button class="btn good" onclick="goto(\'ot\')">OT / Force</button>'+
+    '<button class="btn" onclick="goto(\'requests\')">Leave / Trades</button>'+
+    (isAdmin()?'<button class="btn" onclick="openPersonnelManager()">Manage Personnel</button>':'')+
+  '</div>'
+}
+function conceptDetailRow(unit,d){
+ const ua=assignments.filter(a=>a.duty_date===d&&a.unit===unit);
+ const n=needs.filter(x=>x.duty_date===d&&x.unit===unit&&!['FILLED','CANCELLED'].includes(x.status));
+ const names=ua.map(a=>{
+   const p=pById(a.personnel_id); if(!p)return 'Unknown';
+   return p.name+(p.employment_status==='PROBATIONARY_FTO'?' ⚠ FTO':'')
+ }).join(', ');
+ const text=n.length?n.map(x=>x.position_label+' • '+remaining(x)+'h open').join('<br>'):(names||conceptUnitRule(unit));
+ return '<div class="concept-assign"><b>'+unit+'</b><span>'+text+'</span><span class="tag '+(n.length?'bad':'good')+'">'+(n.length?'OPEN':'GOOD')+'</span></div>'
+}
+
 function renderSchedule(){
  const filter=document.getElementById('scheduleShift')?.value||'ALL';
  const days=shiftDays.filter(d=>filter==='ALL'||d.shift===filter);
