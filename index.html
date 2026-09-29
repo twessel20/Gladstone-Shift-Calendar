@@ -624,8 +624,10 @@ main{overflow-x:hidden}
 .cmd-date.kelly{box-shadow:inset 0 -3px 0 #f0b323}
 .cmd-kelly-pill{display:block;width:max-content;max-width:100%;margin:3px auto 0;padding:1px 4px;border-radius:999px;background:#6a4c0b;color:#ffe49a;font-size:6px;font-weight:1000;line-height:1.2}
 .header-kelly{font-size:9px;font-weight:900;letter-spacing:.08em;color:#d9c27b}
-.kelly-note{grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:5px;min-height:26px;padding:4px 7px;border:1px solid #4f4324;border-radius:7px;background:#12140f;color:#cfc39a;font-size:8px;line-height:1.1;text-align:center}
-.kelly-note strong{font-size:8px;letter-spacing:.05em;color:#e2d18f}
+.off-note{grid-column:1/-1;display:flex;flex-direction:column;gap:3px;min-height:26px;padding:5px 7px;border:1px solid #37465a;border-radius:7px;background:#0f1720;color:#c5d0dc;font-size:8px;line-height:1.2;text-align:left}
+.off-note-title{font-size:8px;font-weight:1000;letter-spacing:.06em;color:#9fb0c0;text-transform:uppercase}
+.off-note-line{white-space:normal}
+.off-note-line b{color:#eef4fb;font-weight:900}
 
 
 .cycle-progress-tile{display:flex!important;align-items:center;justify-content:center;gap:9px;text-align:left!important}
@@ -1056,6 +1058,53 @@ function kellyPersonnelForDate(date,shift=shiftForDate(date)){
 }
 function kellyNamesForDate(date,shift=shiftForDate(date)){
  return kellyPersonnelForDate(date,shift).map(x=>x.source_name).filter(Boolean)
+}
+function sourceOffLabel(raw){
+ const v=String(raw||'').trim().toUpperCase();
+ if(v==='K')return 'Kelly Day';
+ if(v==='V')return 'Vacation';
+ if(v==='TD')return 'Trade Day';
+ if(v==='TR'||v.startsWith('TR'))return 'Training';
+ if(v==='HL'||v==='H')return 'Holiday';
+ if(v==='S'||v==='SICK')return 'Sick';
+ if(v==='FS'||v==='FAMILY SICK')return 'Family Sick';
+ if(v==='C'||v==='COMP')return 'Comp';
+ return null
+}
+function dayOffPersonnel(date,shift=shiftForDate(date)){
+ const rows=[];
+ const seen=new Set();
+ const add=(key,name,label,detail='')=>{
+   const id=key||name+'|'+label;
+   if(seen.has(id))return;
+   seen.add(id);rows.push({name,label,detail})
+ };
+ sourceCells.filter(x=>x.duty_date===date&&x.shift===shift&&x.source_section==='ANCHOR').forEach(x=>{
+   const label=sourceOffLabel(x.raw_assignment);
+   if(label)add(x.personnel_id||x.source_name,x.source_name,label,'')
+ });
+ leaves.filter(x=>x.leave_date===date&&['APPROVED','APPLIED'].includes(x.status)).forEach(x=>{
+   const p=pById(x.personnel_id);if(p)add(x.personnel_id,p.name,x.leave_type||'Leave',x.hours?Number(x.hours)+'h':'')
+ });
+ trades.filter(x=>['APPROVED','APPLIED'].includes(x.status)).forEach(t=>{
+   const requester=pById(t.requester_id),replacement=pById(t.replacement_id);
+   if(t.requester_date===date&&requester){
+     const detail=replacement?'Covered by '+replacement.name+(t.reciprocal_date?' • reciprocal '+formatDate(t.reciprocal_date):''):(t.reciprocal_date?'Reciprocal '+formatDate(t.reciprocal_date):'');
+     add('trade-r-'+t.id,requester.name,'Trade Day',detail)
+   }
+   if(t.reciprocal_date===date&&replacement){
+     const detail=requester?'Covered by '+requester.name+' • original '+formatDate(t.requester_date):'Original '+formatDate(t.requester_date);
+     add('trade-x-'+t.id,replacement.name,'Trade Day',detail)
+   }
+ });
+ return rows
+}
+function offNoteHtml(date,shift){
+ const rows=dayOffPersonnel(date,shift);
+ if(!rows.length)return '';
+ return '<div class="off-note"><div class="off-note-title">Off / Unavailable</div>'+
+   rows.map(x=>'<div class="off-note-line"><b>'+x.name+'</b> — '+x.label+(x.detail?' • '+x.detail:'')+'</div>').join('')+
+ '</div>'
 }
 function renderCommandDashboard(){
  const period=activeSchedulePeriod();
@@ -1540,7 +1589,7 @@ function renderCommandDayDetail(){
  html+='<div class="station-board s1"><div class="station-board-title">STATION 1</div>'+apparatusSummaryButton(date,'BC')+apparatusSummaryButton(date,'E1')+apparatusSummaryButton(date,'M1')+'</div>';
  html+='<div class="station-board s2"><div class="station-board-title">STATION 2</div>'+apparatusSummaryButton(date,'E2')+apparatusSummaryButton(date,'M2')+'</div>';
  html+='<div class="command-summary-rail">'+
-   (kellyNames.length?'<div class="kelly-note"><strong>KELLY:</strong><span>'+kellyNames.join(' • ')+'</span></div>':'')+
+   offNoteHtml(date,shift)+
    '<button class="command-tile cycle-progress-tile '+(cycleGreen===cycleDays.length?'good':'bad')+'" onclick="goto(\'staffing\')"><div class="cycle-progress-ring" style="--pct:'+cyclePct+';--ring:'+(cycleGreen===cycleDays.length?'#0ccf86':'#ed3343')+'"><div class="inside"><b>'+cyclePct+'%</b><small>'+cycleGreen+'/'+cycleDays.length+'</small></div></div><div class="cycle-progress-copy"><strong>Duty Days Green</strong><span>Cycle staffing progress</span></div></button>'+
    '<button class="command-tile '+(openCycle.length?'bad':'good')+'" onclick="'+(firstNeed?"openWorkflow('"+firstNeed.id+"')":"goto('staffing')")+'"><strong>'+openCycle.length+'</strong><span>Open staffing needs</span></button>'+
    '<button class="command-tile '+(forceCycle.length?'bad':'')+'" onclick="goto(\'ot\')"><strong>'+forceCycle.length+'</strong><span>Force needed</span></button>'+
