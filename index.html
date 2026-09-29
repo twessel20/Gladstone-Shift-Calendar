@@ -391,6 +391,94 @@ main{overflow-x:hidden}
  .command-summary-rail{grid-template-columns:repeat(2,1fr)}
 }
 
+
+/* Reference-inspired right-side apparatus inspector */
+.unit-inspector-backdrop{
+  position:fixed;inset:0;background:rgba(1,8,15,.18);opacity:0;pointer-events:none;
+  transition:opacity .18s ease;z-index:880
+}
+.unit-inspector-backdrop.open{opacity:1;pointer-events:auto}
+.unit-inspector{
+  position:fixed;top:10px;right:10px;bottom:10px;width:min(430px,calc(100vw - 20px));
+  background:linear-gradient(180deg,#071827,#06131f);
+  border:1px solid #355773;border-radius:12px;box-shadow:-14px 0 34px rgba(0,0,0,.38);
+  z-index:900;transform:translateX(calc(100% + 24px));transition:transform .2s ease;
+  display:flex;flex-direction:column;overflow:hidden
+}
+.unit-inspector.open{transform:translateX(0)}
+.unit-inspector-head{
+  display:flex;align-items:flex-start;gap:10px;padding:16px 16px 12px;
+  border-bottom:1px solid #28465f;background:linear-gradient(180deg,#0b2237,#081827)
+}
+.unit-inspector-title{font-size:22px;font-weight:1000;line-height:1.05;color:#f7fbff}
+.unit-inspector-sub{font-size:11px;color:#adc0d2;margin-top:5px;font-weight:700}
+.unit-inspector-close{
+  margin-left:auto;width:38px;height:38px;border:0;border-radius:8px;background:transparent;color:#cfe0ef;
+  font-size:28px;line-height:1;cursor:pointer
+}
+.unit-inspector-close:hover{background:#122a3f}
+.unit-inspector-status{
+  margin:12px 14px 0;padding:10px 12px;border-radius:7px;font-size:14px;font-weight:1000;
+  display:flex;align-items:center;justify-content:space-between;gap:8px
+}
+.unit-inspector-status.good{background:linear-gradient(90deg,#08764f,#0a915e);color:white}
+.unit-inspector-status.bad{background:linear-gradient(90deg,#aa2432,#d22f3d);color:white}
+.unit-inspector-body{padding:12px 14px 16px;overflow:auto;min-height:0}
+.inspector-section{
+  border:1px solid #28465f;border-radius:8px;background:#091a29;margin-bottom:10px;overflow:hidden
+}
+.inspector-section-title{
+  padding:8px 10px;background:#0d2236;border-bottom:1px solid #28465f;
+  font-size:12px;font-weight:1000;text-transform:uppercase;letter-spacing:.03em
+}
+.inspector-section-title.s1{background:linear-gradient(90deg,#842530,#5a1c24)}
+.inspector-section-title.s2{background:linear-gradient(90deg,#0b58ad,#083b78)}
+.inspector-requirements{display:grid;gap:0}
+.inspector-requirement{
+  display:grid;grid-template-columns:1fr auto;gap:10px;padding:9px 10px;border-top:1px solid #1c3348;
+  font-size:12px
+}
+.inspector-requirement:first-child{border-top:0}
+.inspector-requirement strong{font-size:12px}
+.inspector-requirement .met{color:#51e5a1;font-weight:900}
+.inspector-requirement .missing{color:#ff6673;font-weight:900}
+.unit-inspector .seat-map{margin-top:0;gap:0}
+.unit-inspector .seat-row{
+  border:0;border-top:1px solid #1c3348;border-radius:0;background:#091a29;padding:10px;
+  grid-template-columns:105px minmax(0,1fr) auto
+}
+.unit-inspector .seat-row:first-child{border-top:0}
+.unit-inspector .seat-position{font-size:11px}
+.unit-inspector .seat-person{font-size:14px}
+.unit-inspector .seat-meta{font-size:9px}
+.unit-inspector .seat-editor{
+  border-color:#28465f;background:#081827;margin-top:10px;padding:10px
+}
+.unit-inspector .seat-editor .panel-title{font-size:13px}
+.unit-inspector .actions{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.unit-inspector .actions .btn{min-height:40px}
+@media(max-width:700px){
+ .unit-inspector{top:0;right:0;bottom:0;width:100%;border-radius:0}
+}
+
+/* Command-board refinements inspired by reference image */
+.command-board-v2{
+  background:linear-gradient(180deg,#071725,#06131f)!important;border-color:#2f506b!important
+}
+.command-dashboard-head{
+  background:linear-gradient(90deg,#0c2236,#081827)!important;border-color:#2f506b!important
+}
+.station-board{border-color:#2c4b65!important}
+.station-board-title{font-size:13px!important;padding:8px 10px!important}
+.apparatus-summary{padding:7px 9px!important}
+.apparatus-unit{font-size:16px!important}
+.apparatus-seat{font-size:9.5px!important}
+.apparatus-status{min-width:54px;text-align:center}
+.command-summary-rail{gap:7px!important}
+.command-tile{padding:9px 10px!important}
+.command-tile strong{font-size:20px!important}
+.command-tile span{font-size:9.5px!important}
+
 </style>
 </head>
 <body>
@@ -520,10 +608,18 @@ main{overflow-x:hidden}
 
 <div id="workflowModal" class="modal"><div class="modalbox"><div class="modalhead"><h2 id="workflowTitle">Staffing Workflow</h2><div class="grow"></div><button class="ctl" onclick="closeModal('workflowModal')">Close</button></div><div id="workflowBody"></div></div></div>
 
-<div id="unitDetailModal" class="modal"><div class="modalbox" style="width:min(720px,100%)">
- <div class="modalhead"><div><h2 id="unitDetailTitle">Apparatus Staffing</h2><div id="unitDetailSub" class="muted"></div></div><div class="grow"></div><button class="ctl" onclick="closeModal('unitDetailModal')">Close</button></div>
- <div id="unitDetailBody"></div>
-</div></div>
+<div id="unitInspectorBackdrop" class="unit-inspector-backdrop" onclick="closeUnitInspector()"></div>
+<aside id="unitInspector" class="unit-inspector" aria-hidden="true">
+  <div class="unit-inspector-head">
+    <div>
+      <div id="unitDetailTitle" class="unit-inspector-title">Apparatus Staffing</div>
+      <div id="unitDetailSub" class="unit-inspector-sub"></div>
+    </div>
+    <button class="unit-inspector-close" onclick="closeUnitInspector()" aria-label="Close apparatus detail">×</button>
+  </div>
+  <div id="unitInspectorStatus" class="unit-inspector-status"></div>
+  <div id="unitDetailBody" class="unit-inspector-body"></div>
+</aside>
 
 <div id="awardModal" class="modal"><div class="modalbox"><div class="modalhead"><h2>Schedule Coverage Block</h2><div class="grow"></div><button class="ctl" onclick="closeModal('awardModal')">Close</button></div>
  <div id="awardWho" class="notice"></div>
@@ -1041,24 +1137,56 @@ function assignmentClass(a,p,date){
  if(a.assignment_type==='EVENT')return 'EVENT';
  return 'ANCHOR'
 }
+function openUnitInspector(){
+ unitInspector.classList.add('open');
+ unitInspectorBackdrop.classList.add('open');
+ unitInspector.setAttribute('aria-hidden','false')
+}
+function closeUnitInspector(){
+ unitInspector.classList.remove('open');
+ unitInspectorBackdrop.classList.remove('open');
+ unitInspector.setAttribute('aria-hidden','true')
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&unitInspector?.classList.contains('open'))closeUnitInspector()})
+function inspectorStationClass(unit){
+ return ['BC','E1','M1'].includes(unit)?'s1':['E2','M2'].includes(unit)?'s2':''
+}
 function openApparatusDetail(date,unit){
  dashboardSelectedDate=date;
  const dutyShift=shiftForDate(date);
  const ps=unitPeople(date,unit);
  const open=needs.filter(n=>n.duty_date===date&&n.unit===unit&&!['FILLED','CANCELLED'].includes(n.status));
  const compliance=unitCompliance(date,unit);
+ const stationClass=inspectorStationClass(unit);
  unitDetailTitle.textContent=(unit==='GATOR1'?'Gator 1':unit)+' Staffing';
  unitDetailSub.textContent=formatDate(date)+' • '+dutyShift+' Shift';
- const needBlock=open.length?'<div class="notice bad" style="margin-top:10px"><b>OPEN STAFFING NEED</b><br>'+open.map(n=>n.position_label+' • '+remaining(n)+'h remaining').join('<br>')+'</div>':'';
+ unitInspectorStatus.className='unit-inspector-status '+(compliance.ok?'good':'bad');
+ unitInspectorStatus.innerHTML='<span>'+(compliance.ok?'✓ Minimums Met':'! Staffing Action Needed')+'</span><span>'+ps.length+' Assigned</span>';
+
+ const requirements=unitPositionDefs(unit).filter(x=>x.required).map(def=>{
+   const {result}=effectiveUnitPositions(date,unit);
+   const met=!!result.get(def.code);
+   return '<div class="inspector-requirement"><strong>'+def.label+'</strong><span class="'+(met?'met':'missing')+'">'+(met?'Met':'Open')+'</span></div>'
+ }).join('');
+ const alsNeeded=['E1','E2','M1','M2','M3','GATOR1'].includes(unit);
+ const alsMet=!alsNeeded||compliance.paramedics>=1;
+ const requirementBlock='<div class="inspector-section"><div class="inspector-section-title">Staffing Requirements</div><div class="inspector-requirements">'+requirements+
+   (alsNeeded?'<div class="inspector-requirement"><strong>ALS / Paramedic</strong><span class="'+(alsMet?'met':'missing')+'">'+(alsMet?'Met':'Open')+'</span></div>':'')+
+   '</div></div>';
+
+ const needBlock=open.length?'<div class="inspector-section"><div class="inspector-section-title">Open Staffing Need</div><div style="padding:10px">'+open.map(n=>'<div class="notice bad" style="margin:0 0 6px"><b>'+n.position_label+'</b><br>'+remaining(n)+'h remaining</div>').join('')+'</div></div>':'';
+
  unitDetailBody.innerHTML=
-   '<div class="unit-pop-summary"><span class="tag">'+dutyShift+' SHIFT</span><span class="tag">'+ps.length+' ASSIGNED</span><span class="tag '+(compliance.ok?'good':'bad')+'">'+(compliance.ok?'MINIMUMS MET':'ACTION REQUIRED')+'</span></div>'+
-   seatMapHtml(date,unit)+
-   '<div class="unit-compliance">'+(compliance.ok?'<span class="tag good">✓ Minimum Staffing</span><span class="tag good">✓ ALS</span>':compliance.missing.map(m=>'<span class="tag bad">Missing: '+m+'</span>').join(''))+'</div>'+
+   '<div class="inspector-section"><div class="inspector-section-title '+stationClass+'">Riding Assignments</div>'+seatMapHtml(date,unit)+'</div>'+
+   requirementBlock+
    needBlock+
-   manualSeatEditorHtml(date,unit)+
-   (isAdmin()?'<div class="actions" style="margin-top:12px">'+
-      (open.length?'<button class="btn primary" onclick="closeModal(\'unitDetailModal\');openWorkflow(\''+open[0].id+'\')">Fill Open Position</button>':'')+
-      '<button class="btn" onclick="closeModal(\'unitDetailModal\');openNeedCreatorForDate(\''+date+'\',\''+dutyShift+'\')">Create Staffing Need</button></div>':'');
+   (isAdmin()?manualSeatEditorHtml(date,unit):'')+
+   (isAdmin()?'<div class="inspector-section"><div class="inspector-section-title">Quick Actions</div><div style="padding:10px" class="actions">'+
+      (open.length?'<button class="btn primary" onclick="closeUnitInspector();openWorkflow(\''+open[0].id+'\')">Fill Shortage</button>':'')+
+      '<button class="btn good" onclick="closeUnitInspector();goto(\'ot\')">OT / Force</button>'+
+      '<button class="btn" onclick="closeUnitInspector();openMovePersonnel(\''+date+'\')">Move Personnel</button>'+
+      '<button class="btn" onclick="closeUnitInspector();openNeedCreatorForDate(\''+date+'\',\''+dutyShift+'\')">Create Need</button>'+
+    '</div></div>':'');
  for(const def of unitPositionDefs(unit)){
    const select=document.getElementById('seat_'+unit+'_'+def.code);
    if(select){
@@ -1066,7 +1194,7 @@ function openApparatusDetail(date,unit){
      select.value=current?.id||''
    }
  }
- openModal('unitDetailModal')
+ openUnitInspector()
 }
 function openSpecialUnitsDetail(date){
  const active=['M3','GATOR1'].filter(u=>unitPeople(date,u).length);
@@ -1077,8 +1205,8 @@ function openSpecialUnitsDetail(date){
  unitDetailSub.textContent=formatDate(date)+' • '+dutyShift+' Shift';
  if(!active.length){
    unitDetailBody.innerHTML='<div class="unit-empty">Medic 3 and Gator 1 are not in service on this date.</div>'+
-     (isAdmin()?'<div class="actions"><button class="btn primary" onclick="closeModal(\'unitDetailModal\');openSpecialAssignment(\'M3\')">Place Medic 3 In Service</button><button class="btn" onclick="closeModal(\'unitDetailModal\');openSpecialAssignment(\'GATOR1\')">Create Special Event</button></div>':'');
-   return openModal('unitDetailModal')
+     (isAdmin()?'<div class="actions"><button class="btn primary" onclick="closeUnitInspector();openSpecialAssignment(\'M3\')">Place Medic 3 In Service</button><button class="btn" onclick="closeUnitInspector();openSpecialAssignment(\'GATOR1\')">Create Special Event</button></div>':'');
+   return openUnitInspector()
  }
  unitDetailBody.innerHTML=active.map(u=>{
    const ps=unitPeople(date,u);
@@ -1086,7 +1214,7 @@ function openSpecialUnitsDetail(date){
      ps.map(x=>'<div class="cmd-row"><b>'+u+'</b><div><div class="person">'+x.p.name+'</div><div class="role">'+apparatusRoleDetail(x.p)+' • '+x.p.shift+' Shift</div></div><span class="tag '+(x.a.assignment_type==='EVENT'?'purp':'good')+'">'+x.a.assignment_type.replaceAll('_',' ')+'</span></div>').join('')+
    '</div>'
  }).join('');
- openModal('unitDetailModal')
+ openUnitInspector()
 }
 function dashboardUnitRule(unit){
  if(unit==='BC')return 'Command';
