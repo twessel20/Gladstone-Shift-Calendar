@@ -1,0 +1,9 @@
+{
+  "name":"Gladstone Fire Department Staffing & Scheduling",
+  "short_name":"GFD Staffing",
+  "start_url":"./",
+  "display":"standalone",
+  "background_color":"#07111d",
+  "theme_color":"#081421",
+  "description":"Gladstone Fire Department staffing, overtime, force, leave, trades and notifications."
+}
