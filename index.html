@@ -530,6 +530,16 @@ main{overflow-x:hidden}
 @media(max-width:1250px){.ot-command-grid{grid-template-columns:minmax(240px,.8fr) minmax(0,1.2fr)}.ot-force-panel{grid-column:1/-1}}
 @media(max-width:800px){.ot-command-grid{grid-template-columns:1fr}.ot-force-panel{grid-column:auto}.ot-available-summary{grid-template-columns:1fr}.ot-available-row{grid-template-columns:44px 1fr auto}.ot-available-row>div:nth-child(n+3):nth-child(-n+5){grid-column:2/span 2}}
 
+
+.ot-command-grid.force-priority{grid-template-columns:minmax(260px,.8fr) minmax(360px,1.15fr) minmax(420px,1.35fr)}
+.ot-command-grid.force-priority .ot-force-panel{order:2;border-color:#9c3945}
+.ot-command-grid.force-priority .ot-force-panel .ot-command-title{background:#7b2430}
+.ot-command-grid.force-priority .ot-command-panel:nth-child(2){order:3}
+.force-deadline-banner{border:1px solid #8b6722;background:#2b210d;color:#ffe3a3;border-radius:8px;padding:9px 10px;margin-bottom:9px;font-size:11px;line-height:1.35}
+.force-deadline-banner.active{border-color:#a83744;background:#35151a;color:#ffd3d8}
+.force-deadline-banner strong{font-size:12px}
+
+.ot-need-card.force-due{border-color:#9c3945;background:#2a1217}
 </style>
 </head>
 <body>
@@ -1598,12 +1608,24 @@ function renderStaffing(){
  staffingList.innerHTML=open.length?open.map(needCard).join(''):'<div class="notice">No open staffing needs.</div>';
  filledNeeds.innerHTML=filled.length?filled.map(needCard).join(''):'<div class="notice">No recently filled needs.</div>'
 }
+function forceDeadlineForNeed(n){
+ const d=new Date(n.duty_date+'T20:00:00');
+ d.setDate(d.getDate()-1);
+ return d
+}
+function forcePriorityReached(n){
+ return remaining(n)>0 && new Date()>=forceDeadlineForNeed(n)
+}
+function forceDeadlineLabel(n){
+ return forceDeadlineForNeed(n).toLocaleString([],{weekday:'short',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})
+}
 function renderOT(){
  const active=needs.filter(n=>!['FILLED','CANCELLED'].includes(n.status)).sort((a,b)=>a.duty_date.localeCompare(b.duty_date));
  otNeeds.innerHTML=active.map(n=>{
    const avail=responses.filter(r=>r.staffing_need_id===n.id&&r.available).length;
    const selected=n.id===selectedNeed;
-   return '<div class="ot-need-card '+(selected?'selected':'')+'"><h3>'+formatDate(n.duty_date)+' — '+n.position_label+'</h3>'+
+   const forceDue=forcePriorityReached(n);
+   return '<div class="ot-need-card '+(selected?'selected ':'')+(forceDue?'force-due':'')+'"><h3>'+formatDate(n.duty_date)+' — '+n.position_label+(forceDue?' <span class="tag bad">FORCE PRIORITY</span>':'')+'</h3>'+
      '<div class="meta">'+n.shift+' Shift • '+n.unit+' • '+remaining(n)+'h remaining</div>'+
      '<div class="meta">'+avail+' Regular OT response'+(avail===1?'':'s')+' available</div>'+
      '<div class="actions"><button class="btn primary" onclick="selectNeed(\''+n.id+'\')">View Active Need</button></div></div>'
@@ -1616,8 +1638,14 @@ function renderOT(){
    otForcePanel.className='notice';otForcePanel.innerHTML='Select an active staffing need to load the correct prior-shift force list.'
  }
 }
-function selectNeed(id){
+async function selectNeed(id){
  selectedNeed=id;
+ const n=needs.find(x=>x.id===id);
+ if(n&&forcePriorityReached(n)&&n.status!=='FORCE_NEEDED'){
+   await sb.from('staffing_needs').update({status:'FORCE_NEEDED'}).eq('id',id);
+   n.status='FORCE_NEEDED';
+   await logAudit('FORCE_PRIORITY_REACHED','staffing_need',id,{deadline:forceDeadlineForNeed(n).toISOString(),remaining_hours:remaining(n)})
+ }
  renderOT()
 }
 function needDetail(n){return ''}
@@ -1635,6 +1663,7 @@ function regularOtAvailableForNeed(n){
 }
 function renderOtCommandNeed(n){
  const available=regularOtAvailableForNeed(n);
+ const forcePriority=forcePriorityReached(n);
  const totalResponses=responses.filter(r=>r.staffing_need_id===n.id).length;
  const unavailable=responses.filter(r=>r.staffing_need_id===n.id&&!r.available).length;
  const segs=assignments.filter(a=>a.staffing_need_id===n.id);
@@ -1655,6 +1684,8 @@ function renderOtCommandNeed(n){
  let employeeAction='';
  if(!isAdmin()&&qualifies(me,n)&&!meResp)employeeAction='<div class="actions"><button class="btn good" onclick="respondOT(\''+n.id+'\',true)">Available</button><button class="btn danger" onclick="respondOT(\''+n.id+'\',false)">Not Available</button></div>';
  const adminAction=isAdmin()?'<div class="actions"><button class="btn primary" onclick="notifyQualified(\''+n.id+'\')">Notify Qualified Personnel</button></div>':'';
+ const grid=document.querySelector('.ot-command-grid');
+ if(grid)grid.classList.toggle('force-priority',forcePriority);
  otDetail.className='';
  otDetail.innerHTML=
    '<div class="notice"><b>'+formatDate(n.duty_date)+' • '+n.unit+' • '+n.position_label+'</b><br>'+
@@ -1666,16 +1697,17 @@ function renderOtCommandNeed(n){
      '<div class="ot-summary-box"><strong>'+segs.length+'</strong><span>Coverage blocks awarded</span></div>'+
    '</div>'+
    adminAction+employeeAction+
+   '<div class="force-deadline-banner '+(forcePriority?'active':'')+'"><strong>'+(forcePriority?'FORCE PRIORITY ACTIVE':'Force deadline: '+forceDeadlineLabel(n))+'</strong><br>'+(forcePriority?'The vacancy is still unfilled after 20:00 on the outgoing shift. Force selection now takes priority.':'Regular OT remains primary until 20:00 on the outgoing shift the day before. If coverage is still unfilled then, Force becomes primary automatically.')+'</div>'+
    '<div class="panel-title" style="margin-top:10px">Available Regular OT</div>'+
    '<div class="notice" style="margin:7px 0">Ordered by department OT rules: line personnel before officers, then Google Sheet OT rotation position. Only Worked Regular OT counts toward the 24h / 14-day threshold.</div>'+
    (rows||'<div class="notice warn">No qualified Regular OT personnel have accepted this need yet. Force is now available on the right.</div>');
- renderForceCommandPanel(n,available.length===0)
+ renderForceCommandPanel(n,forcePriority)
 }
 async function renderForceCommandPanel(n,forceAllowed){
  otForcePanel.className='';
- otForcePanel.innerHTML='<div class="notice '+(forceAllowed?'warn':'')+'">'+
+ otForcePanel.innerHTML='<div class="notice '+(forceAllowed?'bad':'')+'">'+
    '<b>'+priorShift(n.shift)+' Shift • '+qLabel(n.qualification_group)+' Force List</b><br>'+
-   (forceAllowed?'No awardable Regular OT personnel are available. Force selection is enabled.':'Regular OT is available. Force list is shown for reference; force selection is locked until Regular OT is exhausted.')+
+   (forceAllowed?'20:00 deadline reached and coverage remains open. Force selection is enabled and takes priority.':'Force list is shown for reference. It unlocks at 20:00 on the outgoing shift the day before if the need remains unfilled.')+
    '</div><div id="forceCandidatesCommand" style="margin-top:8px">Loading force list…</div>';
  await loadForce(n.id,'forceCandidatesCommand',forceAllowed)
 }
