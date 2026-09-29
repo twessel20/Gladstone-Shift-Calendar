@@ -163,6 +163,35 @@ main{padding:10px 12px 12px;overflow-x:hidden}
  .cmd-date small{font-size:6px}
 }
 
+
+/* User-arrangeable dashboard + strict viewport fit */
+html,body{max-width:100%;overflow-x:hidden}
+.app,main,.cmd-dashboard,.cmd-main,#view-dashboard{min-width:0;max-width:100%}
+main{overflow-x:hidden}
+.cmd-matrix{grid-template-columns:112px repeat(28,minmax(0,1fr))!important;width:100%!important;max-width:100%!important;min-width:0!important;overflow:hidden!important}
+.cmd-date{min-width:0!important}
+.cmd-date b{font-size:14px}
+.cmd-date small{font-size:7px}
+.cmd-label{min-width:0;padding-left:6px;padding-right:4px}
+.day-board{display:flex!important;flex-wrap:wrap;gap:7px;align-items:flex-start}
+.day-board-head{flex:1 0 100%;width:100%}
+.day-board>.cmd-station{flex:0 1 calc(32% - 5px);width:calc(32% - 5px);min-width:230px}
+.day-board>.cmd-panel{flex:0 1 calc(24% - 6px);width:calc(24% - 6px);min-width:210px}
+.dash-widget{position:relative;resize:both;overflow:auto;max-width:100%;min-height:90px}
+.dash-widget.dragging{opacity:.55;outline:2px dashed #5da9ff}
+.drag-handle{float:right;display:inline-grid;place-items:center;width:25px;height:20px;border-radius:5px;background:#16324e;color:#9fc7eb;font-size:12px;cursor:grab;user-select:none;margin-left:6px}
+.drag-handle:active{cursor:grabbing}
+.cmd-station h3,.dash-widget>.panel-title{cursor:default}
+.cmd-footer{display:flex!important;flex-wrap:wrap;gap:7px}
+.cmd-footer>.cmd-panel{flex:1 1 calc(50% - 4px);width:calc(50% - 4px);min-width:260px;resize:both;overflow:auto}
+@media(max-width:1250px){
+ .cmd-matrix{grid-template-columns:96px repeat(28,minmax(0,1fr))!important}
+ .cmd-date b{font-size:12px}.cmd-date small{font-size:6px}.cmd-date .shiftmark{font-size:6px}
+ .cmd-cell{height:27px}
+ .cmd-label{font-size:9px}.cmd-label span{font-size:6px}
+ .day-board>.cmd-station,.day-board>.cmd-panel{flex-basis:calc(50% - 4px);width:calc(50% - 4px)}
+}
+
 </style>
 </head>
 <body>
@@ -209,7 +238,7 @@ main{padding:10px 12px 12px;overflow-x:hidden}
   <div class="top">
     <div><h1>28-Day Schedule</h1><div class="muted"><span id="headerShiftText" style="color:#ff4251;font-weight:900">A Shift</span> &nbsp;•&nbsp; Sep 30, 2026 – Oct 27, 2026 &nbsp;•&nbsp; <span class="header-cycle">Current Cycle</span></div></div>
     <div class="grow"></div>
-    <button class="ctl" onclick="selectDashboardToday()">Today</button>
+    <button class="ctl" onclick="selectDashboardToday()">Today</button><button class="ctl" onclick="resetDashboardLayout()">Reset Layout</button>
     <div class="header-range">Sep 30, 2026 – Oct 27, 2026</div>
     <select id="dashboardShiftFilter" class="ctl shift-picker" onchange="dashboardSelectedDate=firstDutyDateForShift(this.value);renderCommandDashboard()"><option>A</option><option>B</option><option>C</option></select>
     <button id="activateM3Btn" class="btn primary hidden" onclick="openSpecialAssignment('M3')">Medic 3</button>
@@ -221,8 +250,8 @@ main{padding:10px 12px 12px;overflow-x:hidden}
       <div id="cmdMatrix" class="cmd-matrix"></div>
       <section id="cmdDayDetail" class="cmd-right"></section>
       <div class="cmd-footer">
-        <div class="cmd-panel"><div class="panel-title">Cycle Overview</div><div id="cmdOverview"></div></div>
-        <div class="cmd-panel"><div class="panel-title">Upcoming Issues</div><div id="cmdIssues" class="list"></div></div>
+        <div class="cmd-panel dash-widget" data-widget-id="cycle-overview"><div class="panel-title">Cycle Overview</div><div id="cmdOverview"></div></div>
+        <div class="cmd-panel dash-widget" data-widget-id="upcoming-issues"><div class="panel-title">Upcoming Issues</div><div id="cmdIssues" class="list"></div></div>
       </div>
     </div>
   </div>
@@ -530,7 +559,8 @@ function renderCommandDashboard(){
 
  const upcoming=activeNeeds.filter(n=>n.duty_date>=days[0]).sort((a,b)=>a.duty_date.localeCompare(b.duty_date)).slice(0,5);
  cmdIssues.innerHTML=upcoming.map(n=>'<div class="item"><b>'+formatDate(n.duty_date)+'</b><div class="meta">'+n.unit+' — '+n.position_label+' • '+remaining(n)+'h open</div><div class="actions"><button class="btn" onclick="openWorkflow(\''+n.id+'\')">Fill</button></div></div>').join('')||'<div class="notice">No upcoming staffing issues.</div>';
- renderCommandDayDetail()
+ renderCommandDayDetail();
+ initDashboardContainer('footer')
 }
 function personnelTypeLabel(p){
  if(p.personnel_type==='BATTALION_CHIEF')return 'Battalion Chief';
@@ -642,34 +672,82 @@ function renderCommandDayDetail(){
  let html='<div class="day-board">';
  html+='<div class="day-board-head"><div><h2>'+dt.toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'})+'</h2><div class="muted">'+shift+' Shift • 24-hour duty</div>'+calendarPills(date)+'</div><div class="cmd-status '+(open.length?'bad':'')+'">'+(open.length?'NEEDS STAFF • '+open.length+' OPEN':'FULLY STAFFED / COMPLIANT')+'</div></div>';
 
- html+=commandStation('STATION 1 — Headquarters',['BC','E1','M1'],date,'s1',open);
- html+=commandStation('STATION 2 — West Side',['E2','M2'],date,'s2',open);
+ html+=commandStation('STATION 1 — Headquarters',['BC','E1','M1'],date,'s1',open,'station-1');
+ html+=commandStation('STATION 2 — West Side',['E2','M2'],date,'s2',open,'station-2');
 
- html+='<div class="cmd-panel"><div class="panel-title">Shift Compliance</div>'+
+ html+='<div class="cmd-panel dash-widget" data-widget-id="shift-compliance"><div class="panel-title">Shift Compliance</div>'+
    '<div class="cmd-check">ALS Coverage <span style="float:right">'+(als?'✓ Met':'! Review')+'</span></div>'+
    '<div class="cmd-check">FAO Coverage <span style="float:right">'+(fao?'✓ Met':'! Review')+'</span></div>'+
    '<div class="cmd-check">BC / Command <span style="float:right">'+(bc?'✓ Met':'! Open')+'</span></div>'+
    '<div class="cmd-check">Minimum Staffing <span style="float:right">'+(open.length?open.length+' short':'✓ Met')+'</span></div></div>';
 
- html+='<div class="cmd-panel"><div class="panel-title">Quick Actions</div><div class="cmd-actions">'+
+ html+='<div class="cmd-panel dash-widget" data-widget-id="quick-actions"><div class="panel-title">Quick Actions</div><div class="cmd-actions">'+
    (isAdmin()?'<button class="btn primary" onclick="openNeedCreatorForDate(\''+date+'\',\''+shift+'\')">Fill Day</button><button class="btn good" onclick="goto(\'ot\')">OT / Force</button><button class="btn" onclick="openMovePersonnel(\''+date+'\')">Move Personnel</button><button class="btn" onclick="openSpecialAssignment(\'M3\')">Medic 3</button>':'')+
    '<button class="btn" onclick="openTradeRequest()">Trade</button><button class="btn" onclick="openLeave()">Leave</button></div></div>';
 
- if(special.length)html+=commandStation('RESERVE / SPECIAL EVENT',special,date,'res',open);
+ if(special.length)html+=commandStation('RESERVE / SPECIAL EVENT',special,date,'res',open,'reserve-special');
 
- html+='<div class="cmd-panel"><div class="panel-title">Requests Affecting This Day</div><div class="compact-requests">'+
+ html+='<div class="cmd-panel dash-widget" data-widget-id="day-requests"><div class="panel-title">Requests Affecting This Day</div><div class="compact-requests">'+
    ((dayLeave.length||dayTrades.length)?[
       ...dayLeave.map(x=>'<div class="cmd-check">'+(pById(x.personnel_id)?.name||'Personnel')+' — '+x.leave_type+' <span style="float:right">'+x.status.replaceAll('_',' ')+'</span></div>'),
       ...dayTrades.map(x=>'<div class="cmd-check">'+(pById(x.requester_id)?.name||'Personnel')+' — Trade <span style="float:right">'+x.status.replaceAll('_',' ')+'</span></div>')
     ].join(''):'<div class="muted">No requests affecting this day.</div>')+
    '</div></div>';
 
- html+='<div class="cmd-panel"><div class="panel-title">BC Notes</div><div class="notice compact-note">'+(note?.note||'No notes for this shift day.')+'</div>'+(isAdmin()?'<div class="actions"><button class="btn" onclick="editDayNote(\''+date+'\',\''+shift+'\')">Add / Edit Note</button></div>':'')+'</div>';
+ html+='<div class="cmd-panel dash-widget" data-widget-id="bc-notes"><div class="panel-title">BC Notes</div><div class="notice compact-note">'+(note?.note||'No notes for this shift day.')+'</div>'+(isAdmin()?'<div class="actions"><button class="btn" onclick="editDayNote(\''+date+'\',\''+shift+'\')">Add / Edit Note</button></div>':'')+'</div>';
 
  html+='</div>';
- cmdDayDetail.innerHTML=html
+ cmdDayDetail.innerHTML=html;
+ initDashboardWidgets();
 }
-function commandStation(title,units,date,cls,open){
+function dashboardLayoutKey(container){
+ return 'gfd-dashboard-layout-'+(me?.id||'guest')+'-'+container
+}
+function saveDashboardContainer(container){
+ const root=container==='day'?document.querySelector('#cmdDayDetail .day-board'):document.querySelector('.cmd-footer');
+ if(!root)return;
+ const widgets=[...root.querySelectorAll(':scope > [data-widget-id]')];
+ const state={order:widgets.map(w=>w.dataset.widgetId),sizes:{}};
+ widgets.forEach(w=>{state.sizes[w.dataset.widgetId]={width:w.style.width||'',height:w.style.height||''}});
+ localStorage.setItem(dashboardLayoutKey(container),JSON.stringify(state))
+}
+function restoreDashboardContainer(container){
+ const root=container==='day'?document.querySelector('#cmdDayDetail .day-board'):document.querySelector('.cmd-footer');
+ if(!root)return;
+ let state={};try{state=JSON.parse(localStorage.getItem(dashboardLayoutKey(container))||'{}')}catch{}
+ const byId=id=>root.querySelector(':scope > [data-widget-id="'+id+'"]');
+ (state.order||[]).forEach(id=>{const el=byId(id);if(el)root.appendChild(el)});
+ Object.entries(state.sizes||{}).forEach(([id,s])=>{const el=byId(id);if(!el)return;if(s.width)el.style.width=s.width;if(s.height)el.style.height=s.height})
+}
+function initDashboardContainer(container){
+ const root=container==='day'?document.querySelector('#cmdDayDetail .day-board'):document.querySelector('.cmd-footer');
+ if(!root)return;
+ restoreDashboardContainer(container);
+ let dragged=null;
+ const widgets=[...root.querySelectorAll(':scope > [data-widget-id]')];
+ widgets.forEach(w=>{
+   if(w.dataset.dashboardInit==='1')return;
+   w.dataset.dashboardInit='1';
+   w.classList.add('dash-widget');
+   const head=w.querySelector('h3,.panel-title');
+   if(head&&!head.querySelector('.drag-handle')){
+     const handle=document.createElement('span');handle.className='drag-handle';handle.textContent='↕';
+     head.appendChild(handle);
+     handle.addEventListener('mousedown',()=>{w.draggable=true});
+     handle.addEventListener('mouseup',()=>{w.draggable=false})
+   }
+   w.addEventListener('dragstart',e=>{if(!w.draggable){e.preventDefault();return}dragged=w;w.classList.add('dragging');e.dataTransfer.effectAllowed='move'});
+   w.addEventListener('dragend',()=>{w.classList.remove('dragging');w.draggable=false;dragged=null;saveDashboardContainer(container)});
+   w.addEventListener('dragover',e=>{if(dragged){e.preventDefault();e.dataTransfer.dropEffect='move'}});
+   w.addEventListener('drop',e=>{if(!dragged||dragged===w)return;e.preventDefault();const rect=w.getBoundingClientRect();const before=(e.clientY<rect.top+rect.height/2)||(Math.abs(e.clientY-(rect.top+rect.height/2))<rect.height*.2&&e.clientX<rect.left+rect.width/2);root.insertBefore(dragged,before?w:w.nextSibling);saveDashboardContainer(container)});
+   if(window.ResizeObserver){const ro=new ResizeObserver(()=>saveDashboardContainer(container));ro.observe(w)}
+ })
+}
+function initDashboardWidgets(){initDashboardContainer('day');initDashboardContainer('footer')}
+function resetDashboardLayout(){
+ localStorage.removeItem(dashboardLayoutKey('day'));localStorage.removeItem(dashboardLayoutKey('footer'));renderCommandDashboard()
+}
+function commandStation(title,units,date,cls,open,widgetId){
  let rows=units.map(unit=>{
    const ps=unitPeople(date,unit), n=open.filter(x=>x.unit===unit);
    const people=ps.map(x=>{
@@ -679,7 +757,7 @@ function commandStation(title,units,date,cls,open){
    }).join('');
    return '<div class="cmd-row"><b>'+unit+'</b><div>'+(people||'<span class="muted">No assignment</span>')+'</div><span class="tag '+(n.length?'bad':'good')+'">'+(n.length?'OPEN':'✓')+'</span></div>'
  }).join('');
- return '<div class="cmd-station '+cls+'"><h3>'+title+'</h3>'+rows+'</div>'
+ return '<div class="cmd-station '+cls+(widgetId?' dash-widget':'')+'"'+(widgetId?' data-widget-id="'+widgetId+'"':'')+'><h3>'+title+'</h3>'+rows+'</div>'
 }
 
 function shiftForDate(date){
