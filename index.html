@@ -766,6 +766,10 @@ async function boot(){
 }
 function isAdmin(){return adminRoles.includes(profile?.app_role)}
 function rankPriority(p){if(p.rank.includes('Battalion'))return 40;if(p.rank==='Captain')return 30;if(p.single_role_paramedic)return 20;return 10}
+const OT_ROTATION_ORDER=['Gavin Rizek','Max Poese','Luke Kluender','Kyle Kennedy','Tim Schmuke','Craig Richey','Travis Wessel','Jon Norman','Dayton Holtkamp','Zan Silkett','Cheyenne Best','Grahame Love','Jason Lawson','Noah Scheffler','Sam Smith','Kelly Hoffman','Sam Rieger','Kaleb DeVore','Keith Riggins','Nick Estrada','Riley Hamm','Adam Namanny','Sam Acosta','Corrina Ceja Sandoval','Thomas Ferguson','Braedyn Grassie','Justin Bullard','Zach Mattox','Vincenzo Spallo','Jade McFall','Aaron Roberts','Basil Brown'];
+function otRotationPosition(p){const i=OT_ROTATION_ORDER.findIndex(n=>n===p?.name);return i<0?999:i+1}
+function isAlreadyWorkingDate(p,date){return unitAssignments.some(a=>a.duty_date===date&&a.personnel_id===p.id)}
+function regularOtRosterForNeed(n){return personnel.map(p=>({p,pos:otRotationPosition(p),ot:otFor(p.id),resp:responses.find(r=>r.staffing_need_id===n.id&&r.personnel_id===p.id)})).filter(x=>x.pos<999&&qualifies(x.p,n)).sort((a,b)=>a.pos-b.pos)}
 function priorShift(s){return s==='A'?'C':s==='B'?'A':'B'}
 function qLabel(g){return g==='FF_EMT'?'FF/EMT':g||'Officer / Special'}
 function otEligible(p){return p.active&&p.employment_status==='REGULAR'}
