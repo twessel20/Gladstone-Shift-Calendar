@@ -129,6 +129,7 @@ main{padding:14px 16px 18px}
     <button data-view="staffing">◉ Staffing Board</button>
     <button data-view="ot">♟ OT / Force</button>
     <button data-view="requests">▤ Trades & Leave</button>
+    <button data-view="events">☆ Special Events</button>
     <button data-view="personnel">♙ Personnel</button>
     <button data-view="notifications">● Notifications</button>
     <button data-view="rules">⚙ Rules</button>
@@ -166,8 +167,8 @@ main{padding:14px 16px 18px}
 </section>
 
 <section id="view-staffing" class="view">
- <div class="top"><div><h1>Staffing Board</h1><div class="muted">Live shared shortages and coverage blocks</div></div><div class="grow"></div><button id="createNeedBtn" class="btn primary" onclick="openNeedCreator()">Create Staffing Need</button></div>
- <div class="card"><div id="staffingList" class="list"></div></div>
+ <div class="top"><div><h1>Staffing Board</h1><div class="muted">Shortages, compliance, and current fill status</div></div><div class="grow"></div><button id="createNeedBtn" class="btn primary" onclick="openNeedCreator()">Create Staffing Need</button></div>
+ <div class="split"><div class="card"><div class="panel-title">Open Staffing Needs</div><div id="staffingList" class="list"></div></div><div class="card"><div class="panel-title">Recently Filled</div><div id="filledNeeds" class="list"></div></div></div>
 </section>
 
 <section id="view-ot" class="view">
@@ -176,8 +177,13 @@ main{padding:14px 16px 18px}
 </section>
 
 <section id="view-requests" class="view">
- <div class="top"><div><h1>Leave & Trades</h1><div class="muted">Personal requests with supervisory review</div></div><div class="grow"></div><button class="btn primary" onclick="openLeave()">Request Leave</button></div>
+ <div class="top"><div><h1>Trades & Leave</h1><div class="muted">Employee requests and approval workflow</div></div><div class="grow"></div><button class="btn primary" onclick="openLeave()">New Leave Request</button><button class="btn" onclick="openTradeRequest()">New Trade Request</button></div>
  <div class="split"><div class="card"><div class="panel-title">Leave Requests</div><div id="leaveList" class="list"></div></div><div class="card"><div class="panel-title">Trades</div><div id="tradeList" class="list"></div></div></div>
+</section>
+
+<section id="view-events" class="view">
+ <div class="top"><div><h1>Special Events</h1><div class="muted">Event staffing uses the same live schedule and OT/Force model</div></div><div class="grow"></div><button class="btn primary" onclick="openSpecialAssignment('GATOR1')">New Special Event</button><button class="btn" onclick="openSpecialAssignment('M3')">Place Medic 3 In Service</button></div>
+ <div class="card"><div id="eventsList" class="list"></div></div>
 </section>
 
 <section id="view-personnel" class="view">
@@ -274,6 +280,18 @@ main{padding:14px 16px 18px}
  <div class="actions"><button class="btn good" onclick="createPersonnel()">Create Employee</button></div>
 </div></div>
 
+<div id="tradeModal" class="modal"><div class="modalbox"><div class="modalhead"><h2>New Trade Request</h2><div class="grow"></div><button class="ctl" onclick="closeModal('tradeModal')">Close</button></div>
+ <div class="formgrid">
+  <div class="field"><label>Requester</label><select id="tradeRequester"></select></div>
+  <div class="field"><label>Replacement</label><select id="tradeReplacement"></select></div>
+  <div class="field"><label>Requester Work Date</label><input id="tradeRequesterDate" type="date"></div>
+  <div class="field"><label>Reciprocal Date</label><input id="tradeReciprocalDate" type="date"></div>
+  <div class="field"><label>Position / Assignment</label><input id="tradePosition" placeholder="Optional unit/position"></div>
+ </div>
+ <div class="notice" style="margin-top:10px">Trade remains pending until the replacement accepts, a Captain acknowledges it, and a BC gives final approval.</div>
+ <div class="actions"><button class="btn primary" onclick="submitTradeRequest()">Submit Trade</button></div>
+</div></div>
+
 <div id="ftoPairingModal" class="modal"><div class="modalbox"><div class="modalhead"><h2>Assign FTO Trainer</h2><div class="grow"></div><button class="ctl" onclick="closeModal('ftoPairingModal')">Close</button></div>
  <div id="ftoPairingSummary" class="notice bad"></div>
  <div class="field" style="margin-top:10px"><label>Qualified FTO Trainer</label><select id="ftoTrainerSelect"></select></div>
@@ -308,7 +326,7 @@ main{padding:14px 16px 18px}
 const SUPABASE_URL='https://hnktbvfzrccfrgfrgehr.supabase.co';
 const SUPABASE_KEY='sb_publishable_sdPmMJGLy0H1HSAxa1ngZQ_yYR3miIW';
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-let session=null, profile=null, me=null, personnel=[], otStatus=[], needs=[], responses=[], assignments=[], unitAssignments=[], events=[], eventSlots=[], notifications=[], leaves=[], trades=[], audits=[], shiftDays=[], sourceCells=[], rules=[], selectedNeed=null, pendingAward=null, pendingFtoPairing=null, conceptSelectedDate='2026-09-30', dashboardSelectedDate='2026-09-30';
+let session=null, profile=null, me=null, personnel=[], otStatus=[], needs=[], responses=[], assignments=[], unitAssignments=[], events=[], eventSlots=[], dayNotes=[], notifications=[], leaves=[], trades=[], audits=[], shiftDays=[], sourceCells=[], rules=[], selectedNeed=null, pendingAward=null, pendingFtoPairing=null, conceptSelectedDate='2026-09-30', dashboardSelectedDate='2026-09-30';
 const adminRoles=['bc','chief','admin'];
 
 function msg(id,text,bad=false){const el=document.getElementById(id);el.textContent=text;el.className='notice'+(bad?' bad':'')}
@@ -347,7 +365,7 @@ function pById(id){return personnel.find(p=>p.id===id)}
 function otFor(id){return otStatus.find(x=>x.personnel_id===id)||{regular_ot_hours_14d:0,hours_remaining_to_24:24}}
 
 async function loadAll(){
- const [p,o,n,r,a,ua,ev,es,no,l,t,au,sd,sc,ru]=await Promise.all([
+ const [p,o,n,r,a,ua,ev,es,dn,no,l,t,au,sd,sc,ru]=await Promise.all([
   sb.from('personnel').select('*').eq('active',true).order('shift').order('hire_date',{ascending:false}),
   sb.from('personnel_ot_status').select('*'),
   sb.from('staffing_needs').select('*').neq('status','CANCELLED').order('duty_date'),
@@ -356,6 +374,7 @@ async function loadAll(){
   sb.from('unit_assignments').select('*').gte('duty_date','2026-09-30').lte('duty_date','2026-10-27').order('duty_date'),
   sb.from('events').select('*').gte('event_date','2026-09-30').lte('event_date','2026-10-27').order('event_date'),
   sb.from('event_slots').select('*'),
+  sb.from('day_notes').select('*').gte('duty_date','2026-09-30').lte('duty_date','2026-10-27'),
   sb.from('notifications').select('*').eq('recipient_personnel_id',me.id).order('created_at',{ascending:false}).limit(100),
   sb.from('leave_requests').select('*').order('created_at',{ascending:false}).limit(100),
   sb.from('trade_requests').select('*').order('created_at',{ascending:false}).limit(100),
@@ -364,9 +383,9 @@ async function loadAll(){
   sb.from('schedule_source_cells').select('*').gte('duty_date','2026-09-30').lte('duty_date','2026-10-27').order('duty_date').order('source_name'),
   sb.from('app_rules').select('*').order('category').order('key')
  ]);
- personnel=p.data||[];otStatus=o.data||[];needs=n.data||[];responses=r.data||[];assignments=a.data||[];unitAssignments=ua.data||[];events=ev.data||[];eventSlots=es.data||[];notifications=no.data||[];leaves=l.data||[];trades=t.data||[];audits=au.data||[];shiftDays=sd.data||[];sourceCells=sc.data||[];rules=ru.data||[];renderAll()
+ personnel=p.data||[];otStatus=o.data||[];needs=n.data||[];responses=r.data||[];assignments=a.data||[];unitAssignments=ua.data||[];events=ev.data||[];eventSlots=es.data||[];dayNotes=dn.data||[];notifications=no.data||[];leaves=l.data||[];trades=t.data||[];audits=au.data||[];shiftDays=sd.data||[];sourceCells=sc.data||[];rules=ru.data||[];renderAll()
 }
-function renderAll(){renderDashboard();renderSchedule();renderStaffing();renderOT();renderPersonnel();renderNotifications();renderRequests();renderRules();renderAudit()}
+function renderAll(){renderDashboard();renderSchedule();renderStaffing();renderOT();renderRequests();renderEvents();renderPersonnel();renderNotifications();renderRules();renderAudit()}
 function renderDashboard(){renderCommandDashboard()}
 function selectDashboardDate(date){dashboardSelectedDate=date;renderCommandDashboard()}
 function selectDashboardToday(){
@@ -448,9 +467,19 @@ function renderCommandDayDetail(){
    '<div class="cmd-check">FAO Coverage <span style="float:right">'+(fao?'✓ Met':'! Review')+'</span></div>'+
    '<div class="cmd-check">Officer (BC) <span style="float:right">'+(bc?'✓ Met':'! Open')+'</span></div>'+
    '<div class="cmd-check">Minimum Staffing <span style="float:right">'+(open.length?open.length+' position'+(open.length>1?'s':'')+' short':'✓ Met')+'</span></div></div>';
+ const dayLeave=leaves.filter(x=>x.leave_date===date);
+ const dayTrades=trades.filter(x=>x.requester_date===date||x.reciprocal_date===date);
+ const note=dayNotes.find(x=>x.duty_date===date&&x.shift===shift);
+ html+='<div class="cmd-panel" style="margin-top:9px"><div class="panel-title">Requests Affecting This Day</div>'+
+   ((dayLeave.length||dayTrades.length)?[
+      ...dayLeave.map(x=>'<div class="cmd-check">'+(pById(x.personnel_id)?.name||'Personnel')+' — '+x.leave_type+' <span style="float:right">'+x.status.replaceAll('_',' ')+'</span></div>'),
+      ...dayTrades.map(x=>'<div class="cmd-check">'+(pById(x.requester_id)?.name||'Personnel')+' — Trade <span style="float:right">'+x.status.replaceAll('_',' ')+'</span></div>')
+    ].join(''):'<div class="muted">No requests affecting this day.</div>')+
+   '</div>';
+ html+='<div class="cmd-panel" style="margin-top:9px"><div class="panel-title">BC Notes</div><div class="notice">'+(note?.note||'No notes for this shift day.')+'</div>'+(isAdmin()?'<div class="actions"><button class="btn" onclick="editDayNote(\''+date+'\',\''+shift+'\')">Add / Edit Note</button></div>':'')+'</div>';
  html+='<div class="cmd-panel" style="margin-top:9px"><div class="panel-title">Quick Actions</div><div class="cmd-actions">'+
-   (isAdmin()?'<button class="btn primary" onclick="openNeedCreator()">Fill Shortage</button><button class="btn good" onclick="goto(\'ot\')">Assign OT / Force</button><button class="btn" onclick="openSpecialAssignment(\'M3\')">Medic 3</button><button class="btn" onclick="openSpecialAssignment(\'GATOR1\')">Special Event</button>':'')+
-   '<button class="btn" onclick="goto(\'requests\')">Trades / Leave</button><button class="btn" onclick="goto(\'schedule\')">Full Day Notes</button></div></div>';
+   (isAdmin()?'<button class="btn primary" onclick="openNeedCreatorForDate(\''+date+'\',\''+shift+'\')">Fill Day</button><button class="btn good" onclick="goto(\'ot\')">Assign OT / Force</button><button class="btn" onclick="openMovePersonnel(\''+date+'\')">Move Personnel</button><button class="btn" onclick="openSpecialAssignment(\'M3\')">Medic 3</button><button class="btn" onclick="openSpecialAssignment(\'GATOR1\')">Special Event</button>':'')+
+   '<button class="btn" onclick="openTradeRequest()">Trade</button><button class="btn" onclick="openLeave()">Leave</button><button class="btn" onclick="goto(\'events\')">Events</button></div></div>';
  cmdDayDetail.innerHTML=html
 }
 function commandStation(title,units,date,cls,open){
@@ -563,7 +592,12 @@ function prettyRule(v){
  return Object.entries(v).map(([k,val])=>'<b>'+k.replaceAll('_',' ')+':</b> '+(typeof val==='object'?JSON.stringify(val):String(val))).join('<br>')
 }
 function needCard(n){const covered=coverageSum(n.id),pct=Math.min(100,(covered/Number(n.required_hours))*100);return `<div class="item"><h3>${formatDate(n.duty_date)} — ${n.position_label}</h3><div class="meta">${n.shift} Shift • ${n.unit} • ${qLabel(n.qualification_group)} • ${n.status.replaceAll('_',' ')}</div><div class="coverage"><span style="width:${pct}%"></span></div><div class="meta">${covered}/${Number(n.required_hours)}h covered • ${remaining(n)}h remaining</div><div class="actions"><button class="btn primary" onclick="openWorkflow('${n.id}')">Open</button></div></div>`}
-function renderStaffing(){staffingList.innerHTML=needs.length?needs.map(needCard).join(''):'<div class="notice">No staffing needs.</div>'}
+function renderStaffing(){
+ const open=needs.filter(n=>!['FILLED','CANCELLED'].includes(n.status));
+ const filled=needs.filter(n=>n.status==='FILLED').sort((a,b)=>String(b.duty_date).localeCompare(String(a.duty_date))).slice(0,12);
+ staffingList.innerHTML=open.length?open.map(needCard).join(''):'<div class="notice">No open staffing needs.</div>';
+ filledNeeds.innerHTML=filled.length?filled.map(needCard).join(''):'<div class="notice">No recently filled needs.</div>'
+}
 function renderOT(){
  const active=needs.filter(n=>n.status!=='FILLED');
  otNeeds.innerHTML=active.map(n=>`<div class="item"><h3>${formatDate(n.duty_date)} — ${n.position_label}</h3><div class="meta">${n.shift} Shift • ${remaining(n)}h remaining • ${responses.filter(r=>r.staffing_need_id===n.id&&r.available).length} available</div><div class="actions"><button class="btn primary" onclick="selectNeed('${n.id}')">View</button></div></div>`).join('')||'<div class="notice">No active staffing needs.</div>';
@@ -790,6 +824,38 @@ async function saveSpecialAssignment(){
  await logAudit('SPECIAL_ASSIGNMENT_ACTIVATED','event',event.id,{unit,date,title:saName.value,hours,personnel:rows.map(r=>r.personnel_id)});
  closeModal('specialAssignmentModal');await loadAll()
 }
+function renderEvents(){
+ eventsList.innerHTML=events.length?events.map(e=>{
+   const slots=eventSlots.filter(s=>s.event_id===e.id);
+   const units=[...new Set(slots.map(s=>s.apparatus).filter(Boolean))];
+   const people=unitAssignments.filter(a=>a.duty_date===e.event_date&&units.includes(a.unit)).map(a=>pById(a.personnel_id)?.name).filter(Boolean);
+   return '<div class="item"><h3>'+formatDate(e.event_date)+' — '+e.name+'</h3><div class="meta">'+(e.location||'No location')+' • '+e.status+(units.length?' • '+units.join(', '):'')+'</div>'+(people.length?'<div class="decision"><b>Assigned:</b> '+[...new Set(people)].join(', ')+'</div>':'')+'<div class="actions">'+(isAdmin()?'<button class="btn" onclick="openSpecialAssignment(\''+(units[0]||'GATOR1')+'\')">Add / Update Staffing</button>':'')+'</div></div>'
+ }).join(''):'<div class="notice">No special events in this 28-day cycle.</div>'
+}
+function openTradeRequest(){
+ tradeRequester.innerHTML=personnel.filter(p=>p.active).map(p=>'<option value="'+p.id+'">'+p.name+' — '+p.shift+' Shift</option>').join('');
+ tradeReplacement.innerHTML=personnel.filter(p=>p.active).map(p=>'<option value="'+p.id+'">'+p.name+' — '+p.shift+' Shift</option>').join('');
+ tradeRequester.value=me.id;
+ tradeRequesterDate.value=dashboardSelectedDate||new Date().toISOString().slice(0,10);
+ tradeReciprocalDate.value='';
+ tradePosition.value='';
+ openModal('tradeModal')
+}
+async function submitTradeRequest(){
+ if(tradeRequester.value===tradeReplacement.value)return alert('Requester and replacement must be different personnel.');
+ const row={
+  requester_id:tradeRequester.value,
+  replacement_id:tradeReplacement.value||null,
+  requester_date:tradeRequesterDate.value,
+  reciprocal_date:tradeReciprocalDate.value||null,
+  position_label:tradePosition.value.trim()||null,
+  status:'POSTED'
+ };
+ const {data,error}=await sb.from('trade_requests').insert(row).select().single();
+ if(error)return alert(error.message);
+ await logAudit('TRADE_REQUESTED','trade_request',data.id,row);
+ closeModal('tradeModal');await loadAll()
+}
 function notifCard(n){return `<div class="item"><h3>${n.title} ${!n.read_at?'<span class="tag bad">UNREAD</span>':''}</h3><div class="meta">${new Date(n.created_at).toLocaleString()} • ${n.body}</div><div class="actions">${!n.read_at?'<button class="btn" onclick="readNotif(\''+n.id+'\')">Mark Read</button>':''}${n.action_type==='OT_RESPONSE'?'<button class="btn primary" onclick="selectNeed(\''+n.action_id+'\');goto(\'ot\')">Open OT Request</button>':''}${n.action_type==='ACK_ASSIGNMENT'&&!n.acknowledged_at?'<button class="btn good" onclick="ackNotif(\''+n.id+'\')">Acknowledge</button>':''}</div></div>`}
 function renderNotifications(){notificationList.innerHTML=notifications.map(notifCard).join('')||'<div class="notice">No notifications.</div>'}
 async function readNotif(id){await sb.from('notifications').update({read_at:new Date().toISOString()}).eq('id',id);await loadAll()}
@@ -802,6 +868,24 @@ function renderAudit(){auditList.innerHTML=isAdmin()?(audits.map(a=>`<div class=
 async function logAudit(action,entity_type,entity_id,detail){if(!isAdmin()&&action!=='OT_RESPONSE'&&action!=='LEAVE_REQUESTED')return;await sb.from('audit_events').insert({actor_user_id:session.user.id,actor_personnel_id:me.id,action,entity_type,entity_id,detail})}
 
 function openNeedCreator(){if(!isAdmin())return;needDate.value=new Date().toISOString().slice(0,10);openModal('needModal')}
+function openNeedCreatorForDate(date,shift){if(!isAdmin())return;needDate.value=date;needShift.value=shift;openModal('needModal')}
+function openMovePersonnel(date){
+ if(!isAdmin())return;
+ const current=unitAssignments.filter(a=>a.duty_date===date&&['BC','E1','M1','E2','M2','M3','GATOR1'].includes(a.unit));
+ if(!current.length)return alert('No unit assignments are loaded for this date.');
+ const choices=current.map(a=>{const p=pById(a.personnel_id);return (p?.name||'Unknown')+' — '+a.unit}).join('\n');
+ alert('Move Personnel workflow is using the live day assignments. Select the employee from Personnel/Staffing while this date is active:\n\n'+choices)
+}
+async function editDayNote(date,shift){
+ const current=dayNotes.find(x=>x.duty_date===date&&x.shift===shift)?.note||'';
+ const note=prompt('BC note for '+formatDate(date)+' — '+shift+' Shift',current);
+ if(note===null)return;
+ const row={duty_date:date,shift,note:note.trim()||' ',updated_by:session.user.id,created_by:session.user.id,updated_at:new Date().toISOString()};
+ const {error}=await sb.from('day_notes').upsert(row,{onConflict:'duty_date,shift'});
+ if(error)return alert(error.message);
+ await logAudit('DAY_NOTE_UPDATED','day_note',null,{date,shift,note:note.trim()});
+ await loadAll()
+}
 function applyNeedPreset(){const p=needPreset.value;if(p==='24'){needStart.value='08:00';needEnd.value='08:00';needHours.value=24}else if(p==='day'){needStart.value='08:00';needEnd.value='20:00';needHours.value=12}else if(p==='night'){needStart.value='20:00';needEnd.value='08:00';needHours.value=12}}
 async function createNeed(){const row={duty_date:needDate.value,shift:needShift.value,unit:needUnit.value,position_label:needPosition.value.trim(),qualification_group:needGroup.value||null,source:needSource.value,status:'NOT_PAGED',start_time:needStart.value,end_time:needEnd.value,required_hours:Number(needHours.value),created_by:session.user.id};if(!row.position_label)return alert('Position is required.');const {data,error}=await sb.from('staffing_needs').insert(row).select().single();if(error)return alert(error.message);await logAudit('STAFFING_NEED_CREATED','staffing_need',data.id,row);closeModal('needModal');await loadAll()}
 function openModal(id){document.getElementById(id).classList.add('show')}function closeModal(id){document.getElementById(id).classList.remove('show')}
