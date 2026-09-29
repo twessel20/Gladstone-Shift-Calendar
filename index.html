@@ -18,7 +18,9 @@ main{padding:18px;min-width:0}.view{display:none}.view.on{display:block}.top{dis
 .tag{display:inline-block;border-radius:999px;background:#173451;color:#c9ddf5;font-size:10px;padding:3px 6px;margin:2px}.tag.good{background:#123f2c;color:#9be7bb}.tag.bad{background:#571d25;color:#ffb1b8}.tag.warn{background:#5a4215;color:#ffd980}.tag.purp{background:#39256b;color:#d7c4ff}
 .notice{padding:9px;border:1px solid #2b4564;background:#102238;border-radius:8px;color:#cbd7e8}.notice.bad{background:#2d171b;border-color:#71313a;color:#ffc0c5}.notice.warn{background:#2a2110;border-color:#7d5b17;color:#f3d88c}
 .formgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.field label{display:block;color:#afbed1;font-size:11px;margin-bottom:4px}.field input,.field select,.field textarea{width:100%;padding:9px;background:#0c1a2b;color:#fff;border:1px solid #2d4868;border-radius:7px}.field textarea{min-height:72px}
-.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:100;align-items:center;justify-content:center;padding:16px}.modal.show{display:flex}.modalbox{width:min(980px,100%);max-height:92vh;overflow:auto;background:#091727;border:1px solid #2a4564;border-radius:14px;padding:15px}.modalhead{display:flex;align-items:center;gap:8px;margin-bottom:11px}.modalhead h2{margin:0}.candidate{display:grid;grid-template-columns:1fr auto;gap:10px;padding:10px 0;border-top:1px solid #22364f}.candidate:first-child{border-top:0}.candidate.disabled{opacity:.48}.decision{margin-top:6px;background:#081421;border:1px solid #22364f;border-radius:7px;padding:7px;font-size:11px;color:#cbd7e8}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:1000;align-items:center;justify-content:center;padding:12px;overflow:hidden}
+.modal.show{display:flex}
+.modalbox{position:absolute;left:50%;top:50%;width:min(980px,calc(100vw - 24px));max-width:980px;overflow:visible;background:#091727;border:1px solid #2a4564;border-radius:14px;padding:15px;transform-origin:center center;box-sizing:border-box}.modalhead{display:flex;align-items:center;gap:8px;margin-bottom:11px}.modalhead h2{margin:0}.candidate{display:grid;grid-template-columns:1fr auto;gap:10px;padding:10px 0;border-top:1px solid #22364f}.candidate:first-child{border-top:0}.candidate.disabled{opacity:.48}.decision{margin-top:6px;background:#081421;border:1px solid #22364f;border-radius:7px;padding:7px;font-size:11px;color:#cbd7e8}
 .authwrap{min-height:100vh;display:grid;place-items:center;padding:20px;background:radial-gradient(circle at 50% 10%,#1a334f 0,transparent 35%),#07111d}.authbox{width:min(450px,100%);background:#0d1a2a;border:1px solid #2b4564;border-radius:15px;padding:18px}.authbox h1{margin:0 0 4px}.auth-brand{display:flex;flex-direction:column;align-items:center;text-align:center;margin-bottom:16px}.auth-logo{width:112px;height:112px;object-fit:cover;border-radius:14px;box-shadow:0 0 0 3px #c8a93f,0 10px 28px rgba(0,0,0,.4);margin-bottom:12px}.auth-brand-title{font-size:24px;font-weight:1000;letter-spacing:.02em;line-height:1.05}.auth-brand-sub{font-size:10px;color:var(--muted);letter-spacing:.14em;margin-top:7px}.authbox .field{margin-top:10px}.authactions{display:flex;gap:8px;margin-top:12px}
 .table{width:100%;border-collapse:collapse}.table th,.table td{padding:8px;border-bottom:1px solid #203149;text-align:left;vertical-align:top}.table th{font-size:11px;color:#aebed0}
 .coverage{height:9px;background:#1d2b3d;border-radius:999px;overflow:hidden;margin:8px 0}.coverage span{display:block;height:100%;background:var(--green)}
@@ -586,6 +588,24 @@ main{overflow-x:hidden}
 @media(max-width:900px){.ot-shift-handoff{grid-template-columns:1fr}.ot-force-up-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:520px){.ot-force-up-grid{grid-template-columns:1fr}}
 
+
+.modalbox.fit-screen{will-change:transform}
+.modalbox .formgrid{gap:8px}
+.modalbox .field{min-width:0}
+.modalbox .field label{font-size:10px}
+.modalbox input,.modalbox select,.modalbox textarea{min-height:34px}
+.modalbox .actions{margin-top:10px}
+@media(max-width:700px){
+ .modal{padding:6px}
+ .modalbox{width:min(980px,calc(100vw - 12px));padding:10px;border-radius:10px}
+ .modalhead{margin-bottom:7px}
+ .modalhead h2{font-size:17px}
+ .modalbox .formgrid{gap:6px}
+ .modalbox .field label{font-size:9px}
+ .modalbox input,.modalbox select,.modalbox textarea{min-height:32px;padding:5px 7px}
+ .modalbox .notice{padding:7px;font-size:10px}
+ .modalbox .btn,.modalbox .ctl{min-height:32px;padding:6px 8px}
+}
 </style>
 </head>
 <body>
@@ -2329,9 +2349,33 @@ async function editDayNote(date,shift){
 }
 function applyNeedPreset(){const p=needPreset.value;if(p==='24'){needStart.value='08:00';needEnd.value='08:00';needHours.value=24}else if(p==='day'){needStart.value='08:00';needEnd.value='20:00';needHours.value=12}else if(p==='night'){needStart.value='20:00';needEnd.value='08:00';needHours.value=12}}
 async function createNeed(){const row={duty_date:needDate.value,shift:needShift.value,unit:needUnit.value,position_label:needPosition.value.trim(),qualification_group:needGroup.value||null,source:needSource.value,status:'NOT_PAGED',start_time:needStart.value,end_time:needEnd.value,required_hours:Number(needHours.value),created_by:session.user.id};if(!row.position_label)return alert('Position is required.');const {data,error}=await sb.from('staffing_needs').insert(row).select().single();if(error)return alert(error.message);await logAudit('STAFFING_NEED_CREATED','staffing_need',data.id,row);closeModal('needModal');await loadAll()}
-function openModal(id){document.getElementById(id).classList.add('show')}function closeModal(id){document.getElementById(id).classList.remove('show')}
+function fitModalToScreen(id){
+ const modal=document.getElementById(id);if(!modal)return;
+ const box=modal.querySelector('.modalbox');if(!box)return;
+ box.classList.add('fit-screen');
+ box.style.transform='translate(-50%,-50%) scale(1)';
+ const pad=12;
+ const rect=box.getBoundingClientRect();
+ const naturalW=rect.width||box.scrollWidth||1;
+ const naturalH=Math.max(box.scrollHeight,rect.height)||1;
+ const availW=Math.max(100,window.innerWidth-pad*2);
+ const availH=Math.max(100,window.innerHeight-pad*2);
+ const scale=Math.min(1,availW/naturalW,availH/naturalH);
+ box.style.transform='translate(-50%,-50%) scale('+Math.max(.52,scale).toFixed(3)+')'
+}
+function openModal(id){
+ const modal=document.getElementById(id);if(!modal)return;
+ modal.classList.add('show');
+ requestAnimationFrame(()=>fitModalToScreen(id))
+}
+function closeModal(id){
+ const modal=document.getElementById(id);if(!modal)return;
+ modal.classList.remove('show');
+ const box=modal.querySelector('.modalbox');if(box)box.style.transform=''
+}
 function goto(v){document.querySelectorAll('.view').forEach(x=>x.classList.remove('on'));document.getElementById('view-'+v).classList.add('on');document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.view===v));if(v==='ot'&&selectedNeed)selectNeed(selectedNeed)}
 document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>goto(b.dataset.view));
+window.addEventListener('resize',()=>{document.querySelectorAll('.modal.show').forEach(m=>fitModalToScreen(m.id))});
 
 let subscribed=false;
 function subscribeRealtime(){if(subscribed)return;subscribed=true;sb.channel('gfd-live').on('postgres_changes',{event:'*',schema:'public',table:'staffing_needs'},loadAll).on('postgres_changes',{event:'*',schema:'public',table:'ot_responses'},loadAll).on('postgres_changes',{event:'*',schema:'public',table:'staffing_assignments'},loadAll).on('postgres_changes',{event:'INSERT',schema:'public',table:'notifications',filter:'recipient_personnel_id=eq.'+me.id},payload=>{showDeviceNotification(payload.new);loadAll()}).subscribe()}
