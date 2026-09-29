@@ -626,6 +626,17 @@ main{overflow-x:hidden}
 .kelly-day-strip{display:flex;justify-content:center;align-items:center;gap:5px;flex-wrap:wrap;width:max-content;max-width:100%;margin:4px auto 6px;padding:3px 8px;border:1px solid #5f4a1d;border-radius:999px;background:#17150e;color:#d8c98d;text-align:center;font-size:8px;font-weight:700;line-height:1.1}
 .kelly-day-strip strong{font-size:8px;letter-spacing:.05em;color:#e6d58f}
 
+
+.cycle-progress-tile{display:flex!important;align-items:center;justify-content:center;gap:9px;text-align:left!important}
+.cycle-progress-ring{--pct:0;--ring:#0ccf86;position:relative;width:54px;height:54px;border-radius:50%;background:conic-gradient(var(--ring) calc(var(--pct)*1%),#26384a 0);display:grid;place-items:center;flex:0 0 auto}
+.cycle-progress-ring::before{content:"";position:absolute;inset:6px;border-radius:50%;background:#0b1a2a}
+.cycle-progress-ring .inside{position:relative;z-index:1;text-align:center;line-height:1}
+.cycle-progress-ring .inside b{display:block;font-size:13px!important;color:#fff}
+.cycle-progress-ring .inside small{display:block;font-size:7px;color:#9cafc1;margin-top:2px}
+.cycle-progress-copy{min-width:0}
+.cycle-progress-copy strong{font-size:12px!important;margin:0!important}
+.cycle-progress-copy span{font-size:8px!important;margin-top:3px!important}
+@media(max-width:1300px) and (min-width:901px){.cycle-progress-ring{width:46px;height:46px}.cycle-progress-ring .inside b{font-size:11px!important}}
 </style>
 </head>
 <body>
@@ -1510,6 +1521,7 @@ function renderCommandDayDetail(){
  const dayStatus=dayStaffingCompliance(date);
  const cycleDays=periodDays(period).filter(x=>shiftForDate(x)===selectedShift);
  const cycleGreen=cycleDays.filter(x=>dayStaffingCompliance(x).ok).length;
+ const cyclePct=cycleDays.length?Math.round((cycleGreen/cycleDays.length)*100):0;
  const openCycle=needs.filter(n=>n.duty_date>=period.start_date&&n.duty_date<=period.end_date&&!['FILLED','CANCELLED'].includes(n.status));
  const forceCycle=openCycle.filter(n=>n.status==='FORCE_NEEDED');
  const pendingRequests=leaves.filter(x=>x.status==='SUBMITTED').length+trades.filter(x=>!['APPROVED','DENIED','APPLIED'].includes(x.status)).length;
@@ -1527,7 +1539,7 @@ function renderCommandDayDetail(){
  html+='<div class="station-board s1"><div class="station-board-title">STATION 1</div>'+apparatusSummaryButton(date,'BC')+apparatusSummaryButton(date,'E1')+apparatusSummaryButton(date,'M1')+'</div>';
  html+='<div class="station-board s2"><div class="station-board-title">STATION 2</div>'+apparatusSummaryButton(date,'E2')+apparatusSummaryButton(date,'M2')+'</div>';
  html+='<div class="command-summary-rail">'+
-   '<button class="command-tile '+(cycleGreen===cycleDays.length?'good':'bad')+'" onclick="goto(\'staffing\')"><strong>'+cycleGreen+' / '+cycleDays.length+'</strong><span>Cycle duty days green</span></button>'+
+   '<button class="command-tile cycle-progress-tile '+(cycleGreen===cycleDays.length?'good':'bad')+'" onclick="goto(\'staffing\')"><div class="cycle-progress-ring" style="--pct:'+cyclePct+';--ring:'+(cycleGreen===cycleDays.length?'#0ccf86':'#ed3343')+'"><div class="inside"><b>'+cyclePct+'%</b><small>'+cycleGreen+'/'+cycleDays.length+'</small></div></div><div class="cycle-progress-copy"><strong>Duty Days Green</strong><span>Cycle staffing progress</span></div></button>'+
    '<button class="command-tile '+(openCycle.length?'bad':'good')+'" onclick="'+(firstNeed?"openWorkflow('"+firstNeed.id+"')":"goto('staffing')")+'"><strong>'+openCycle.length+'</strong><span>Open staffing needs</span></button>'+
    '<button class="command-tile '+(forceCycle.length?'bad':'')+'" onclick="goto(\'ot\')"><strong>'+forceCycle.length+'</strong><span>Force needed</span></button>'+
    '<button class="command-tile" onclick="goto(\'requests\')"><strong>'+pendingRequests+'</strong><span>Pending leave / trades</span></button>'+
