@@ -580,10 +580,12 @@ function apparatusRoleLabel(p){
  const r=rankLabel(p);
  if(r==='Battalion Chief'||r==='Captain')return 'Officer';
  if(p.is_fao)return 'FAO';
- if(p.personnel_type==='FF_PARAMEDIC')return 'FF/Paramedic';
- if(p.personnel_type==='FF_EMT')return 'FF/EMT';
- if(p.personnel_type==='SINGLE_ROLE_PARAMEDIC')return 'Paramedic';
- return personnelTypeLabel(p)
+ if(p.ems_level==='Paramedic'||p.personnel_type==='FF_PARAMEDIC'||p.personnel_type==='SINGLE_ROLE_PARAMEDIC')return 'Paramedic';
+ return 'EMT'
+}
+function apparatusRolePriority(p){
+ const role=apparatusRoleLabel(p);
+ return role==='Officer'?0:role==='FAO'?1:role==='Paramedic'?2:3
 }
 function assignmentClass(a,p,date){
  const dutyShift=shiftForDate(date);
@@ -616,7 +618,6 @@ function openApparatusDetail(date,unit){
    ].filter(Boolean);
    return '<div class="unit-person"><div class="unit-person-head"><div><div class="unit-person-name">'+x.p.name+'</div><div class="unit-person-meta">'+x.p.shift+' Shift • '+apparatusRoleLabel(x.p)+' • '+(x.a.start_time||'08:00')+'–'+(x.a.end_time||'08:00')+' • '+Number(x.a.hours||24)+'h</div></div><div class="grow"></div>'+assignmentTag+'</div>'+
      '<div class="unit-person-tags">'+quals.map(q=>'<span class="tag">'+q+'</span>').join('')+
-     (x.p.employment_status==='PROBATIONARY_FTO'?'<span class="tag bad">⚠ ON FTO / PROBATIONARY</span>':'')+
      '</div></div>'
  }).join('');
  const needBlock=open.length?'<div class="notice bad" style="margin-top:10px"><b>OPEN STAFFING NEED</b><br>'+open.map(n=>n.position_label+' • '+remaining(n)+'h remaining').join('<br>')+'</div>':'';
@@ -752,7 +753,7 @@ function commandStation(title,units,date,cls,open,widgetId){
    const people=ps.map(x=>{
      const cls=assignmentClass(x.a,x.p,date);
      const fill=cls==='OT_FILL'?' <span class="tag purp">OT FILL • '+x.p.shift+'</span>':cls==='FORCED_OT'?' <span class="tag bad">FORCED OT • '+x.p.shift+'</span>':'';
-     return '<div class="person">'+x.p.name+fill+(x.p.employment_status==='PROBATIONARY_FTO'?' <span class="tag warn">FTO</span>':'')+'</div><div class="role">'+personnelTypeLabel(x.p)+(x.p.is_fao?' • FAO':'')+(x.p.is_fto?' • FTO Trainer':'')+'</div>'
+     return '<div class="person">'+x.p.name+fill+'</div><div class="role"><b>'+apparatusRoleLabel(x.p)+'</b>'+(x.p.is_fto?' • FTO Trainer':'')+'</div>'
    }).join('');
    return '<div class="cmd-row"><b>'+unit+'</b><div>'+(people||'<span class="muted">No assignment</span>')+'</div><span class="tag '+(n.length?'bad':'good')+'">'+(n.length?'OPEN':'✓')+'</span></div>'
  }).join('');
@@ -800,7 +801,11 @@ function calendarPills(date){
 }
 function shortName(name){if(!name)return '—';const a=name.trim().split(/\s+/);return a.length>1?a[0]+' '+a[a.length-1][0]+'.':name}
 function unitPeople(date,unit){
- return unitAssignments.filter(a=>a.duty_date===date&&a.unit===unit).map(a=>({a,p:pById(a.personnel_id)})).filter(x=>x.p)
+ return unitAssignments
+   .filter(a=>a.duty_date===date&&a.unit===unit)
+   .map(a=>({a,p:pById(a.personnel_id)}))
+   .filter(x=>x.p)
+   .sort((x,y)=>apparatusRolePriority(x.p)-apparatusRolePriority(y.p)||x.p.name.localeCompare(y.p.name))
 }
 function renderLandingBoard(){
  const activeNeeds=needs.filter(n=>!['FILLED','CANCELLED'].includes(n.status));
