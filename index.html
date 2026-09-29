@@ -479,6 +479,24 @@ main{overflow-x:hidden}
 .command-tile strong{font-size:20px!important}
 .command-tile span{font-size:9.5px!important}
 
+
+.force-rule-box{border:1px solid #8a6720;background:#2a210e;color:#ffe5a6;border-radius:8px;padding:9px 10px;font-size:11px;line-height:1.35;margin:8px 0}
+.force-list-head{display:grid;grid-template-columns:42px minmax(140px,1.2fr) 90px 70px 80px 92px 82px 82px auto;gap:6px;padding:7px 8px;background:#0c2236;border:1px solid #294b69;border-radius:7px 7px 0 0;font-size:9px;font-weight:900;color:#aebed0;text-transform:uppercase}
+.force-list-row{display:grid;grid-template-columns:42px minmax(140px,1.2fr) 90px 70px 80px 92px 82px 82px auto;gap:6px;align-items:center;padding:8px;border:1px solid #294b69;border-top:0;background:#0a1827;font-size:10px}
+.force-list-row.first{background:#29161a;border-color:#7f3340}
+.force-pos{font-size:16px;font-weight:1000;text-align:center}
+.force-name{font-weight:900;font-size:12px}
+.force-sub{font-size:8px;color:#93a8bc;margin-top:2px}
+.force-status-next{color:#ff6673;font-weight:1000}
+.force-status-avail{color:#65dfa6;font-weight:900}
+.force-mobile-label{display:none}
+@media(max-width:900px){
+ .force-list-head{display:none}
+ .force-list-row{grid-template-columns:48px 1fr auto;gap:6px}
+ .force-list-row>div:nth-child(n+3):nth-child(-n+8){grid-column:2/span 2}
+ .force-mobile-label{display:inline;color:#7f94a9;font-size:8px;text-transform:uppercase;margin-right:5px}
+}
+
 </style>
 </head>
 <body>
@@ -1489,18 +1507,63 @@ async function openWorkflow(id){
  const reg=rs.map((x,i)=>{const o=otFor(x.p.id),blocked=Number(o.regular_ot_hours_14d)>=24;return `<div class="candidate ${blocked?'disabled':''}"><div><b>#${i+1} ${x.p.name}</b> ${x.p.rank==='Captain'||x.p.rank.includes('Battalion')?'<span class="tag warn">OFFICER DEFERRED</span>':'<span class="tag good">LINE PRIORITY</span>'}<div class="meta">${x.p.rank} • ${x.p.shift} Shift</div><div class="decision">Responded ${new Date(x.r.responded_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})} • ${o.regular_ot_hours_14d}h Regular OT / 14d<br>${blocked?'24-hour regular OT threshold reached':'Awardable now'}</div></div><button class="btn good" ${blocked?'disabled':''} onclick="openAward('${n.id}','${x.p.id}','REGULAR_OT')">Schedule</button></div>`}).join('');
  let force='';
  if(!awardable.length){
-  force=`<div class="notice warn" style="margin-top:12px">No awardable Regular OT responder. Force comes from <b>${priorShift(n.shift)} Shift</b> using the ${qLabel(n.qualification_group)} force group.</div><div id="forceCandidates" class="list" style="margin-top:8px">Loading force list…</div>`;
+  force=`<div class="notice warn" style="margin-top:12px">No awardable Regular OT responder. Force comes from <b>${priorShift(n.shift)} Shift</b> using the <b>${qLabel(n.qualification_group)}</b> force list from the department OT tracker.</div><div id="forceCandidates" style="margin-top:8px">Loading force list…</div>`;
   setTimeout(()=>loadForce(id),0)
  }
  const segs=assignments.filter(a=>a.staffing_need_id===id).map(a=>`<div class="item"><b>${pById(a.personnel_id)?.name||'Personnel'}</b><div class="meta">${coverageText(a)} • ${a.assignment_type.replaceAll('_',' ')}</div></div>`).join('');
  workflowBody.innerHTML=`<div class="notice">Required coverage: ${Number(n.required_hours)}h • Covered: ${coverageSum(n.id)}h • Remaining: ${remaining(n)}h</div>${segs?'<div class="panel-title" style="margin-top:12px">Coverage Blocks</div>'+segs:''}<div class="panel-title" style="margin-top:14px">Regular OT Responses</div>${reg||'<div class="notice bad">No available qualified responses.</div>'}${force}`;openModal('workflowModal')
 }
 async function loadForce(needId){
- const n=needs.find(x=>x.id===needId);if(!n.qualification_group){forceCandidates.innerHTML='<div class="notice">No force group is assigned to this need.</div>';return}
- const {data:g}=await sb.from('force_groups').select('id').eq('shift',priorShift(n.shift)).eq('group_name',n.qualification_group).eq('calendar_year',new Date(n.duty_date+'T12:00:00').getFullYear()).maybeSingle();
- if(!g){forceCandidates.innerHTML='<div class="notice bad">No matching force group found.</div>';return}
- const {data:m}=await sb.from('force_memberships').select('*').eq('force_group_id',g.id).order('force_position');
- forceCandidates.innerHTML=(m||[]).map((x,i)=>{const p=pById(x.personnel_id);return `<div class="candidate"><div><b>${p?.name||'Unknown'} ${i===0?'<span class="tag bad">FIRST UP</span>':''}</b><div class="meta">${p?.rank||''} • Force #${x.force_position} • ${x.denials_ytd} denials • ${x.force_status}</div></div><button class="btn danger" onclick="openAward('${n.id}','${x.personnel_id}','FORCED_OT')">Force</button></div>`}).join('')||'<div class="notice">No eligible force members.</div>'
+ const n=needs.find(x=>x.id===needId);
+ if(!n.qualification_group){
+   forceCandidates.innerHTML='<div class="notice">No force group is assigned to this need.</div>';
+   return
+ }
+ const sourceShift=priorShift(n.shift);
+ const year=new Date(n.duty_date+'T12:00:00').getFullYear();
+ const {data:g,error:gErr}=await sb.from('force_groups')
+   .select('*')
+   .eq('shift',sourceShift)
+   .eq('group_name',n.qualification_group)
+   .eq('calendar_year',year)
+   .maybeSingle();
+ if(gErr){forceCandidates.innerHTML='<div class="notice bad">'+gErr.message+'</div>';return}
+ if(!g){
+   forceCandidates.innerHTML='<div class="notice bad">No '+sourceShift+' Shift '+qLabel(n.qualification_group)+' force group found for '+year+'.</div>';
+   return
+ }
+ const {data:m,error:mErr}=await sb.from('force_memberships')
+   .select('*')
+   .eq('force_group_id',g.id)
+   .order('force_position');
+ if(mErr){forceCandidates.innerHTML='<div class="notice bad">'+mErr.message+'</div>';return}
+
+ const rows=(m||[]).filter(x=>{
+   const p=pById(x.personnel_id);
+   return p&&otEligible(p)
+ });
+
+ const head='<div class="force-list-head"><div>Pos</div><div>Employee</div><div>Status</div><div>Denials</div><div>Forced YTD</div><div>Last Forced</div><div>Last OT</div><div>OT Hrs</div><div>Action</div></div>';
+ const body=rows.map((x,i)=>{
+   const p=pById(x.personnel_id);
+   const first=x.force_status==='NEXT TO FORCE'||i===0;
+   return '<div class="force-list-row '+(first?'first':'')+'">'+
+     '<div class="force-pos">#'+x.force_position+'</div>'+
+     '<div><div class="force-name">'+p.name+(first?' <span class="tag bad">FIRST UP</span>':'')+'</div><div class="force-sub">'+p.rank+' • '+p.shift+' Shift • Hire '+(p.hire_date||'—')+'</div></div>'+
+     '<div class="'+(first?'force-status-next':'force-status-avail')+'"><span class="force-mobile-label">Status</span>'+x.force_status+'</div>'+
+     '<div><span class="force-mobile-label">Denials</span><b>'+x.denials_ytd+'</b>'+(x.first_denial_date?'<div class="force-sub">1st '+x.first_denial_date+'</div>':'')+(x.second_denial_date?'<div class="force-sub">2nd '+x.second_denial_date+'</div>':'')+'</div>'+
+     '<div><span class="force-mobile-label">Forced YTD</span><b>'+x.forced_shifts_ytd+'</b> shift'+(Number(x.forced_shifts_ytd)===1?'':'s')+'<div class="force-sub">'+Number(x.forced_hours_ytd||0)+'h</div></div>'+
+     '<div><span class="force-mobile-label">Last Forced</span>'+(x.last_forced_ot_worked||'—')+'</div>'+
+     '<div><span class="force-mobile-label">Last OT</span>'+(x.last_ot_worked||'—')+'</div>'+
+     '<div><span class="force-mobile-label">OT Hours</span>'+(x.last_ot_hours!=null?Number(x.last_ot_hours)+'h':'—')+'</div>'+
+     '<div><button class="btn danger" onclick="openAward(\''+n.id+'\',\''+x.personnel_id+'\',\'FORCED_OT\')">Force</button></div>'+
+   '</div>'
+ }).join('');
+
+ forceCandidates.innerHTML=
+   '<div class="force-rule-box"><b>'+sourceShift+' SHIFT • '+qLabel(n.qualification_group)+' FORCE LIST</b><br>'+
+   'Google Sheet rule: list resets to reverse seniority every January 1. A <b>worked</b> Forced OT assignment of 1 hour or more moves that employee to the bottom of that shift’s force list. Assignment alone does not rotate the list.</div>'+
+   (rows.length?head+body:'<div class="notice">No eligible force members in this group.</div>')
 }
 function qualifiedFtoTrainers(prob){
  return personnel.filter(t=>{
@@ -1548,7 +1611,7 @@ async function performAwardInsert(){
  const {error}=await sb.from('staffing_assignments').insert(row);if(error)return alert(error.message);
  const after=remaining(n)-hours,status=after<=0?'FILLED':'PARTIALLY_FILLED';await sb.from('staffing_needs').update({status}).eq('id',n.id);
  await sb.from('notifications').insert({recipient_personnel_id:pendingAward.pid,category:'CRITICAL',title:pendingAward.type==='FORCED_OT'?'Forced OT Assignment':'OT Assignment',body:`${formatDate(n.duty_date)} • ${n.position_label} • ${awardStart.value}–${awardEnd.value} • ${hours}h`,action_type:'ACK_ASSIGNMENT',action_id:n.id});
- await logAudit('STAFFING_ASSIGNED','staffing_need',n.id,{personnel_id:pendingAward.pid,type:pendingAward.type,start:awardStart.value,end:awardEnd.value,hours});
+ await logAudit('STAFFING_ASSIGNED','staffing_need',n.id,{personnel_id:pendingAward.pid,type:pendingAward.type,start:awardStart.value,end:awardEnd.value,hours,force_list_rotation:pendingAward.type==='FORCED_OT'?'ON_WORKED_1H_PLUS':'N/A'});
  closeModal('awardModal');closeModal('workflowModal');await loadAll()
 }
 function syncPersonnelTypeFields(prefix){
