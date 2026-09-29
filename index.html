@@ -141,7 +141,7 @@ function msg(id,text,bad=false){const el=document.getElementById(id);el.textCont
 async function signIn(){const email=authEmail.value.trim(),password=authPassword.value;const {error}=await sb.auth.signInWithPassword({email,password});if(error)return msg('authMsg',error.message,true);await boot()}
 async function signUp(){const email=authEmail.value.trim(),password=authPassword.value;if(password.length<8)return msg('authMsg','Use a password of at least 8 characters.',true);const {data,error}=await sb.auth.signUp({email,password});if(error)return msg('authMsg',error.message,true);msg('authMsg',data.session?'Account created. Link your personnel record next.':'Account created. Check your email to confirm, then sign in.');if(data.session)await boot()}
 async function signOut(){await sb.auth.signOut();location.reload()}
-async function claimInvite(){const code=inviteCode.value.trim();const {data,error}=await sb.rpc('claim_invite',{p_code:code});if(error)return msg('claimMsg',error.message,true);msg('claimMsg','Account linked to '+data.name+'.');await boot()}
+async function claimInvite(){const code=inviteCode.value.trim();const {data,error}=await sb.functions.invoke('claim-invite',{body:{code}});if(error)return msg('claimMsg',error.message||'Invite claim failed.',true);if(data?.error)return msg('claimMsg',data.error,true);msg('claimMsg','Account linked to '+data.name+'.');await boot()}
 async function boot(){
  const s=await sb.auth.getSession();session=s.data.session;
  if(!session){authScreen.classList.remove('hidden');claimScreen.classList.add('hidden');app.classList.add('hidden');return}
