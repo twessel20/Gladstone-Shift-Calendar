@@ -497,7 +497,9 @@ function renderCommandDashboard(){
    const dt=new Date(date+'T12:00:00'), sel=date===dashboardSelectedDate, duty=shiftForDate(date)===selectedShift;
    html+='<button class="cmd-date '+(duty?'dutyhead ':'gap ')+(sel?'sel ':'')+(date===today?'today':'')+'" '+(duty?'onclick="selectDashboardDate(\''+date+'\')"':'disabled')+'><b>'+dt.getDate()+'</b><small>'+dt.toLocaleDateString(undefined,{weekday:'short'})+'</small>'+(duty?'<div class="shiftmark">'+selectedShift+'</div>':'')+'</button>'
  }
- const rows=[['STATION 1','band','s1'],['BC','unit'],['E1','unit'],['M1','unit'],['STATION 2','band','s2'],['E2','unit'],['M2','unit'],['RESERVE / SPECIAL EVENT','band','res'],['SPECIAL','unit']];
+ const cycleHasSpecial=days.some(date=>['M3','GATOR1'].some(u=>unitPeople(date,u).length>0));
+ const rows=[['STATION 1','band','s1'],['BC','unit'],['E1','unit'],['M1','unit'],['STATION 2','band','s2'],['E2','unit'],['M2','unit']];
+ if(cycleHasSpecial)rows.push(['RESERVE / SPECIAL EVENT','band','res'],['SPECIAL','unit']);
  for(const r of rows){
    if(r[1]==='band'){html+='<div class="cmd-band '+r[2]+'">'+r[0]+'</div>';continue}
    const unit=r[0];
@@ -621,7 +623,7 @@ function dashboardUnitRule(unit){
  if(unit==='BC')return 'Command';
  if(unit==='E1'||unit==='E2')return 'Engine • ALS • FAO';
  if(unit==='M1'||unit==='M2')return 'Medic • ALS';
- if(unit==='SPECIAL')return 'Visible only when active';
+ if(unit==='SPECIAL')return 'Shown only when M3 or Gator 1 is active';
  return ''
 }
 function renderCommandDayDetail(){
