@@ -33,6 +33,69 @@ main{padding:18px;min-width:0}.view{display:none}.view.on{display:block}.top{dis
 @media(max-width:1050px){.concept-wrap{grid-template-columns:1fr}.concept-detail{position:static}}
 @media(max-width:900px){.app{grid-template-columns:1fr}.sidebar{position:sticky;top:0;z-index:20;padding:8px;display:block}.brand{display:none}.nav{display:flex;overflow:auto;gap:4px}.nav button{white-space:nowrap;width:auto}.me{margin-top:8px}.split,.grid4{grid-template-columns:1fr 1fr}main{padding:10px}}
 @media(max-width:600px){.split,.grid4,.formgrid,.sectiongrid{grid-template-columns:1fr}.quickgrid{grid-template-columns:repeat(2,1fr)}.kpirow{grid-template-columns:repeat(2,1fr)}.hero h2{font-size:24px}.top h1{font-size:23px}.candidate{grid-template-columns:1fr}.calendar28{grid-template-columns:repeat(7,minmax(118px,1fr));min-width:860px}}
+
+/* Concept-art command center refinement */
+:root{--bg:#06111b;--panel:#0b1a29;--panel2:#081421;--line:#1d3852;--text:#f5f8fc;--muted:#9cafc1;--green:#0ccf86;--red:#ed3343;--blue:#1378e6;--amber:#f0b323;--purple:#6534d8}
+body{background:radial-gradient(circle at 16% 0%,rgba(17,74,117,.16),transparent 23%),linear-gradient(#06111b,#06111b);font-family:Inter,Segoe UI,Arial,sans-serif}
+.app{grid-template-columns:226px 1fr;min-height:100vh}
+.sidebar{background:linear-gradient(180deg,rgba(5,20,34,.99),rgba(4,17,29,.99));border-right:1px solid #17324b;padding:0;box-shadow:8px 0 24px rgba(0,0,0,.22)}
+.brand{padding:18px;border-bottom:1px solid #17324b;font-size:21px;letter-spacing:-.02em;display:block;position:relative;padding-left:82px;min-height:90px}
+.brand:before{content:"GFD";position:absolute;left:17px;top:16px;display:grid;place-items:center;width:54px;height:54px;border-radius:14px;background:radial-gradient(circle at 50% 35%,#d33a31 0 28%,#8e1e1e 29% 48%,#efc54b 49% 56%,#111 57%);color:#fff;font-size:12px;font-weight:1000;border:2px solid #d7b54c;box-shadow:0 0 0 3px #0b1724}
+.brand small{font-size:9px;letter-spacing:.12em;margin-top:4px}
+.nav{padding:10px 0}
+.nav button{border-radius:0;margin:0;padding:14px 18px;font-size:13px;color:#c4d2df;border-left:4px solid transparent}
+.nav button:hover{background:#0c1d2f}
+.nav button.on{background:linear-gradient(90deg,#c51423 0,#7e101b 55%,rgba(126,16,27,0) 100%);border-left-color:#ff3b48;color:white}
+.me{margin:12px;border-radius:9px;padding:12px;border-color:#24415d;background:#0a1a2a}
+main{padding:14px 16px 18px}
+.top{min-height:70px;padding-bottom:8px;border-bottom:1px solid #17324b;margin-bottom:12px}
+.top h1{font-size:30px;letter-spacing:-.03em}
+.top .muted{font-size:12px}
+.btn,.ctl{border-radius:7px;border-color:#315273;background:#0f2236;font-weight:700}
+.btn.primary{background:#0e6ff1}.btn.good{background:#00a66a}.btn.danger{background:#d82738}
+.cmd-kpis{grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.cmd-kpi{min-height:90px;padding:12px;border-radius:8px;background:linear-gradient(#10253a,#0b1c2d);border-color:#294b69;box-shadow:inset 0 1px rgba(255,255,255,.03)}
+.cmd-kpi strong{font-size:28px;line-height:1;margin-bottom:8px}
+.cmd-kpi.good{background:linear-gradient(#0c4936,#0a3528);border-color:#0f6c4b}
+.cmd-kpi.bad{background:linear-gradient(#591d25,#35151b);border-color:#7a2b35}
+.cmd-kpi.blue{background:linear-gradient(#0b3562,#0b2746);border-color:#13558e}
+.cmd-dashboard{grid-template-columns:minmax(0,1fr) 420px;gap:10px}
+.cmd-main{display:flex;flex-direction:column;gap:10px}
+.cmd-matrix{grid-template-columns:196px repeat(28,minmax(18px,1fr));border-color:#23435f;border-radius:8px;box-shadow:0 8px 28px rgba(0,0,0,.18)}
+.cmd-corner{font-size:12px;padding:9px 12px}
+.cmd-date{padding:7px 1px;background:#0a1a29}
+.cmd-date b{font-size:11px}.cmd-date small{font-size:7px}
+.cmd-band{font-size:12px;padding:8px 12px;letter-spacing:.01em}
+.cmd-band.s1{background:linear-gradient(90deg,#b72a34,#6b1720)}
+.cmd-band.s2{background:linear-gradient(90deg,#0d62c7,#0b3e85)}
+.cmd-band.res{background:linear-gradient(90deg,#6730c9,#3a1b78)}
+.cmd-label{padding:10px 12px;font-size:12px;background:#0a1827}
+.cmd-label span{font-size:8px;margin-top:2px}
+.cmd-cell{height:42px;border-left-color:#23425e;border-top-color:#1c364e;font-size:10px}
+.cmd-cell.off{background:linear-gradient(#344b60,#26394c);color:#aab8c6}
+.cmd-cell.duty{background:linear-gradient(#14d78a,#0aa66b)}
+.cmd-cell.open{background:linear-gradient(#ff5d68,#d73342)}
+.cmd-cell.warn{background:linear-gradient(#f6bf39,#d79613)}
+.cmd-cell.sel{outline:2px solid #d9edff}
+.cmd-right{border-radius:8px;background:linear-gradient(#091a2b,#071522);border-color:#294b69;padding:14px;box-shadow:0 8px 28px rgba(0,0,0,.18)}
+.cmd-right h2{font-size:22px}
+.cmd-status{font-size:13px;padding:10px 12px}
+.cmd-station{border-color:#2a4a66}
+.cmd-station h3{padding:9px 11px;font-size:13px}
+.cmd-station.s1 h3{background:linear-gradient(90deg,#b72b35,#80212a)}
+.cmd-station.s2 h3{background:linear-gradient(90deg,#0e63c9,#0b478e)}
+.cmd-row{grid-template-columns:46px 1fr auto;padding:10px 9px;font-size:12px}
+.cmd-row .person{font-size:12px}
+.cmd-row .role{font-size:9px}
+.cmd-panel{border-color:#284965;background:linear-gradient(#0d1d2f,#091827)}
+.cmd-actions .btn{min-height:46px}
+.cmd-footer{gap:10px}
+.tag{font-weight:800}
+.shift-picker{min-width:108px;background:#c81020;border-color:#e23b48;color:#fff;font-weight:900}
+.header-range{padding:8px 12px;border:1px solid #294b69;background:#0b1b2c;border-radius:7px;color:#e8f1fa;font-size:12px}
+.header-cycle{color:#f3c32f;font-weight:900}
+@media(max-width:1400px){.cmd-dashboard{grid-template-columns:minmax(0,1fr) 360px}.cmd-matrix{grid-template-columns:170px repeat(28,minmax(17px,1fr))}}
+
 </style>
 </head>
 <body>
@@ -76,9 +139,11 @@ main{padding:18px;min-width:0}.view{display:none}.view.on{display:block}.top{dis
 <main>
 <section id="view-dashboard" class="view on">
   <div class="top">
-    <div><h1>28-Day Schedule</h1><div class="muted">Live staffing command view • full cycle • select any day for details</div></div>
+    <div><h1>28-Day Schedule</h1><div class="muted"><span id="headerShiftText" style="color:#ff4251;font-weight:900">A Shift</span> &nbsp;•&nbsp; Sep 30, 2026 – Oct 27, 2026 &nbsp;•&nbsp; <span class="header-cycle">Current Cycle</span></div></div>
     <div class="grow"></div>
     <button class="ctl" onclick="selectDashboardToday()">Today</button>
+    <div class="header-range">Sep 30, 2026 – Oct 27, 2026</div>
+    <select id="dashboardShiftFilter" class="ctl shift-picker" onchange="renderCommandDashboard()"><option>A</option><option>B</option><option>C</option></select>
     <button id="activateM3Btn" class="btn primary hidden" onclick="openSpecialAssignment('M3')">Medic 3</button>
     <button id="activateGatorBtn" class="btn hidden" onclick="openSpecialAssignment('GATOR1')">Special Event</button>
   </div>
@@ -260,6 +325,7 @@ async function boot(){
  const {data:m}=await sb.from('personnel').select('*').eq('id',p.personnel_id).single();me=m;
  authScreen.classList.add('hidden');claimScreen.classList.add('hidden');app.classList.remove('hidden');
  meName.textContent=me.name;meRole.textContent=me.rank+' • '+me.shift+' Shift • '+profile.app_role.toUpperCase();
+ if(document.getElementById('dashboardShiftFilter')) dashboardShiftFilter.value=me.shift;
  createNeedBtn.classList.toggle('hidden',!isAdmin());
  managePersonnelBtn.classList.toggle('hidden',!isAdmin());
  newPersonnelBtn.classList.toggle('hidden',!isAdmin());
@@ -312,11 +378,13 @@ function renderCommandDashboard(){
  const days=[];let d=new Date('2026-09-30T12:00:00');
  for(let i=0;i<28;i++){days.push(d.toISOString().slice(0,10));d=new Date(d.getTime()+86400000)}
  const activeNeeds=needs.filter(n=>!['FILLED','CANCELLED'].includes(n.status));
- const dutyDays=days.filter(x=>shiftForDate(x)===me.shift);
+ const selectedShift=document.getElementById('dashboardShiftFilter')?.value||me.shift;
+ if(document.getElementById('headerShiftText'))headerShiftText.textContent=selectedShift+' Shift';
+ const dutyDays=days.filter(x=>shiftForDate(x)===selectedShift);
  const staffedDuty=dutyDays.filter(x=>!activeNeeds.some(n=>n.duty_date===x)).length;
  const specialCount=events.filter(e=>days.includes(e.event_date)&&e.status!=='CANCELLED').length;
  cmdKpis.innerHTML=
-  '<div class="cmd-kpi"><strong>'+dutyDays.length+'</strong><span class="muted">'+me.shift+'-Shift Duty Days</span></div>'+
+  '<div class="cmd-kpi"><strong>'+dutyDays.length+'</strong><span class="muted">'+selectedShift+'-Shift Duty Days</span></div>'+
   '<div class="cmd-kpi good"><strong>'+staffedDuty+' / '+dutyDays.length+'</strong><span>Fully Staffed Duty Days</span></div>'+
   '<div class="cmd-kpi bad"><strong>'+(dutyDays.length-staffedDuty)+' / '+dutyDays.length+'</strong><span>Duty Days Need Staff</span></div>'+
   '<div class="cmd-kpi blue"><strong>'+leaves.filter(x=>x.status==='SUBMITTED').length+'</strong><span>Pending Requests</span></div>'+
@@ -334,7 +402,7 @@ function renderCommandDashboard(){
    const unit=r[0];
    html+='<div class="cmd-label">'+(unit==='SPECIAL'?'M3 / Gator 1':unit)+'<span>'+dashboardUnitRule(unit)+'</span></div>';
    for(const date of days){
-     const shift=shiftForDate(date), isDuty=shift===me.shift, selected=date===dashboardSelectedDate;
+     const shift=shiftForDate(date), isDuty=shift===selectedShift, selected=date===dashboardSelectedDate;
      let relevantUnits=unit==='SPECIAL'?['M3','GATOR1']:[unit];
      const hasPeople=relevantUnits.some(u=>unitPeople(date,u).length);
      const hasNeed=relevantUnits.some(u=>activeNeeds.some(n=>n.duty_date===date&&n.unit===u));
